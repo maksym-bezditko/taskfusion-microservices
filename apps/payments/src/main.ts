@@ -14,7 +14,7 @@ async function bootstrap() {
   await app.init();
 
   Logger.log(
-    `🚀 Users microservice is initiated!`
+    `🚀 Payments microservice is initiated!`
   );
 }
 

@@ -34,7 +34,7 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": ["apps/api-e2e/**/*", "apps/users-e2e/**/*"]
+      "exclude": []
     }
   ],
   "nxCloudAccessToken": "ZmYxMjE5YzAtYjI5NC00MTAzLWE2ODYtMmM5NDExZWNiNTBlfHJlYWQtd3JpdGU="

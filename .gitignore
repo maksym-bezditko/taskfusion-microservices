@@ -43,3 +43,6 @@ Thumbs.db
 
 # DB volumes
 **/mysql-data/
+
+# Env files
+**/.env*
