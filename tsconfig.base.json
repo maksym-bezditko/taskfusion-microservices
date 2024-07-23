@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@taskfusion-microservices/entities": ["libs/entities/src/index.ts"]
+      "@taskfusion-microservices/entities": ["libs/entities/src/index.ts"],
+      "@taskfusion-microservices/helpers": ["libs/helpers/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

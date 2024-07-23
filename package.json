@@ -11,7 +11,7 @@
     "@nestjs/platform-express": "^10.0.2",
     "@nestjs/typeorm": "^10.0.2",
     "axios": "^1.6.0",
-    "mysql": "^2.18.1",
+    "mysql2": "^3.10.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
     "tslib": "^2.3.0",
