@@ -1,14 +1,14 @@
 services:
-  users-db:
+  pms-db:
     image: mysql:8.0
-    container_name: users-db
+    container_name: pms-db
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: users_db
+      MYSQL_DATABASE: pms_db
       MYSQL_USER: user
+      MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_PASSWORD: password
     ports:
-      - '3300:3306'
+      - '3303:3306'
     volumes:
       - ./mysql-data:/var/lib/mysql
 
