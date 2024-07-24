@@ -1,28 +1,13 @@
 services:
-  clients-db:
-    extends:
-      file: ./apps/clients/docker-compose.yml
-      service: clients-db
-
   comments-db:
     extends:
       file: ./apps/comments/docker-compose.yml
       service: comments-db
 
-  developers-db:
-    extends:
-      file: ./apps/developers/docker-compose.yml
-      service: developers-db
-
   payments-db:
     extends:
       file: ./apps/payments/docker-compose.yml
       service: payments-db
-
-  pms-db:
-    extends:
-      file: ./apps/pms/docker-compose.yml
-      service: pms-db
 
   projects-db:
     extends:
