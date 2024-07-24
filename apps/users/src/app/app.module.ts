@@ -1,4 +1,9 @@
-import { UserEntity } from '@taskfusion-microservices/entities';
+import {
+  ClientEntity,
+  DeveloperEntity,
+  PmEntity,
+  UserEntity,
+} from '@taskfusion-microservices/entities';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -17,9 +22,19 @@ import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>
-        getTypeOrmConfig(configService, [UserEntity]),
+        getTypeOrmConfig(configService, [
+          UserEntity,
+          ClientEntity,
+          DeveloperEntity,
+          PmEntity,
+        ]),
     }),
-    TypeOrmModule.forFeature([UserEntity]),
+    TypeOrmModule.forFeature([
+      UserEntity,
+      ClientEntity,
+      DeveloperEntity,
+      PmEntity,
+    ]),
   ],
   controllers: [AppController],
   providers: [AppService],

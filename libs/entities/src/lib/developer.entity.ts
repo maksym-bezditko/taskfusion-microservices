@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
+import { UserEntity } from './user.entity';
 
 @Entity({
   name: 'developers',
@@ -12,4 +13,8 @@ export class DeveloperEntity {
 
   @Column()
   bio: string;
+
+  @OneToOne(() => UserEntity, user => user.client)
+  @JoinColumn({ name: 'user_id' })
+  user: UserEntity;
 }
