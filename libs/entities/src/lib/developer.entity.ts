@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
+import { UserEntity } from './user.entity';
 
 @Entity({
   name: 'developers',
@@ -7,9 +8,7 @@ export class DeveloperEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
-  user_id: number;
-
-  @Column()
-  bio: string;
+  @OneToOne(() => UserEntity)
+  @JoinColumn()
+  user: UserEntity;
 }
