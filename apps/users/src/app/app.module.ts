@@ -6,11 +6,11 @@ import {
 } from '@taskfusion-microservices/entities';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
+import { ClientsModule } from './clients/clients.module';
+import { DevelopersModule } from './developers/developers.module';
+import { PmsModule } from './pms/pms.module';
 
 @Module({
   imports: [
@@ -29,14 +29,9 @@ import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
           PmEntity,
         ]),
     }),
-    TypeOrmModule.forFeature([
-      UserEntity,
-      ClientEntity,
-      DeveloperEntity,
-      PmEntity,
-    ]),
+    ClientsModule,
+    DevelopersModule,
+    PmsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
