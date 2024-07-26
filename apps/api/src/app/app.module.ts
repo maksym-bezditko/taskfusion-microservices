@@ -1,11 +1,16 @@
 import { Module } from '@nestjs/common';
-
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { KafkaDynamicModule } from '@taskfusion-microservices/modules';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    KafkaDynamicModule.register({
+      name: 'USERS_SERVICE',
+      clientId: 'users',
+      brokers: ['localhost:9092'],
+      groupId: 'users',
+    }),
+    AuthModule,
+  ],
 })
 export class AppModule {}
