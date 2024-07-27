@@ -8,15 +8,16 @@ import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app/app.module';
 import { MicroserviceOptions } from '@nestjs/microservices';
-import { getKafkaConfig } from '@taskfusion-microservices/helpers';
+import { getRmqConfig } from '@taskfusion-microservices/helpers';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
-    getKafkaConfig({
-      clientId: 'users',
-      groupId: 'users',
-      brokers: ['localhost:9092'],
+    getRmqConfig({
+      queue: 'users-queue',
+      queueOptions: {
+        durable: true,
+      },
     })
   );
 
