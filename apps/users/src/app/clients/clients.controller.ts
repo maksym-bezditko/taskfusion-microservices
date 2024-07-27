@@ -3,7 +3,7 @@ import { ClientsService } from './clients.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateClientContract } from '@taskfusion-microservices/contracts';
 
-@Controller('clients')
+@Controller()
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 

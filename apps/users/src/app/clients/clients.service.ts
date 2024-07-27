@@ -22,6 +22,10 @@ export class ClientsService {
       },
     });
 
-    return this.clientRepository.save(client);
+    const savedClient = await this.clientRepository.save(client);
+
+    return {
+      id: savedClient.id,
+    };
   }
 }
