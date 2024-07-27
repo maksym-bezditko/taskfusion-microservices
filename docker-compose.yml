@@ -24,6 +24,15 @@ services:
       file: ./apps/users/docker-compose.yml
       service: users-db
 
+  rabbit:
+    image: 'rabbitmq:3-management'
+    environment:
+      RABBITMQ_DEFAULT_USER: 'admin'
+      RABBITMQ_DEFAULT_PASS: 'admin'
+    ports:
+      - '15672:15672'
+      - '5672:5672'
+
   zoo1:
     image: confluentinc/cp-zookeeper:7.3.2
     hostname: zoo1
