@@ -1,6 +1,5 @@
-import { NestApplicationContextOptions } from '@nestjs/common/interfaces/nest-application-context-options.interface';
 import {
-  MicroserviceOptions,
+  KafkaOptions,
   Transport,
 } from '@nestjs/microservices';
 import { Partitioners } from 'kafkajs';
@@ -13,7 +12,7 @@ export type KafkaConfigParams = {
 
 export const getKafkaConfig = (
   params: KafkaConfigParams
-): NestApplicationContextOptions & MicroserviceOptions => {
+): KafkaOptions => {
   const { clientId, brokers, groupId } = params;
 
   return {
