@@ -11,6 +11,7 @@ import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
 import { ClientsModule } from './clients/clients.module';
 import { DevelopersModule } from './developers/developers.module';
 import { PmsModule } from './pms/pms.module';
+import { RmqDynamicModule } from '@taskfusion-microservices/modules';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { PmsModule } from './pms/pms.module';
           PmEntity,
         ]),
     }),
+    RmqDynamicModule.register(),
     ClientsModule,
     DevelopersModule,
     PmsModule,

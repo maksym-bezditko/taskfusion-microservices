@@ -9,6 +9,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { MicroserviceOptions } from '@nestjs/microservices';
 import { getRmqConfig } from '@taskfusion-microservices/helpers';
+import { RpcExceptionsFilter } from '@taskfusion-microservices/common';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -20,6 +21,8 @@ async function bootstrap() {
       },
     })
   );
+
+  app.useGlobalFilters(new RpcExceptionsFilter());
 
   await app.listen();
 
