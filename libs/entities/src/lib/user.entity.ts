@@ -13,7 +13,9 @@ export enum UserType {
   name: 'users',
 })
 export class UserEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({
+    
+  })
   id: number;
 
   @Column({
@@ -30,12 +32,12 @@ export class UserEntity {
   })
   user_type: string;
 
-  @OneToOne(() => ClientEntity, (client) => client.user_id)
+  @OneToOne(() => ClientEntity, (client) => client.user)
   client: ClientEntity;
 
-  @OneToOne(() => DeveloperEntity, (developer) => developer.user_id)
+  @OneToOne(() => DeveloperEntity, (developer) => developer.user)
   developer: DeveloperEntity;
 
-  @OneToOne(() => PmEntity, (pm) => pm.user_id)
+  @OneToOne(() => PmEntity, (pm) => pm.user)
   pm: PmEntity;
 }
