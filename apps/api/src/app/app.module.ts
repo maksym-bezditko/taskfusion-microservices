@@ -3,15 +3,6 @@ import { AuthModule } from './auth/auth.module';
 import { RmqDynamicModule } from '@taskfusion-microservices/modules';
 
 @Module({
-  imports: [
-    RmqDynamicModule.register({
-      name: 'USERS_SERVICE',
-      queue: 'users-queue',
-      queueOptions: {
-        durable: true,
-      },
-    }),
-    AuthModule,
-  ],
+  imports: [AuthModule, RmqDynamicModule.register()],
 })
 export class AppModule {}

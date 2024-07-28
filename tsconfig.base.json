@@ -15,10 +15,13 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@taskfusion-microservices/common": ["libs/common/src/index.ts"],
+      "@taskfusion-microservices/constants": ["libs/constants/src/index.ts"],
       "@taskfusion-microservices/contracts": ["libs/contracts/src/index.ts"],
       "@taskfusion-microservices/entities": ["libs/entities/src/index.ts"],
       "@taskfusion-microservices/helpers": ["libs/helpers/src/index.ts"],
-      "@taskfusion-microservices/modules": ["libs/modules/src/index.ts"]
+      "@taskfusion-microservices/modules": ["libs/modules/src/index.ts"],
+      "@taskfusion-microservices/types": ["libs/types/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

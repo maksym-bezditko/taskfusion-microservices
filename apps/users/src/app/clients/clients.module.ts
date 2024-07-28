@@ -2,11 +2,10 @@ import { Module } from '@nestjs/common';
 import { ClientsService } from './clients.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientEntity } from '@taskfusion-microservices/entities';
-import { ClientsController } from './clients.controller';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ClientEntity])],
-  controllers: [ClientsController],
+  imports: [UsersModule, TypeOrmModule.forFeature([ClientEntity])],
   providers: [ClientsService],
 })
 export class ClientsModule {}

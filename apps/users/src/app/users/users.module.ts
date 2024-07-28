@@ -10,5 +10,6 @@ import { UserEntity } from '@taskfusion-microservices/entities';
   ],
   controllers: [UsersController],
   providers: [UsersService],
+  exports: [UsersService],
 })
 export class UsersModule {}
