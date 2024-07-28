@@ -28,11 +28,11 @@ export class DevelopersService {
   ): Promise<CreateDeveloperContract.Response> {
     const user = await this.usersService.createUser(dto.email, dto.password);
 
-    const client = this.developerRepository.create({
+    const developer = this.developerRepository.create({
       user,
     });
 
-    await this.developerRepository.save(client);
+    await this.developerRepository.save(developer);
 
     return {
       id: user.id,
