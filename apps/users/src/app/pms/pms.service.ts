@@ -1,14 +1,21 @@
-import { RabbitRPC, MessageHandlerErrorBehavior, defaultNackErrorHandler } from '@golevelup/nestjs-rabbitmq';
+import {
+  RabbitRPC,
+  MessageHandlerErrorBehavior,
+  defaultNackErrorHandler,
+} from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreatePmContract } from '@taskfusion-microservices/contracts';
+import {
+  CheckPmContract,
+  CreatePmContract,
+} from '@taskfusion-microservices/contracts';
 import { PmEntity } from '@taskfusion-microservices/entities';
 import { Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class PmsService {
-	constructor(
+  constructor(
     @InjectRepository(PmEntity)
     private readonly pmRepository: Repository<PmEntity>,
     private readonly usersService: UsersService
@@ -36,6 +43,29 @@ export class PmsService {
 
     return {
       id: user.id,
+    };
+  }
+
+  @RabbitRPC({
+    exchange: CheckPmContract.exchange,
+    routingKey: CheckPmContract.routingKey,
+    queue: CheckPmContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'check-pm',
+  })
+  async checkPm(
+    dto: CheckPmContract.Request
+  ): Promise<CheckPmContract.Response> {
+    const pm = await this.pmRepository.findOne({
+      where: {
+        id: dto.pm_id,
+      },
+    });
+
+    return {
+      exists: Boolean(pm),
     };
   }
 }

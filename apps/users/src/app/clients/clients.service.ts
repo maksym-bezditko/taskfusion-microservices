@@ -5,7 +5,10 @@ import {
 } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateClientContract } from '@taskfusion-microservices/contracts';
+import {
+  CheckClientContract,
+  CreateClientContract,
+} from '@taskfusion-microservices/contracts';
 import { ClientEntity } from '@taskfusion-microservices/entities';
 import { Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
@@ -40,6 +43,29 @@ export class ClientsService {
 
     return {
       id: user.id,
+    };
+  }
+
+  @RabbitRPC({
+    exchange: CheckClientContract.exchange,
+    routingKey: CheckClientContract.routingKey,
+    queue: CheckClientContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'check-client',
+  })
+  async checkClient(
+    dto: CheckClientContract.Request
+  ): Promise<CheckClientContract.Response> {
+    const client = await this.clientRepository.findOne({
+      where: {
+        id: dto.client_id,
+      },
+    });
+
+    return {
+      exists: Boolean(client),
     };
   }
 }
