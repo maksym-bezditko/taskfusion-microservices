@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProjectEntity } from '@taskfusion-microservices/entities';
 import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
+import { RmqDynamicModule } from '@taskfusion-microservices/modules';
 
 @Module({
   imports: [
@@ -20,8 +20,8 @@ import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
         getTypeOrmConfig(configService, [ProjectEntity]),
     }),
     TypeOrmModule.forFeature([ProjectEntity]),
+    RmqDynamicModule.register(),
   ],
-  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
