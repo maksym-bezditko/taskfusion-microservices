@@ -7,24 +7,14 @@ import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app/app.module';
-import { MicroserviceOptions } from '@nestjs/microservices';
-import { getRmqConfig } from '@taskfusion-microservices/helpers';
 import { RpcExceptionsFilter } from '@taskfusion-microservices/common';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    AppModule,
-    getRmqConfig({
-      queue: 'users-queue',
-      queueOptions: {
-        durable: true,
-      },
-    })
-  );
+  const app = await NestFactory.create(AppModule);
 
-  app.useGlobalFilters(new RpcExceptionsFilter());
+  app.useGlobalFilters(new RpcExceptionsFilter('projects'));
 
-  await app.listen();
+  await app.init();
 
   Logger.log(`🚀 Users microservice is initiated!`);
 }
