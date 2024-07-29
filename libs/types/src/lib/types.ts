@@ -1,7 +1,5 @@
 export type Error = {
-  error?: string;
-}
+  error?: unknown;
+};
 
-export type Errorable<T> =
-  | T
-  | Error;
+export type Errorable<T> = T & Error;

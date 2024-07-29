@@ -30,6 +30,7 @@ export class RmqDynamicModule {
               createQueueIfNotExists: true,
             },
           ],
+          defaultRpcTimeout: 3000,
         }),
       ],
       exports: [RabbitMQModule],
