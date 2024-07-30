@@ -1,5 +1,6 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
+import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 
 @Injectable()
 export class AuthService {
@@ -10,10 +11,12 @@ export class AuthService {
     routingKey: string,
     dto: T
   ): Promise<R> {
-    return this.amqpConnection.request<R>({
+    const result = await this.amqpConnection.request<R>({
       exchange,
       routingKey,
       payload: dto,
     });
+
+    return handleRpcRequest<R, R>(result, async (response) => response);
   }
 }
