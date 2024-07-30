@@ -1,6 +1,7 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { CreateProjectContract } from '@taskfusion-microservices/contracts';
+import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 
 @Injectable()
 export class ProjectsService {
@@ -11,10 +12,13 @@ export class ProjectsService {
     routingKey: string,
     dto: CreateProjectContract.Request
   ): Promise<CreateProjectContract.Response> {
-    return this.amqpConnection.request<CreateProjectContract.Response>({
-      exchange,
-      routingKey,
-      payload: dto,
-    });
+    const result =
+      await this.amqpConnection.request<CreateProjectContract.Response>({
+        exchange,
+        routingKey,
+        payload: dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
   }
 }
