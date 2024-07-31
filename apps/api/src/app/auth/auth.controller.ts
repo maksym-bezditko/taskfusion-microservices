@@ -1,10 +1,18 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   CreateClientContract,
   CreateDeveloperContract,
   CreatePmContract,
+  LogoutContract,
+  RefreshTokensContract,
 } from '@taskfusion-microservices/contracts';
+import {
+  AtJwtGuard,
+  JwtTokenFromBearer,
+  RtJwtGuard,
+  UserIdFromJwt,
+} from '@taskfusion-microservices/common';
 
 @Controller('auth')
 export class AuthController {
@@ -35,12 +43,42 @@ export class AuthController {
   }
 
   @Post('create-pm')
-  async createPmr(
+  async createPm(
     @Body() dto: CreatePmContract.Request
   ): Promise<CreatePmContract.Response> {
     return this.authService.createUser<
       CreatePmContract.Request,
       CreatePmContract.Response
     >(CreatePmContract.exchange, CreatePmContract.routingKey, dto);
+  }
+
+  @UseGuards(RtJwtGuard)
+  @Patch('refresh-tokens')
+  async refreshTokens(
+    @UserIdFromJwt() userId: number,
+    @JwtTokenFromBearer() refreshToken: string
+  ): Promise<RefreshTokensContract.Response> {
+    return this.authService.refreshTokens(
+      RefreshTokensContract.exchange,
+      RefreshTokensContract.routingKey,
+      {
+        userId,
+        refreshToken,
+      }
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Post('logout')
+  async logout(
+    @UserIdFromJwt() userId: number,
+  ): Promise<LogoutContract.Response> {
+    return this.authService.logout(
+      LogoutContract.exchange,
+      LogoutContract.routingKey,
+      {
+        userId,
+      }
+    );
   }
 }
