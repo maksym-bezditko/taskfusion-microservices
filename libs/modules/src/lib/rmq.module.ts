@@ -22,14 +22,6 @@ export class RmqDynamicModule {
               createExchangeIfNotExists: true,
             },
           ],
-          queues: [
-            {
-              name: USERS_QUEUE_NAME,
-              exchange: GENERAL_EXCHANGE_NAME,
-              routingKey: USERS_QUEUE_ROUTING_KEYS,
-              createQueueIfNotExists: true,
-            },
-          ],
           defaultRpcTimeout: 3000,
         }),
       ],
