@@ -2,8 +2,6 @@ import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { Module, DynamicModule, Global } from '@nestjs/common';
 import {
   GENERAL_EXCHANGE_NAME,
-  USERS_QUEUE_NAME,
-  USERS_QUEUE_ROUTING_KEYS,
 } from '@taskfusion-microservices/constants';
 
 @Global()
@@ -20,14 +18,6 @@ export class RmqDynamicModule {
               name: GENERAL_EXCHANGE_NAME,
               type: 'topic',
               createExchangeIfNotExists: true,
-            },
-          ],
-          queues: [
-            {
-              name: USERS_QUEUE_NAME,
-              exchange: GENERAL_EXCHANGE_NAME,
-              routingKey: USERS_QUEUE_ROUTING_KEYS,
-              createQueueIfNotExists: true,
             },
           ],
           defaultRpcTimeout: 3000,

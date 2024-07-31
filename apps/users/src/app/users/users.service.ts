@@ -90,7 +90,7 @@ export class UsersService {
   async createUser(email: string, password: string) {
     const user = this.userRepository.create({
       email,
-      password,
+      password: await this.hashPassword(password),
     });
 
     await this.userRepository.save(user);
