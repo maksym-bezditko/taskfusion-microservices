@@ -2,8 +2,6 @@ import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { Module, DynamicModule, Global } from '@nestjs/common';
 import {
   GENERAL_EXCHANGE_NAME,
-  USERS_QUEUE_NAME,
-  USERS_QUEUE_ROUTING_KEYS,
 } from '@taskfusion-microservices/constants';
 
 @Global()
