@@ -4,3 +4,5 @@ export * from './contracts/create-pm.contract';
 export * from './contracts/create-project.contract';
 export * from './contracts/check-client.contract';
 export * from './contracts/check-pm.contract';
+export * from './contracts/refresh-tokens.contract';
+export * from './contracts/logout.contract';

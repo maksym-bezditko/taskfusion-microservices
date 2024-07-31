@@ -13,7 +13,8 @@ export namespace CreatePmContract {
   export const queue = `${USERS_QUEUE_NAME}.${routingKey}`;
 
   export type Response = Errorable<{
-    id: number;
+    accessToken: string;
+    refreshToken: string;
   }>;
 
   export class Request {

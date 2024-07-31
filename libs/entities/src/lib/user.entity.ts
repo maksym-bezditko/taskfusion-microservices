@@ -13,9 +13,7 @@ export enum UserType {
   name: 'users',
 })
 export class UserEntity {
-  @PrimaryGeneratedColumn({
-    
-  })
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column({
@@ -31,6 +29,13 @@ export class UserEntity {
     enum: UserType,
   })
   user_type: string;
+
+  @Column({
+    nullable: true,
+    default: null,
+    type: 'text',
+  })
+  refresh_token: string | null;
 
   @OneToOne(() => ClientEntity, (client) => client.user)
   client: ClientEntity;
