@@ -1,4 +1,8 @@
-import { RabbitRPC, MessageHandlerErrorBehavior, defaultNackErrorHandler } from '@golevelup/nestjs-rabbitmq';
+import {
+  RabbitRPC,
+  MessageHandlerErrorBehavior,
+  defaultNackErrorHandler,
+} from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateDeveloperContract } from '@taskfusion-microservices/contracts';
@@ -34,8 +38,18 @@ export class DevelopersService {
 
     await this.developerRepository.save(developer);
 
+    const { accessToken, refreshToken } =
+      await this.usersService.generateTokens({
+        id: user.id,
+        email: user.email,
+        user_type: user.user_type,
+      });
+
+    await this.usersService.updateRefreshToken(user.id, refreshToken);
+
     return {
-      id: user.id,
+      accessToken,
+      refreshToken,
     };
   }
 }

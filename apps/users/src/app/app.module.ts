@@ -12,6 +12,7 @@ import { ClientsModule } from './clients/clients.module';
 import { DevelopersModule } from './developers/developers.module';
 import { PmsModule } from './pms/pms.module';
 import { RmqDynamicModule } from '@taskfusion-microservices/modules';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -29,6 +30,9 @@ import { RmqDynamicModule } from '@taskfusion-microservices/modules';
           DeveloperEntity,
           PmEntity,
         ]),
+    }),
+    JwtModule.register({
+      global: true,
     }),
     RmqDynamicModule.register(),
     ClientsModule,
