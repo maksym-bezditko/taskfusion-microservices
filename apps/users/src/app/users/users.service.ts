@@ -7,7 +7,7 @@ import {
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '@taskfusion-microservices/entities';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -127,10 +127,15 @@ export class UsersService {
     };
   }
 
-  async createUser(email: string, password: string) {
+  async createUser(userParams: DeepPartial<UserEntity>) {
+    const { email, password, telegram_id, user_type, description } = userParams;
+
     const user = this.userRepository.create({
       email,
       password: await this.hashPassword(password),
+      description,
+      telegram_id,
+      user_type,
     });
 
     await this.userRepository.save(user);

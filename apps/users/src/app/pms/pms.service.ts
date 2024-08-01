@@ -9,7 +9,7 @@ import {
   CheckPmContract,
   CreatePmContract,
 } from '@taskfusion-microservices/contracts';
-import { PmEntity } from '@taskfusion-microservices/entities';
+import { PmEntity, UserType } from '@taskfusion-microservices/entities';
 import { Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 
@@ -33,7 +33,13 @@ export class PmsService {
   async createPm(
     dto: CreatePmContract.Request
   ): Promise<CreatePmContract.Response> {
-    const user = await this.usersService.createUser(dto.email, dto.password);
+    const user = await this.usersService.createUser({
+      email: dto.email,
+      password: dto.password,
+      user_type: UserType.PM,
+      telegram_id: dto.telegramId,
+      description: dto.description,
+    });
 
     const pm = this.pmRepository.create({
       user,
