@@ -1,6 +1,6 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
-import { LogoutContract, RefreshTokensContract } from '@taskfusion-microservices/contracts';
+import { LoginContract, LogoutContract, RefreshTokensContract } from '@taskfusion-microservices/contracts';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 
 @Injectable()
@@ -43,6 +43,21 @@ export class AuthService {
   ) {
     const result =
       await this.amqpConnection.request<LogoutContract.Response>({
+        exchange,
+        routingKey,
+        payload: dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async login(
+    exchange: string,
+    routingKey: string,
+    dto: LoginContract.Request
+  ) {
+    const result =
+      await this.amqpConnection.request<LoginContract.Response>({
         exchange,
         routingKey,
         payload: dto,

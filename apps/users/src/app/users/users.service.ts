@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,6 +11,7 @@ import { Repository } from 'typeorm';
 import bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import {
+  LoginContract,
   LogoutContract,
   RefreshTokensContract,
 } from '@taskfusion-microservices/contracts';
@@ -46,6 +48,44 @@ export class UsersService {
 
     if (!user) {
       throw new BadRequestException('Invalid refresh token');
+    }
+
+    const { accessToken, refreshToken } = await this.generateTokens({
+      id: user.id,
+      email: user.email,
+      user_type: user.user_type,
+    });
+
+    await this.updateRefreshToken(user.id, refreshToken);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  @RabbitRPC({
+    exchange: LoginContract.exchange,
+    routingKey: LoginContract.routingKey,
+    queue: LoginContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'login',
+  })
+  async login(dto: LoginContract.Request): Promise<LoginContract.Response> {
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isMatch = await bcrypt.compare(dto.password, user.password);
+
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const { accessToken, refreshToken } = await this.generateTokens({
@@ -137,21 +177,5 @@ export class UsersService {
 
   async hashPassword(password: string) {
     return bcrypt.hash(password, 10);
-  }
-
-  async validateUser(email: string, password: string) {
-    const user = await this.userRepository.findOne({ where: { email } });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return null;
-    }
-
-    return user;
   }
 }

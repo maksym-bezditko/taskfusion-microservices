@@ -4,6 +4,7 @@ import {
   CreateClientContract,
   CreateDeveloperContract,
   CreatePmContract,
+  LoginContract,
   LogoutContract,
   RefreshTokensContract,
 } from '@taskfusion-microservices/contracts';
@@ -79,6 +80,15 @@ export class AuthController {
       {
         userId,
       }
+    );
+  }
+
+  @Post('login')
+  async login(@Body() dto: LoginContract.Request): Promise<LoginContract.Response> {
+    return this.authService.login(
+      LoginContract.exchange,
+      LoginContract.routingKey,
+      dto
     );
   }
 }
