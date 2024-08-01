@@ -9,7 +9,7 @@ import {
   CheckClientContract,
   CreateClientContract,
 } from '@taskfusion-microservices/contracts';
-import { ClientEntity } from '@taskfusion-microservices/entities';
+import { ClientEntity, UserType } from '@taskfusion-microservices/entities';
 import { Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 
@@ -33,7 +33,13 @@ export class ClientsService {
   async createClient(
     dto: CreateClientContract.Request
   ): Promise<CreateClientContract.Response> {
-    const user = await this.usersService.createUser(dto.email, dto.password);
+    const user = await this.usersService.createUser({
+      email: dto.email,
+      password: dto.password,
+      user_type: UserType.CLIENT,
+      telegram_id: dto.telegramId,
+      description: dto.description,
+    });
 
     const client = this.clientRepository.create({
       user,

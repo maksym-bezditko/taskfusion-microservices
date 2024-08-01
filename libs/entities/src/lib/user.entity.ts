@@ -22,6 +22,15 @@ export class UserEntity {
   email: string;
 
   @Column()
+  description: string;
+
+  @Column({
+    nullable: true,
+    default: true
+  })
+  telegram_id: string | null;
+
+  @Column()
   password: string;
 
   @Column({

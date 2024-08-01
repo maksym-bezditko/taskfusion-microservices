@@ -6,7 +6,7 @@ import {
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateDeveloperContract } from '@taskfusion-microservices/contracts';
-import { DeveloperEntity } from '@taskfusion-microservices/entities';
+import { DeveloperEntity, UserType } from '@taskfusion-microservices/entities';
 import { Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 
@@ -30,7 +30,13 @@ export class DevelopersService {
   async createDeveloper(
     dto: CreateDeveloperContract.Request
   ): Promise<CreateDeveloperContract.Response> {
-    const user = await this.usersService.createUser(dto.email, dto.password);
+    const user = await this.usersService.createUser({
+      email: dto.email,
+      password: dto.password,
+      user_type: UserType.DEVELOPER,
+      telegram_id: dto.telegramId,
+      description: dto.description,
+    });
 
     const developer = this.developerRepository.create({
       user,
