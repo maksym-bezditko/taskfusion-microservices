@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,6 +10,7 @@ import { DeepPartial, Repository } from 'typeorm';
 import bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import {
+  GetProfileContract,
   LoginContract,
   LogoutContract,
   RefreshTokensContract,
@@ -43,7 +43,7 @@ export class UsersService {
     dto: RefreshTokensContract.Dto
   ): Promise<RefreshTokensContract.Response> {
     const user = await this.userRepository.findOne({
-      where: { id: dto.userId, refresh_token: dto.refreshToken },
+      where: { id: dto.userId, refreshToken: dto.refreshToken },
     });
 
     if (!user) {
@@ -53,7 +53,7 @@ export class UsersService {
     const { accessToken, refreshToken } = await this.generateTokens({
       id: user.id,
       email: user.email,
-      user_type: user.user_type,
+      user_type: user.userType,
     });
 
     await this.updateRefreshToken(user.id, refreshToken);
@@ -85,13 +85,13 @@ export class UsersService {
     const isMatch = await bcrypt.compare(dto.password, user.password);
 
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new BadRequestException('Invalid credentials');
     }
 
     const { accessToken, refreshToken } = await this.generateTokens({
       id: user.id,
       email: user.email,
-      user_type: user.user_type,
+      user_type: user.userType,
     });
 
     await this.updateRefreshToken(user.id, refreshToken);
@@ -127,15 +127,42 @@ export class UsersService {
     };
   }
 
+  @RabbitRPC({
+    exchange: GetProfileContract.exchange,
+    routingKey: GetProfileContract.routingKey,
+    queue: GetProfileContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-profile',
+  })
+  async getProfile(
+    dto: GetProfileContract.Dto
+  ): Promise<GetProfileContract.Response> {
+    const user = await this.userRepository.findOne({
+      where: { id: dto.userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Invalid refresh token');
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      userType: user.userType,
+      description: user.description,
+      telegramId: user.telegramId,
+      name: user.name,
+    };
+  }
+
   async createUser(userParams: DeepPartial<UserEntity>) {
-    const { email, password, telegram_id, user_type, description } = userParams;
+    const { password, ...rest } = userParams;
 
     const user = this.userRepository.create({
-      email,
+      ...rest,
       password: await this.hashPassword(password),
-      description,
-      telegram_id,
-      user_type,
     });
 
     await this.userRepository.save(user);
@@ -145,11 +172,11 @@ export class UsersService {
 
   async updateRefreshToken(
     userId: number,
-    refreshToken: UserEntity['refresh_token']
+    refreshToken: UserEntity['refreshToken']
   ) {
     const user = await this.userRepository.update(
       { id: userId },
-      { refresh_token: refreshToken }
+      { refreshToken }
     );
 
     return user;

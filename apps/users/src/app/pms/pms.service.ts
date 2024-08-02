@@ -36,9 +36,10 @@ export class PmsService {
     const user = await this.usersService.createUser({
       email: dto.email,
       password: dto.password,
-      user_type: UserType.PM,
-      telegram_id: dto.telegramId,
+      userType: UserType.PM,
+      telegramId: dto.telegramId,
       description: dto.description,
+      name: dto.name,
     });
 
     const pm = this.pmRepository.create({
@@ -51,7 +52,7 @@ export class PmsService {
       await this.usersService.generateTokens({
         id: user.id,
         email: user.email,
-        user_type: user.user_type,
+        user_type: user.userType,
       });
 
     await this.usersService.updateRefreshToken(user.id, refreshToken);
@@ -76,7 +77,7 @@ export class PmsService {
   ): Promise<CheckPmContract.Response> {
     const pm = await this.pmRepository.findOne({
       where: {
-        id: dto.pm_id,
+        id: dto.pmId,
       },
     });
 
