@@ -18,6 +18,9 @@ export namespace CreatePmContract {
   }>;
 
   export class Request {
+    @IsString()
+    name: string;
+
     @IsEmail()
     email: string;
 

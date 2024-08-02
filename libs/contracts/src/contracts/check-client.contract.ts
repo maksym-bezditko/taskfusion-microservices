@@ -18,6 +18,6 @@ export namespace CheckClientContract {
 
   export class Request {
     @IsInt()
-    client_id: number;
+    clientId: number;
   }
 }

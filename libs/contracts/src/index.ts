@@ -7,3 +7,4 @@ export * from './contracts/check-pm.contract';
 export * from './contracts/refresh-tokens.contract';
 export * from './contracts/logout.contract';
 export * from './contracts/login.contract';
+export * from './contracts/get-profile.contract';
