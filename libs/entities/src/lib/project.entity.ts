@@ -7,9 +7,13 @@ export class ProjectEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  pm_id: number;
+  @Column({
+    name: 'pm_id',
+  })
+  pmId: number;
 
-  @Column()
-  client_id: number;
+  @Column({
+    name: 'client_id',
+  })
+  clientId: number;
 }

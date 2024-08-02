@@ -4,9 +4,9 @@ import { DeveloperEntity } from './developer.entity';
 import { PmEntity } from './pm.entity';
 
 export enum UserType {
-  CLIENT = 'client',
-  DEVELOPER = 'developer',
-  PM = 'pm',
+  CLIENT = 'Client',
+  DEVELOPER = 'Developer',
+  PM = 'Project Manager',
 }
 
 @Entity({
@@ -22,13 +22,17 @@ export class UserEntity {
   email: string;
 
   @Column()
+  name: string;
+
+  @Column()
   description: string;
 
   @Column({
     nullable: true,
-    default: true
+    default: true,
+    name: 'telegram_id',
   })
-  telegram_id: string | null;
+  telegramId: string | null;
 
   @Column()
   password: string;
@@ -36,15 +40,17 @@ export class UserEntity {
   @Column({
     type: 'enum',
     enum: UserType,
+    name: 'user_type',
   })
-  user_type: string;
+  userType: string;
 
   @Column({
     nullable: true,
     default: null,
     type: 'text',
+    name: 'refresh_token',
   })
-  refresh_token: string | null;
+  refreshToken: string | null;
 
   @OneToOne(() => ClientEntity, (client) => client.user)
   client: ClientEntity;

@@ -7,8 +7,10 @@ export class PaymentEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  project_id: number;
+  @Column({
+    name: 'project_id',
+  })
+  projectId: number;
 
   @Column()
   amount: number;
