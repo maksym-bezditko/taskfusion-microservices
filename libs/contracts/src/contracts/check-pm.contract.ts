@@ -18,6 +18,6 @@ export namespace CheckPmContract {
 
   export class Request {
     @IsInt()
-    pm_id: number;
+    pmId: number;
   }
 }

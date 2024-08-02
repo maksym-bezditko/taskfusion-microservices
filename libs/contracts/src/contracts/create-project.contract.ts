@@ -18,9 +18,9 @@ export namespace CreateProjectContract {
 
   export class Request {
     @IsInt()
-    pm_id: number;
+    pmId: number;
 
     @IsInt()
-    client_id: number;
+    clientId: number;
   }
 }
