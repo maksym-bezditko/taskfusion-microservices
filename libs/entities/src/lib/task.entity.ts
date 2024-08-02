@@ -7,9 +7,13 @@ export class TaskEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  project_id: number;
+  @Column({
+    name: 'project_id',
+  })
+  projectId: number;
 
-  @Column()
-  developer_id: number;
+  @Column({
+    name: 'developer_id',
+  })
+  developerId: number;
 }

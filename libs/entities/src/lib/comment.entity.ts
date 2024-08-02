@@ -7,9 +7,13 @@ export class CommentEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  task_id: number;
+  @Column({
+    name: 'task_id',
+  })
+  taskId: number;
 
-  @Column()
-  user_id: number;
+  @Column({
+    name: 'user_id',
+  })
+  userId: number;
 }
