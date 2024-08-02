@@ -36,9 +36,10 @@ export class ClientsService {
     const user = await this.usersService.createUser({
       email: dto.email,
       password: dto.password,
-      user_type: UserType.CLIENT,
-      telegram_id: dto.telegramId,
+      userType: UserType.CLIENT,
+      telegramId: dto.telegramId,
       description: dto.description,
+      name: dto.name,
     });
 
     const client = this.clientRepository.create({
@@ -51,7 +52,7 @@ export class ClientsService {
       await this.usersService.generateTokens({
         id: user.id,
         email: user.email,
-        user_type: user.user_type,
+        user_type: user.userType,
       });
 
     await this.usersService.updateRefreshToken(user.id, refreshToken);
@@ -76,7 +77,7 @@ export class ClientsService {
   ): Promise<CheckClientContract.Response> {
     const client = await this.clientRepository.findOne({
       where: {
-        id: dto.client_id,
+        id: dto.clientId,
       },
     });
 

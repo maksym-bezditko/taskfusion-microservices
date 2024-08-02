@@ -40,7 +40,7 @@ export class AppService {
         exchange: CheckClientContract.exchange,
         routingKey: CheckClientContract.routingKey,
         payload: {
-          client_id: dto.client_id,
+          clientId: dto.clientId,
         } as CheckClientContract.Request,
       });
 
@@ -57,19 +57,22 @@ export class AppService {
       exchange: CheckPmContract.exchange,
       routingKey: CheckPmContract.routingKey,
       payload: {
-        pm_id: dto.pm_id,
+        pmId: dto.pmId,
       } as CheckPmContract.Request,
     });
 
-    await handleRpcRequest<CheckClientContract.Response>(pm, async (response) => {
-      if (!response.exists) {
-        throw new NotFoundException('Pm not found!');
+    await handleRpcRequest<CheckClientContract.Response>(
+      pm,
+      async (response) => {
+        if (!response.exists) {
+          throw new NotFoundException('Pm not found!');
+        }
       }
-    });
+    );
 
     const project = this.projectRepository.create({
-      client_id: dto.client_id,
-      pm_id: dto.pm_id,
+      clientId: dto.clientId,
+      pmId: dto.pmId,
     });
 
     await this.projectRepository.save(project);
