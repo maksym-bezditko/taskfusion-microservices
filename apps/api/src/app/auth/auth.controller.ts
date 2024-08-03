@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   CreateClientContract,
@@ -54,7 +54,7 @@ export class AuthController {
   }
 
   @UseGuards(RtJwtGuard)
-  @Patch('refresh-tokens')
+  @Post('refresh-tokens')
   async refreshTokens(
     @UserIdFromJwt() userId: number,
     @JwtTokenFromBearer() refreshToken: string

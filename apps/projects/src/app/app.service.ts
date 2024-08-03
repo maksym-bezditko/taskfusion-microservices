@@ -73,6 +73,9 @@ export class AppService {
     const project = this.projectRepository.create({
       clientId: dto.clientId,
       pmId: dto.pmId,
+      description: dto.description,
+      title: dto.title,
+      deadline: new Date(dto.deadline),
     });
 
     await this.projectRepository.save(project);
