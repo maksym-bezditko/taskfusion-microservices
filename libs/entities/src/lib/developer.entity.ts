@@ -8,7 +8,7 @@ export class DeveloperEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => UserEntity)
+  @OneToOne(() => UserEntity, (user) => user.developer)
   @JoinColumn()
   user: UserEntity;
 }
