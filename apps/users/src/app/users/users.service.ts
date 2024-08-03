@@ -43,7 +43,7 @@ export class UsersService {
     dto: RefreshTokensContract.Dto
   ): Promise<RefreshTokensContract.Response> {
     const user = await this.userRepository.findOne({
-      where: { id: dto.userId, refreshToken: dto.refreshToken },
+      where: { id: dto.userId },
     });
 
     if (!user) {
@@ -53,10 +53,12 @@ export class UsersService {
     const { accessToken, refreshToken } = await this.generateTokens({
       id: user.id,
       email: user.email,
-      user_type: user.userType,
+      userType: user.userType,
     });
 
-    await this.updateRefreshToken(user.id, refreshToken);
+    await this.updateUser(user.id, {
+      refreshToken,
+    });
 
     return {
       accessToken,
@@ -91,10 +93,12 @@ export class UsersService {
     const { accessToken, refreshToken } = await this.generateTokens({
       id: user.id,
       email: user.email,
-      user_type: user.userType,
+      userType: user.userType,
     });
 
-    await this.updateRefreshToken(user.id, refreshToken);
+    await this.updateUser(user.id, {
+      refreshToken,
+    });
 
     return {
       accessToken,
@@ -120,7 +124,9 @@ export class UsersService {
       throw new BadRequestException('Invalid refresh token');
     }
 
-    await this.updateRefreshToken(user.id, null);
+    await this.updateUser(user.id, {
+      refreshToken: null,
+    });
 
     return {
       userId: user.id,
@@ -141,6 +147,7 @@ export class UsersService {
   ): Promise<GetProfileContract.Response> {
     const user = await this.userRepository.findOne({
       where: { id: dto.userId },
+      relations: ['client', 'pm', 'developer'],
     });
 
     if (!user) {
@@ -154,6 +161,9 @@ export class UsersService {
       description: user.description,
       telegramId: user.telegramId,
       name: user.name,
+      client: user.client,
+      pm: user.pm,
+      developer: user.developer,
     };
   }
 
@@ -170,14 +180,8 @@ export class UsersService {
     return user;
   }
 
-  async updateRefreshToken(
-    userId: number,
-    refreshToken: UserEntity['refreshToken']
-  ) {
-    const user = await this.userRepository.update(
-      { id: userId },
-      { refreshToken }
-    );
+  async updateUser(userId: number, userParams: DeepPartial<UserEntity>) {
+    const user = await this.userRepository.update({ id: userId }, userParams);
 
     return user;
   }
@@ -189,7 +193,7 @@ export class UsersService {
   async generateTokens(payload: {
     id: number;
     email: string;
-    user_type: string;
+    userType: string;
   }) {
     const accessToken = await this.signPayload(payload, {
       expiresIn: '1h',

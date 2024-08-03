@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateDeveloperContract } from '@taskfusion-microservices/contracts';
 import { DeveloperEntity, UserType } from '@taskfusion-microservices/entities';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -30,6 +30,10 @@ export class DevelopersService {
   async createDeveloper(
     dto: CreateDeveloperContract.Request
   ): Promise<CreateDeveloperContract.Response> {
+    const developer = this.developerRepository.create();
+
+    await this.developerRepository.save(developer);
+
     const user = await this.usersService.createUser({
       email: dto.email,
       password: dto.password,
@@ -37,26 +41,39 @@ export class DevelopersService {
       telegramId: dto.telegramId,
       description: dto.description,
       name: dto.name,
+      developer,
     });
 
-    const developer = this.developerRepository.create({
+    await this.updateDeveloper(developer.id, {
       user,
     });
-
-    await this.developerRepository.save(developer);
 
     const { accessToken, refreshToken } =
       await this.usersService.generateTokens({
         id: user.id,
         email: user.email,
-        user_type: user.userType,
+        userType: user.userType,
       });
 
-    await this.usersService.updateRefreshToken(user.id, refreshToken);
+    await this.usersService.updateUser(user.id, {
+      refreshToken,
+    });
 
     return {
       accessToken,
       refreshToken,
     };
+  }
+
+  async updateDeveloper(
+    developerId: number,
+    developerParams: DeepPartial<DeveloperEntity>
+  ) {
+    const developer = await this.developerRepository.update(
+      { id: developerId },
+      developerParams
+    );
+
+    return developer;
   }
 }
