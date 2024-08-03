@@ -8,7 +8,7 @@ export class ClientEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => UserEntity)
+  @OneToOne(() => UserEntity, (user) => user.client)
   @JoinColumn()
   user: UserEntity;
 }

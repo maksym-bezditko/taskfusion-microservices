@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
 import { ClientEntity } from './client.entity';
 import { DeveloperEntity } from './developer.entity';
 import { PmEntity } from './pm.entity';
@@ -52,12 +52,15 @@ export class UserEntity {
   })
   refreshToken: string | null;
 
-  @OneToOne(() => ClientEntity, (client) => client.user)
-  client: ClientEntity;
+  @OneToOne(() => ClientEntity, (client) => client.user, { nullable: true })
+  @JoinColumn()
+  client: ClientEntity | null;
 
-  @OneToOne(() => DeveloperEntity, (developer) => developer.user)
-  developer: DeveloperEntity;
+  @OneToOne(() => DeveloperEntity, (developer) => developer.user, { nullable: true })
+  @JoinColumn()
+  developer: DeveloperEntity | null;
 
-  @OneToOne(() => PmEntity, (pm) => pm.user)
-  pm: PmEntity;
+  @OneToOne(() => PmEntity, (pm) => pm.user, { nullable: true })
+  @JoinColumn()
+  pm: PmEntity | null;
 }
