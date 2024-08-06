@@ -196,7 +196,7 @@ export class UsersService {
     userType: string;
   }) {
     const accessToken = await this.signPayload(payload, {
-      expiresIn: '1h',
+      expiresIn: '30s',
       secret: this.configService.get<string>('AT_SECRET'),
     });
 
