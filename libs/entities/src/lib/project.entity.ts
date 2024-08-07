@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  UpdateDateColumn,
+  CreateDateColumn,
+} from 'typeorm';
 
 @Entity({
   name: 'projects',
@@ -27,4 +33,14 @@ export class ProjectEntity {
     name: 'client_id',
   })
   clientId: number;
+
+  @CreateDateColumn({
+    name: 'created_at',
+  })
+  public createdAt: Date;
+
+  @UpdateDateColumn({
+    name: 'updated_at',
+  })
+  public updatedAt: Date;
 }

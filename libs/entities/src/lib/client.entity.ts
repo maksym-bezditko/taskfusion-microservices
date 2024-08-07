@@ -1,8 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, JoinColumn, OneToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  JoinColumn,
+  OneToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { UserEntity } from './user.entity';
 
 @Entity({
-	name: 'clients',
+  name: 'clients',
 })
 export class ClientEntity {
   @PrimaryGeneratedColumn()
@@ -11,4 +18,14 @@ export class ClientEntity {
   @OneToOne(() => UserEntity, (user) => user.client)
   @JoinColumn()
   user: UserEntity;
+
+  @CreateDateColumn({
+    name: 'created_at',
+  })
+  public createdAt: Date;
+
+  @UpdateDateColumn({
+    name: 'updated_at',
+  })
+  public updatedAt: Date;
 }
