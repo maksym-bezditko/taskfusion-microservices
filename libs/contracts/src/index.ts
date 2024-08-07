@@ -8,3 +8,6 @@ export * from './contracts/refresh-tokens.contract';
 export * from './contracts/logout.contract';
 export * from './contracts/login.contract';
 export * from './contracts/get-profile.contract';
+export * from './contracts/get-projects.contract';
+export * from './contracts/get-client-by-user-id.contract';
+export * from './contracts/get-project-by-id.contract';
