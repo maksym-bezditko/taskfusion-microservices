@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity({
   name: 'payments',
@@ -14,4 +20,14 @@ export class PaymentEntity {
 
   @Column()
   amount: number;
+
+  @CreateDateColumn({
+    name: 'created_at',
+  })
+  public createdAt: Date;
+
+  @UpdateDateColumn({
+    name: 'updated_at',
+  })
+  public updatedAt: Date;
 }

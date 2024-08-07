@@ -1,4 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { ClientEntity } from './client.entity';
 import { DeveloperEntity } from './developer.entity';
 import { PmEntity } from './pm.entity';
@@ -56,11 +64,23 @@ export class UserEntity {
   @JoinColumn()
   client: ClientEntity | null;
 
-  @OneToOne(() => DeveloperEntity, (developer) => developer.user, { nullable: true })
+  @OneToOne(() => DeveloperEntity, (developer) => developer.user, {
+    nullable: true,
+  })
   @JoinColumn()
   developer: DeveloperEntity | null;
 
   @OneToOne(() => PmEntity, (pm) => pm.user, { nullable: true })
   @JoinColumn()
   pm: PmEntity | null;
+
+  @CreateDateColumn({
+    name: 'created_at',
+  })
+  public createdAt: Date;
+
+  @UpdateDateColumn({
+    name: 'updated_at',
+  })
+  public updatedAt: Date;
 }
