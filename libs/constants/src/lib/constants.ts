@@ -4,7 +4,7 @@ export const DL_EXCHANGE_NAME = 'deadletter';
 
 export const USERS_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.users`;
 
-export const PROJECTS_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.users`;
+export const PROJECTS_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.projects`;
 
 export const DL_QUEUE_NAME = `${DL_EXCHANGE_NAME}.messages`;
 
