@@ -5,7 +5,7 @@ import {
 } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateDeveloperContract } from '@taskfusion-microservices/contracts';
+import { CheckDeveloperContract, CreateDeveloperContract } from '@taskfusion-microservices/contracts';
 import { DeveloperEntity, UserType } from '@taskfusion-microservices/entities';
 import { DeepPartial, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
@@ -62,6 +62,29 @@ export class DevelopersService {
     return {
       accessToken,
       refreshToken,
+    };
+  }
+
+  @RabbitRPC({
+    exchange: CheckDeveloperContract.exchange,
+    routingKey: CheckDeveloperContract.routingKey,
+    queue: CheckDeveloperContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'check-developer',
+  })
+  async checkDeveloper(
+    dto: CheckDeveloperContract.Request
+  ): Promise<CheckDeveloperContract.Response> {
+    const developer = await this.developerRepository.findOne({
+      where: {
+        id: dto.developerId,
+      },
+    });
+
+    return {
+      exists: Boolean(developer),
     };
   }
 
