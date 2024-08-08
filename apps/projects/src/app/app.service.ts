@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   CheckClientContract,
   CheckPmContract,
+  CheckProjectContract,
   CreateProjectContract,
   GetClientByUserIdContract,
   GetProjectByIdContract,
@@ -165,5 +166,28 @@ export class AppService {
     });
 
     return project;
+  }
+
+  @RabbitRPC({
+    exchange: CheckProjectContract.exchange,
+    routingKey: CheckProjectContract.routingKey,
+    queue: CheckProjectContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'check-project',
+  })
+  async checkProject(
+    dto: CheckProjectContract.Request
+  ): Promise<CheckProjectContract.Response> {
+    const project = await this.projectRepository.findOne({
+      where: {
+        id: dto.projectId,
+      },
+    });
+
+    return {
+      exists: Boolean(project),
+    };
   }
 }
