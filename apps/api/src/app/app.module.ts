@@ -5,6 +5,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { AtJwtStrategy, RtJwtStrategy } from '@taskfusion-microservices/common';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     ProjectsModule,
     UsersModule,
+    TasksModule,
   ],
   providers: [AtJwtStrategy, RtJwtStrategy],
 })
