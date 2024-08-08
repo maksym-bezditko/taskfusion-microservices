@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TaskEntity } from '@taskfusion-microservices/entities';
 import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
+import { RmqDynamicModule } from '@taskfusion-microservices/modules';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
         getTypeOrmConfig(configService, [TaskEntity]),
     }),
     TypeOrmModule.forFeature([TaskEntity]),
+    RmqDynamicModule.register(),
   ],
   providers: [AppService],
 })
