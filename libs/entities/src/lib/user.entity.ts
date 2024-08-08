@@ -50,7 +50,7 @@ export class UserEntity {
     enum: UserType,
     name: 'user_type',
   })
-  userType: string;
+  userType: UserType;
 
   @Column({
     nullable: true,
