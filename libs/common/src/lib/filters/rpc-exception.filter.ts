@@ -7,7 +7,7 @@ export class RpcExceptionsFilter implements ExceptionFilter {
   catch(exception: Error) {
     const status =
       exception instanceof HttpException ? exception.getStatus() : 500;
-    const message = exception || 'Internal server error';
+    const message = exception.message || 'Internal server error';
 
     return {
       status,
