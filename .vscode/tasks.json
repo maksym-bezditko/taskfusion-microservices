@@ -9,7 +9,8 @@
         "nx run payments:serve",
         "nx run projects:serve",
         "nx run tasks:serve",
-        "nx run users:serve"
+        "nx run users:serve",
+        "nx run tasks-developers:serve"
       ],
       "problemMatcher": [],
       "presentation": {
@@ -128,6 +129,27 @@
       "label": "nx run users:serve",
       "type": "shell",
       "command": "nx run users:serve",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "options": {
+        "statusbar": {
+          "hide": true
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": false
+      }
+    },
+    {
+      "label": "nx run tasks-developers:serve",
+      "type": "shell",
+      "command": "nx run tasks-developers:serve",
       "problemMatcher": [],
       "group": {
         "kind": "build",

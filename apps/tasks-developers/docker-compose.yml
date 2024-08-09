@@ -1,0 +1,13 @@
+services:
+  tasks-developers-db:
+    image: mysql:8.0
+    container_name: tasks-developers-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: tasks-developers_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - '3307:3306'
+    volumes:
+      - ./[tasks-developers-db]-mysql-data:/var/lib/mysql
