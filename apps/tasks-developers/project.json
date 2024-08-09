@@ -1,0 +1,24 @@
+{
+  "name": "tasks-developers",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/tasks-developers/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "tasks-developers:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "tasks-developers:build:development"
+        },
+        "production": {
+          "buildTarget": "tasks-developers:build:production"
+        }
+      }
+    }
+  }
+}
