@@ -10,7 +10,4 @@ services:
     ports:
       - '3301:3306'
     volumes:
-      - ./mysql-data:/var/lib/mysql
-
-volumes:
-  mysql-data:
+      - ./[tasks-db]-mysql-data:/var/lib/mysql
