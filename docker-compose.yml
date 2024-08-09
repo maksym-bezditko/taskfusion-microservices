@@ -24,6 +24,19 @@ services:
       file: ./apps/users/docker-compose.yml
       service: users-db
 
+  tasks-users-db:
+    image: mysql:8.0
+    container_name: tasks-users-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: tasks_users_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - '3307:3306'
+    volumes:
+      - ./[tasks-users-db]-mysql-data:/var/lib/mysql
+
   rabbit:
     image: 'rabbitmq:3-management'
     environment:

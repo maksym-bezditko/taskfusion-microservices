@@ -42,7 +42,7 @@ Thumbs.db
 .nx/workspace-data
 
 # DB volumes
-**/mysql-data/
+**/*mysql-data/
 
 # Env files
 **/.env*

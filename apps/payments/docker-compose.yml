@@ -10,7 +10,4 @@ services:
     ports:
       - '3304:3306'
     volumes:
-      - ./mysql-data:/var/lib/mysql
-
-volumes:
-  mysql-data:
+      - ./[payments-db]-mysql-data:/var/lib/mysql
