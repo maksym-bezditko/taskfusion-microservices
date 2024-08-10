@@ -5,6 +5,7 @@ import {
   CreateTaskContract,
   GetTaskByIdContract,
   GetTasksByStatusContract,
+  UnassignTaskFromUserContract,
 } from '@taskfusion-microservices/contracts';
 import { AtJwtGuard } from '@taskfusion-microservices/common';
 
@@ -44,6 +45,18 @@ export class TasksController {
     return this.tasksService.assingTaskToUser(
       AssignTaskToUserContract.exchange,
       AssignTaskToUserContract.routingKey,
+      dto
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Post('unassign-task-from-user')
+  async unassignTaskFromUser(
+    @Body() dto: UnassignTaskFromUserContract.Request
+  ): Promise<UnassignTaskFromUserContract.Response> {
+    return this.tasksService.unassignTaskFromUser(
+      UnassignTaskFromUserContract.exchange,
+      UnassignTaskFromUserContract.routingKey,
       dto
     );
   }

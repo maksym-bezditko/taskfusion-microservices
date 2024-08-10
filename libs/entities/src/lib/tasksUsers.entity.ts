@@ -1,24 +1,20 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
-  Column,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryColumn,
 } from 'typeorm';
 
 @Entity({
   name: 'tasks_users',
 })
 export class TasksUsersEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({
+  @PrimaryColumn({
     name: 'task_id',
   })
   taskId: number;
 
-  @Column({
+  @PrimaryColumn({
     name: 'user_id',
   })
   userId: number;

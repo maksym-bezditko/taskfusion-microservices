@@ -5,6 +5,7 @@ import {
   CreateTaskContract,
   GetTaskByIdContract,
   GetTasksByStatusContract,
+  UnassignTaskFromUserContract,
 } from '@taskfusion-microservices/contracts';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 
@@ -64,6 +65,21 @@ export class TasksService {
   ) {
     const result =
       await this.amqpConnection.request<AssignTaskToUserContract.Response>({
+        exchange,
+        routingKey,
+        payload: dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async unassignTaskFromUser(
+    exchange: string,
+    routingKey: string,
+    dto: UnassignTaskFromUserContract.Request
+  ) {
+    const result =
+      await this.amqpConnection.request<UnassignTaskFromUserContract.Response>({
         exchange,
         routingKey,
         payload: dto,
