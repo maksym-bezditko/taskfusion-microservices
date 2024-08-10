@@ -5,11 +5,12 @@ import {
 } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '@taskfusion-microservices/entities';
+import { UserEntity, UserType } from '@taskfusion-microservices/entities';
 import { DeepPartial, Repository } from 'typeorm';
 import bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import {
+  CheckUserContract,
   GetProfileContract,
   LoginContract,
   LogoutContract,
@@ -29,6 +30,27 @@ export class UsersService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService
   ) {}
+
+  @RabbitRPC({
+    exchange: CheckUserContract.exchange,
+    routingKey: CheckUserContract.routingKey,
+    queue: CheckUserContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'check-user',
+  })
+  async checkUser(
+    dto: CheckUserContract.Request
+  ): Promise<CheckUserContract.Response> {
+    const user = await this.userRepository.findOne({
+      where: { id: dto.userId },
+    });
+
+    return {
+      exists: Boolean(user),
+    };
+  }
 
   @RabbitRPC({
     exchange: RefreshTokensContract.exchange,
@@ -193,7 +215,7 @@ export class UsersService {
   async generateTokens(payload: {
     id: number;
     email: string;
-    userType: string;
+    userType: UserType;
   }) {
     const accessToken = await this.signPayload(payload, {
       expiresIn: '30m',

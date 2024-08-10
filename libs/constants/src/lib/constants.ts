@@ -15,3 +15,5 @@ export const USERS_QUEUE_ROUTING_KEYS = `${USERS_QUEUE_NAME}.*`;
 export const DL_QUEUE_ROUTING_KEYS = `${DL_QUEUE_NAME}.*`;
 
 export const DL_UNIVERSAL_ROUTING_KEY = `${DL_QUEUE_NAME}.universal`;
+
+export const USER_TYPE_KEY = 'USER_TYPE';

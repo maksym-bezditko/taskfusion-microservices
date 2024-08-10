@@ -10,7 +10,7 @@
         "nx run projects:serve",
         "nx run tasks:serve",
         "nx run users:serve",
-        "nx run tasks-developers:serve"
+        "nx run tasks-users:serve"
       ],
       "problemMatcher": [],
       "presentation": {
@@ -147,9 +147,9 @@
       }
     },
     {
-      "label": "nx run tasks-developers:serve",
+      "label": "nx run tasks-users:serve",
       "type": "shell",
-      "command": "nx run tasks-developers:serve",
+      "command": "nx run tasks-users:serve",
       "problemMatcher": [],
       "group": {
         "kind": "build",

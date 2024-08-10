@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import {
+  AssignTaskToUserContract,
   CreateTaskContract,
   GetTaskByIdContract,
   GetTasksByStatusContract,
@@ -31,6 +32,18 @@ export class TasksController {
     return this.tasksService.getTasksByStatus(
       GetTasksByStatusContract.exchange,
       GetTasksByStatusContract.routingKey,
+      dto
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Post('assign-task-to-user')
+  async assingTaskToUser(
+    @Body() dto: AssignTaskToUserContract.Request
+  ): Promise<AssignTaskToUserContract.Response> {
+    return this.tasksService.assingTaskToUser(
+      AssignTaskToUserContract.exchange,
+      AssignTaskToUserContract.routingKey,
       dto
     );
   }

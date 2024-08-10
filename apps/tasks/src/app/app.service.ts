@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   CheckDeveloperContract,
   CheckProjectContract,
+  CheckTaskContract,
   CreateTaskContract,
   GetTaskByIdContract,
   GetTasksByStatusContract,
@@ -24,6 +25,31 @@ export class AppService {
     private readonly taskRepository: Repository<TaskEntity>,
     private readonly amqpConnection: AmqpConnection
   ) {}
+
+  @RabbitRPC({
+    exchange: CheckTaskContract.exchange,
+    routingKey: CheckTaskContract.routingKey,
+    queue: CheckTaskContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'check-task',
+  })
+  async checkTask(
+    dto: CheckTaskContract.Request
+  ): Promise<CheckTaskContract.Response> {
+    const { taskId } = dto;
+
+    const task = await this.taskRepository.find({
+      where: {
+        id: taskId,
+      },
+    });
+
+    return {
+      exists: Boolean(task),
+    };
+  }
 
   @RabbitRPC({
     exchange: GetTasksByStatusContract.exchange,
