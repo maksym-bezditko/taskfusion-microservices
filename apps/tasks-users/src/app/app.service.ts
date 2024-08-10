@@ -10,6 +10,7 @@ import {
   AssignTaskToUserContract,
   CheckTaskContract,
   CheckUserContract,
+  UnassignTaskFromUserContract,
 } from '@taskfusion-microservices/contracts';
 import { TasksUsersEntity } from '@taskfusion-microservices/entities';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
@@ -73,6 +74,17 @@ export class AppService {
       }
     );
 
+    const existingEntry = await this.tasksUsersRepository.findOne({
+      where: {
+        userId,
+        taskId,
+      },
+    });
+
+    if (existingEntry) {
+      throw new NotFoundException('Task already assigned to user');
+    }
+
     const entry = this.tasksUsersRepository.create({
       userId,
       taskId,
@@ -82,6 +94,30 @@ export class AppService {
 
     return {
       success: Boolean(entry),
+    };
+  }
+
+  @RabbitRPC({
+    exchange: UnassignTaskFromUserContract.exchange,
+    routingKey: UnassignTaskFromUserContract.routingKey,
+    queue: UnassignTaskFromUserContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'unassign-task-from-user',
+  })
+  async unassingTaskFromUser(
+    dto: UnassignTaskFromUserContract.Request
+  ): Promise<UnassignTaskFromUserContract.Response> {
+    const { userId, taskId } = dto;
+
+    const entry = await this.tasksUsersRepository.delete({
+      userId,
+      taskId,
+    });
+
+    return {
+      success: Boolean(entry.affected && entry.affected > 0),
     };
   }
 }
