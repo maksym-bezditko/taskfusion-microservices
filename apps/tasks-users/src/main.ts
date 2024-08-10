@@ -10,10 +10,10 @@ import { RpcExceptionsFilter } from '@taskfusion-microservices/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
-  app.useGlobalFilters(new RpcExceptionsFilter('tasks-developers'));
 
-  await app.init();
+  app.useGlobalFilters(new RpcExceptionsFilter('tasks-users'));
+
+  app.init();
 }
 
 bootstrap();

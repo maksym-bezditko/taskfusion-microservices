@@ -24,10 +24,10 @@ services:
       file: ./apps/users/docker-compose.yml
       service: users-db
 
-  tasks-developers-db:
+  tasks-users-db:
     extends:
-      file: ./apps/tasks-developers/docker-compose.yml
-      service: tasks-developers-db
+      file: ./apps/tasks-users/docker-compose.yml
+      service: tasks-users-db
 
   rabbit:
     image: 'rabbitmq:3-management'

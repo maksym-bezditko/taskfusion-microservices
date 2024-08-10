@@ -3,9 +3,9 @@ import { Module } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { TasksDevelopersEntity } from '@taskfusion-microservices/entities';
 import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
 import { RmqDynamicModule } from '@taskfusion-microservices/modules';
+import { TasksUsersEntity } from '@taskfusion-microservices/entities';
 
 @Module({
   imports: [
@@ -17,9 +17,9 @@ import { RmqDynamicModule } from '@taskfusion-microservices/modules';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>
-        getTypeOrmConfig(configService, [TasksDevelopersEntity]),
+        getTypeOrmConfig(configService, [TasksUsersEntity]),
     }),
-    TypeOrmModule.forFeature([TasksDevelopersEntity]),
+    TypeOrmModule.forFeature([TasksUsersEntity]),
     RmqDynamicModule.register(),
   ],
   providers: [AppService],

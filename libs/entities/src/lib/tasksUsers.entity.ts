@@ -7,9 +7,9 @@ import {
 } from 'typeorm';
 
 @Entity({
-  name: 'tasks_developers',
+  name: 'tasks_users',
 })
-export class TasksDevelopersEntity {
+export class TasksUsersEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -19,9 +19,9 @@ export class TasksDevelopersEntity {
   taskId: number;
 
   @Column({
-    name: 'developer_id',
+    name: 'user_id',
   })
-  developerId: number;
+  userId: number;
 
   @CreateDateColumn({
     name: 'created_at',
