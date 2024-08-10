@@ -1,6 +1,7 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import {
+  AssignTaskToUserContract,
   CreateTaskContract,
   GetTaskByIdContract,
   GetTasksByStatusContract,
@@ -48,6 +49,21 @@ export class TasksService {
   ) {
     const result =
       await this.amqpConnection.request<GetTaskByIdContract.Response>({
+        exchange,
+        routingKey,
+        payload: dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async assingTaskToUser(
+    exchange: string,
+    routingKey: string,
+    dto: AssignTaskToUserContract.Request
+  ) {
+    const result =
+      await this.amqpConnection.request<AssignTaskToUserContract.Response>({
         exchange,
         routingKey,
         payload: dto,
