@@ -8,6 +8,8 @@ export * from './contracts/developers/check-developer.contract';
 export * from './contracts/pms/create-pm.contract';
 export * from './contracts/pms/check-pm.contract';
 
+export * from './contracts/users/check-user.contract';
+
 export * from './contracts/projects/create-project.contract';
 export * from './contracts/projects/check-project.contract';
 export * from './contracts/projects/get-projects.contract';
@@ -22,3 +24,5 @@ export * from './contracts/profile/get-profile.contract';
 export * from './contracts/tasks/create-task.contract';
 export * from './contracts/tasks/get-tasks-by-status.contract';
 export * from './contracts/tasks/get-task-by-id.contract';
+export * from './contracts/tasks/assign-task-to-user.contract';
+export * from './contracts/tasks/check-task.contract';
