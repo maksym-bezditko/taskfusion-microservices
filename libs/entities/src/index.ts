@@ -7,3 +7,4 @@ export * from './lib/payment.entity';
 export * from './lib/task.entity';
 export * from './lib/comment.entity';
 export * from './lib/tasksUsers.entity';
+export * from './lib/action.entity';

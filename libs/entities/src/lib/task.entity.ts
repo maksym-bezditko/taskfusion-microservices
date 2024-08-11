@@ -56,11 +56,6 @@ export class TaskEntity {
   })
   projectId: number;
 
-  @Column({
-    name: 'developer_id',
-  })
-  developerId: number;
-
   @CreateDateColumn({
     name: 'created_at',
   })

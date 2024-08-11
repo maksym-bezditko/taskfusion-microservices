@@ -37,8 +37,10 @@ export namespace CreateTaskContract {
 
     @IsInt()
     projectId: number;
+  }
 
+  export class Dto extends Request {
     @IsInt()
-    developerId: number;
+    userId: number;
   }
 }

@@ -7,9 +7,9 @@ import {
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-  CheckDeveloperContract,
   CheckProjectContract,
   CheckTaskContract,
+  CreateActionContract,
   CreateTaskContract,
   GetTaskByIdContract,
   GetTasksByStatusContract,
@@ -108,42 +108,24 @@ export class AppService {
     name: 'create-task',
   })
   async createTask(
-    dto: CreateTaskContract.Request
+    dto: CreateTaskContract.Dto
   ): Promise<CreateTaskContract.Response> {
     const {
       deadline,
       description,
-      developerId,
       taskPriority,
       projectId,
       taskStatus,
       title,
+      userId,
     } = dto;
-
-    const developerResult =
-      await this.amqpConnection.request<CheckDeveloperContract.Response>({
-        exchange: CheckDeveloperContract.exchange,
-        routingKey: CheckDeveloperContract.routingKey,
-        payload: {
-          developerId: dto.developerId,
-        } as CheckDeveloperContract.Request,
-      });
-
-    await handleRpcRequest<CheckDeveloperContract.Response>(
-      developerResult,
-      async (response) => {
-        if (!response.exists) {
-          throw new NotFoundException('Developer not found!');
-        }
-      }
-    );
 
     const projectResult =
       await this.amqpConnection.request<CheckProjectContract.Response>({
         exchange: CheckProjectContract.exchange,
         routingKey: CheckProjectContract.routingKey,
         payload: {
-          projectId: dto.projectId,
+          projectId,
         } as CheckProjectContract.Request,
       });
 
@@ -163,10 +145,19 @@ export class AppService {
       taskStatus,
       deadline: new Date(deadline),
       projectId,
-      developerId,
     });
 
     await this.taskRepository.save(task);
+
+    this.amqpConnection.publish(
+      CreateActionContract.exchange,
+      CreateActionContract.routingKey,
+      {
+        title: 'Task created',
+        userId,
+        taskId: task.id,
+      } as CreateActionContract.Dto
+    );
 
     return task;
   }
