@@ -6,12 +6,13 @@ import {
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity, UserType } from '@taskfusion-microservices/entities';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, In, Repository } from 'typeorm';
 import bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import {
   CheckUserContract,
   GetProfileContract,
+  GetUsersByIdsContract,
   LoginContract,
   LogoutContract,
   RefreshTokensContract,
@@ -30,6 +31,37 @@ export class UsersService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService
   ) {}
+
+  @RabbitRPC({
+    exchange: GetUsersByIdsContract.exchange,
+    routingKey: GetUsersByIdsContract.routingKey,
+    queue: GetUsersByIdsContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-users-by-ids',
+  })
+  async getUsersByIds(
+    dto: GetUsersByIdsContract.Request
+  ): Promise<GetUsersByIdsContract.Response> {
+    const { ids } = dto;
+
+    const users = await this.userRepository.find({
+      where: { id: In(ids) },
+      select: [
+        'id',
+        'name',
+        'email',
+        'description',
+        'userType',
+        'telegramId',
+        'createdAt',
+        'updatedAt',
+      ],
+    });
+
+    return users;
+  }
 
   @RabbitRPC({
     exchange: CheckUserContract.exchange,
@@ -219,12 +251,12 @@ export class UsersService {
   }) {
     const accessToken = await this.signPayload(payload, {
       expiresIn: '30m',
-      secret: this.configService.get<string>('AT_SECRET'),
+      secret: this.configService.getOrThrow<string>('AT_SECRET'),
     });
 
     const refreshToken = await this.signPayload(payload, {
       expiresIn: '7d',
-      secret: this.configService.get<string>('RT_SECRET'),
+      secret: this.configService.getOrThrow<string>('RT_SECRET'),
     });
 
     return {

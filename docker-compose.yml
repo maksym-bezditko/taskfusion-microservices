@@ -24,6 +24,11 @@ services:
       file: ./apps/users/docker-compose.yml
       service: users-db
 
+  actions-db:
+    extends:
+      file: ./apps/actions/docker-compose.yml
+      service: actions-db
+
   tasks-users-db:
     extends:
       file: ./apps/tasks-users/docker-compose.yml

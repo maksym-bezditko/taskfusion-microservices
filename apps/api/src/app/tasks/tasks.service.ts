@@ -16,7 +16,7 @@ export class TasksService {
   async createTask(
     exchange: string,
     routingKey: string,
-    dto: CreateTaskContract.Request
+    dto: CreateTaskContract.Dto
   ) {
     const result =
       await this.amqpConnection.request<CreateTaskContract.Response>({

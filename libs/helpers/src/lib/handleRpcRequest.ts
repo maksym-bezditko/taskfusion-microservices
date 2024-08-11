@@ -3,7 +3,7 @@ import { isError } from '@taskfusion-microservices/types';
 
 export const handleRpcRequest = async <Result, Response = unknown>(
   result: Result,
-  handler: (request: Result) => Promise<Response>
+  handler?: (request: Result) => Promise<Response>
 ): Promise<Response | undefined> => {
   if (isError(result)) {
     throw new HttpException(

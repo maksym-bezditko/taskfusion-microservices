@@ -9,6 +9,7 @@ export * from './contracts/pms/create-pm.contract';
 export * from './contracts/pms/check-pm.contract';
 
 export * from './contracts/users/check-user.contract';
+export * from './contracts/users/get-users-by-ids.contract';
 
 export * from './contracts/projects/create-project.contract';
 export * from './contracts/projects/check-project.contract';
@@ -27,3 +28,6 @@ export * from './contracts/tasks/get-task-by-id.contract';
 export * from './contracts/tasks/assign-task-to-user.contract';
 export * from './contracts/tasks/unassign-task-from-user.contract';
 export * from './contracts/tasks/check-task.contract';
+
+export * from './contracts/actions/create-action.contract';
+export * from './contracts/actions/get-actions-by-task-id.contract';
