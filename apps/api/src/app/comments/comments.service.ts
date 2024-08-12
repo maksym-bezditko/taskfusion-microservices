@@ -1,6 +1,6 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
-import { CreateCommentContract } from '@taskfusion-microservices/contracts';
+import { CreateCommentContract, GetCommentsByTaskIdContract } from '@taskfusion-microservices/contracts';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 
 @Injectable()
@@ -25,10 +25,10 @@ export class CommentsService {
   async getCommentsByTaskId(
     exchange: string,
     routingKey: string,
-    dto: CreateCommentContract.Dto
-  ): Promise<CreateCommentContract.Response> {
+    dto: GetCommentsByTaskIdContract.Dto
+  ): Promise<GetCommentsByTaskIdContract.Response> {
     const result =
-      await this.amqpConnection.request<CreateCommentContract.Response>({
+      await this.amqpConnection.request<GetCommentsByTaskIdContract.Response>({
         exchange,
         routingKey,
         payload: dto,
