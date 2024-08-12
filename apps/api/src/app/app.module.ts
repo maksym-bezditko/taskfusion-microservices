@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { TasksModule } from './tasks/tasks.module';
 import { ActionsModule } from './actions/actions.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ActionsModule } from './actions/actions.module';
     UsersModule,
     TasksModule,
     ActionsModule,
+    CommentsModule,
   ],
   providers: [AtJwtStrategy, RtJwtStrategy],
 })

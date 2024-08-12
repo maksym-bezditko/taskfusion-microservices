@@ -8,7 +8,9 @@ export const ACTIONS_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.actions`;
 
 export const PROJECTS_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.projects`;
 
-export const TASKS_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.projects`;
+export const COMMENTS_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.comments`;
+
+export const TASKS_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.tasks`;
 
 export const DL_QUEUE_NAME = `${DL_EXCHANGE_NAME}.messages`;
 
