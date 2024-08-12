@@ -18,6 +18,9 @@ export class CommentEntity {
   })
   taskId: number;
 
+  @Column()
+  text: string;
+
   @Column({
     name: 'user_id',
   })
@@ -26,10 +29,10 @@ export class CommentEntity {
   @CreateDateColumn({
     name: 'created_at',
   })
-  public createdAt: Date;
+  createdAt: Date;
 
   @UpdateDateColumn({
     name: 'updated_at',
   })
-  public updatedAt: Date;
+  updatedAt: Date;
 }
