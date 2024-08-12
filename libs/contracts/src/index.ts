@@ -31,3 +31,5 @@ export * from './contracts/tasks/check-task.contract';
 
 export * from './contracts/actions/create-action.contract';
 export * from './contracts/actions/get-actions-by-task-id.contract';
+
+export * from './contracts/comments/create-comment.contract';
