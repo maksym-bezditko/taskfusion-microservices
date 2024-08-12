@@ -3,7 +3,6 @@ import {
   defaultNackErrorHandler,
   MessageHandlerErrorBehavior,
   RabbitRPC,
-  RabbitSubscribe,
 } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -24,10 +23,14 @@ export class AppService {
     private readonly amqpConnection: AmqpConnection
   ) {}
 
-  @RabbitSubscribe({
+  @RabbitRPC({
     exchange: CreateActionContract.exchange,
     routingKey: CreateActionContract.routingKey,
     queue: CreateActionContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'create-action',
   })
   async createAction(dto: CreateActionContract.Dto) {
     const { title, userId, taskId } = dto;
@@ -39,6 +42,8 @@ export class AppService {
     });
 
     await this.actionRepository.save(action);
+
+    return action;
   }
 
   @RabbitRPC({
@@ -57,6 +62,7 @@ export class AppService {
 
     const actionsResult = await this.actionRepository.find({
       where: { taskId },
+      order: { createdAt: 'DESC' },
     });
 
     const userIds = actionsResult.map((action) => action.userId);

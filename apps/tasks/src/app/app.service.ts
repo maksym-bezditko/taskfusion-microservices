@@ -149,15 +149,15 @@ export class AppService {
 
     await this.taskRepository.save(task);
 
-    this.amqpConnection.publish(
-      CreateActionContract.exchange,
-      CreateActionContract.routingKey,
-      {
+    await this.amqpConnection.request({
+      exchange: CreateActionContract.exchange,
+      routingKey: CreateActionContract.routingKey,
+      payload: {
         title: 'Task created',
         userId,
         taskId: task.id,
-      } as CreateActionContract.Dto
-    );
+      } as CreateActionContract.Dto,
+    });
 
     return task;
   }

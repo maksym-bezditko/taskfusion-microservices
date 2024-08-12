@@ -33,3 +33,4 @@ export * from './contracts/actions/create-action.contract';
 export * from './contracts/actions/get-actions-by-task-id.contract';
 
 export * from './contracts/comments/create-comment.contract';
+export * from './contracts/comments/get-comments-by-task-id.contract';

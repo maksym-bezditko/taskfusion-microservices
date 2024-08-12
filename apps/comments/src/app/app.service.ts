@@ -9,7 +9,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   CheckTaskContract,
   CheckUserContract,
+  CreateActionContract,
   CreateCommentContract,
+  GetCommentsByTaskIdContract,
+  GetUsersByIdsContract,
 } from '@taskfusion-microservices/contracts';
 import { CommentEntity } from '@taskfusion-microservices/entities';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
@@ -19,7 +22,7 @@ import { Repository } from 'typeorm';
 export class AppService {
   constructor(
     @InjectRepository(CommentEntity)
-    private readonly userRepository: Repository<CommentEntity>,
+    private readonly commentRepository: Repository<CommentEntity>,
     private readonly amqpConnection: AmqpConnection
   ) {}
 
@@ -73,14 +76,79 @@ export class AppService {
       }
     );
 
-    const comment = this.userRepository.create({
+    const comment = this.commentRepository.create({
       text,
       taskId,
       userId,
     });
 
-    await this.userRepository.save(comment);
+    await this.commentRepository.save(comment);
+
+    const usersResult =
+      await this.amqpConnection.request<GetUsersByIdsContract.Response>({
+        exchange: GetUsersByIdsContract.exchange,
+        routingKey: GetUsersByIdsContract.routingKey,
+        payload: {
+          ids: [userId],
+        } as GetUsersByIdsContract.Request,
+      });
+
+    const response = await handleRpcRequest(
+      usersResult,
+      async (response) => response
+    );
+
+    await this.amqpConnection.request({
+      exchange: CreateActionContract.exchange,
+      routingKey: CreateActionContract.routingKey,
+      payload: {
+        title: `Comment created by ${response[0].name}`,
+        userId,
+        taskId,
+      } as CreateActionContract.Dto,
+    });
 
     return { id: comment.id };
+  }
+
+  @RabbitRPC({
+    exchange: GetCommentsByTaskIdContract.exchange,
+    routingKey: GetCommentsByTaskIdContract.routingKey,
+    queue: GetCommentsByTaskIdContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-comments-by-task-id',
+  })
+  async getCommentsByTaskId(
+    dto: GetCommentsByTaskIdContract.Dto
+  ): Promise<GetCommentsByTaskIdContract.Response> {
+    const { taskId } = dto;
+
+    const commentsResult = await this.commentRepository.find({
+      where: { taskId },
+      order: { createdAt: 'DESC' },
+    });
+
+    const userIds = commentsResult.map((action) => action.userId);
+
+    const usersResult =
+      await this.amqpConnection.request<GetUsersByIdsContract.Response>({
+        exchange: GetUsersByIdsContract.exchange,
+        routingKey: GetUsersByIdsContract.routingKey,
+        payload: {
+          ids: userIds,
+        } as GetUsersByIdsContract.Request,
+      });
+
+    const users = await handleRpcRequest(
+      usersResult,
+      async (response) => response
+    );
+
+    return commentsResult.map((comment) => ({
+      ...comment,
+      user: users.find((user) => user.id === comment.userId),
+    }));
   }
 }
