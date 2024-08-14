@@ -1,7 +1,7 @@
 import { Errorable } from '@taskfusion-microservices/types';
 import {
   GENERAL_EXCHANGE_NAME,
-  USERS_QUEUE_NAME,
+  AUTH_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
 import { IsEmail, IsString } from 'class-validator';
 
@@ -10,7 +10,7 @@ export namespace LoginContract {
 
   export const routingKey = `login`;
 
-  export const queue = `${USERS_QUEUE_NAME}.${routingKey}`;
+  export const queue = `${AUTH_QUEUE_NAME}.${routingKey}`;
 
   export type Response = Errorable<{
     accessToken: string;

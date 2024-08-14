@@ -1,7 +1,7 @@
 import { Errorable } from '@taskfusion-microservices/types';
 import {
   GENERAL_EXCHANGE_NAME,
-  USERS_QUEUE_NAME,
+  AUTH_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
 
 export namespace RefreshTokensContract {
@@ -9,7 +9,7 @@ export namespace RefreshTokensContract {
 
   export const routingKey = `refresh-tokens`;
 
-  export const queue = `${USERS_QUEUE_NAME}.${routingKey}`;
+  export const queue = `${AUTH_QUEUE_NAME}.${routingKey}`;
 
   export type Response = Errorable<{
     accessToken: string;
