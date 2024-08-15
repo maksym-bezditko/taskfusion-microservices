@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import {
   AssignTaskToUserContract,
+  ChangeTaskStatusContract,
   CreateTaskContract,
   GetTaskByIdContract,
   GetTasksByStatusContract,
@@ -75,6 +76,23 @@ export class TasksController {
       GetTaskByIdContract.routingKey,
       {
         taskId: +taskId,
+      }
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Post('change-task-status')
+  async changeTaskStatus(
+    @Body() dto: ChangeTaskStatusContract.Request,
+    @UserIdFromJwt() userId: number
+  ): Promise<ChangeTaskStatusContract.Response> {
+    return this.tasksService.changeTaskStatus(
+      ChangeTaskStatusContract.exchange,
+      ChangeTaskStatusContract.routingKey,
+      {
+        taskId: dto.taskId,
+        taskStatus: dto.taskStatus,
+        userId,
       }
     );
   }

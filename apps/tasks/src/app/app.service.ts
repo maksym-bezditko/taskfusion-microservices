@@ -7,12 +7,14 @@ import {
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  ChangeTaskStatusContract,
   CheckProjectContract,
   CheckTaskContract,
   CreateActionContract,
   CreateTaskContract,
   GetTaskByIdContract,
   GetTasksByStatusContract,
+  GetUsersByIdsContract,
 } from '@taskfusion-microservices/contracts';
 import { TaskEntity } from '@taskfusion-microservices/entities';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
@@ -96,6 +98,64 @@ export class AppService {
     });
 
     return result;
+  }
+
+  @RabbitRPC({
+    exchange: ChangeTaskStatusContract.exchange,
+    routingKey: ChangeTaskStatusContract.routingKey,
+    queue: ChangeTaskStatusContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'change-task-status',
+  })
+  async changeTaskStatus(
+    dto: ChangeTaskStatusContract.Dto
+  ): Promise<ChangeTaskStatusContract.Response> {
+    const { taskId, taskStatus, userId } = dto;
+
+    const taskBeforeUpdate = await this.taskRepository.findOne({
+      where: {
+        id: taskId,
+      },
+    });
+
+    const result = await this.taskRepository.update(
+      {
+        id: taskId,
+      },
+      {
+        taskStatus,
+      }
+    );
+
+    const usersResult =
+      await this.amqpConnection.request<GetUsersByIdsContract.Response>({
+        exchange: GetUsersByIdsContract.exchange,
+        routingKey: GetUsersByIdsContract.routingKey,
+        payload: {
+          ids: [userId],
+        } as GetUsersByIdsContract.Request,
+      });
+
+    const response = await handleRpcRequest(
+      usersResult,
+      async (response) => response
+    );
+
+    await this.amqpConnection.request({
+      exchange: CreateActionContract.exchange,
+      routingKey: CreateActionContract.routingKey,
+      payload: {
+        title: `Task status changed from "${taskBeforeUpdate.taskStatus}" to "${taskStatus}" by ${response[0].name}`,
+        userId,
+        taskId,
+      } as CreateActionContract.Dto,
+    });
+
+    return {
+      success: Boolean(result.affected && result.affected > 0),
+    };
   }
 
   @RabbitRPC({
