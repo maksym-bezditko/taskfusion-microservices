@@ -8,7 +8,7 @@ import { UserEntity } from '@taskfusion-microservices/entities';
 export namespace GetProfileContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
 
-  export const routingKey = `get-client`;
+  export const routingKey = `get-profile`;
 
   export const queue = `${PROFILES_QUEUE_NAME}.${routingKey}`;
 

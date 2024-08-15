@@ -2,6 +2,7 @@ import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import {
   AssignTaskToUserContract,
+  ChangeTaskStatusContract,
   CreateTaskContract,
   GetTaskByIdContract,
   GetTasksByStatusContract,
@@ -80,6 +81,21 @@ export class TasksService {
   ) {
     const result =
       await this.amqpConnection.request<UnassignTaskFromUserContract.Response>({
+        exchange,
+        routingKey,
+        payload: dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async changeTaskStatus(
+    exchange: string,
+    routingKey: string,
+    dto: ChangeTaskStatusContract.Dto
+  ) {
+    const result =
+      await this.amqpConnection.request<ChangeTaskStatusContract.Response>({
         exchange,
         routingKey,
         payload: dto,
