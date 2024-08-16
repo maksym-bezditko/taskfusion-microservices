@@ -10,6 +10,8 @@ import {
   AssignTaskToUserContract,
   CheckTaskContract,
   CheckUserContract,
+  GetTaskParticipantsContract,
+  GetUsersByIdsContract,
   UnassignTaskFromUserContract,
 } from '@taskfusion-microservices/contracts';
 import { TasksUsersEntity } from '@taskfusion-microservices/entities';
@@ -119,5 +121,46 @@ export class AppService {
     return {
       success: Boolean(entry.affected && entry.affected > 0),
     };
+  }
+
+  @RabbitRPC({
+    exchange: GetTaskParticipantsContract.exchange,
+    routingKey: GetTaskParticipantsContract.routingKey,
+    queue: GetTaskParticipantsContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-task-participants',
+  })
+  async getTaskParticipants(dto: GetTaskParticipantsContract.Dto) {
+    const { taskId } = dto;
+
+    const entries = await this.tasksUsersRepository.find({
+      where: {
+        taskId,
+      },
+    });
+
+    const userIds = entries.map((entry) => entry.userId);
+
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    const usersResult =
+      await this.amqpConnection.request<GetUsersByIdsContract.Response>({
+        exchange: GetUsersByIdsContract.exchange,
+        routingKey: GetUsersByIdsContract.routingKey,
+        payload: {
+          ids: userIds,
+        } as GetUsersByIdsContract.Request,
+      });
+
+    const users = await handleRpcRequest(
+      usersResult,
+      async (response) => response
+    );
+
+    return users;
   }
 }

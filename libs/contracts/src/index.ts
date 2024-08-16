@@ -30,6 +30,8 @@ export * from './contracts/tasks/unassign-task-from-user.contract';
 export * from './contracts/tasks/check-task.contract';
 export * from './contracts/tasks/change-task-status.contract';
 
+export * from './contracts/tasks-users/get-task-participants.contract';
+
 export * from './contracts/actions/create-action.contract';
 export * from './contracts/actions/get-actions-by-task-id.contract';
 

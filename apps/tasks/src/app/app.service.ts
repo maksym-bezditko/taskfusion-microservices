@@ -13,6 +13,7 @@ import {
   CreateActionContract,
   CreateTaskContract,
   GetTaskByIdContract,
+  GetTaskParticipantsContract,
   GetTasksByStatusContract,
   GetUsersByIdsContract,
 } from '@taskfusion-microservices/contracts';
@@ -74,7 +75,38 @@ export class AppService {
       },
     });
 
-    return result;
+    const tasks = result.map(async (task) => {
+      const usersResult =
+        await this.amqpConnection.request<GetTaskParticipantsContract.Response>(
+          {
+            exchange: GetTaskParticipantsContract.exchange,
+            routingKey: GetTaskParticipantsContract.routingKey,
+            payload: {
+              taskId: task.id,
+            },
+          }
+        );
+
+      const users = await handleRpcRequest(
+        usersResult,
+        async (response) => response
+      );
+
+      return {
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        deadline: task.deadline,
+        projectId: task.projectId,
+        taskStatus: task.taskStatus,
+        taskPriority: task.taskPriority,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt,
+        users,
+      };
+    });
+
+    return Promise.all(tasks);
   }
 
   @RabbitRPC({
@@ -91,13 +123,38 @@ export class AppService {
   ): Promise<GetTaskByIdContract.Response> {
     const { taskId } = dto;
 
-    const result = await this.taskRepository.findOne({
+    const task = await this.taskRepository.findOne({
       where: {
         id: taskId,
       },
     });
 
-    return result;
+    const usersResult =
+      await this.amqpConnection.request<GetTaskParticipantsContract.Response>({
+        exchange: GetTaskParticipantsContract.exchange,
+        routingKey: GetTaskParticipantsContract.routingKey,
+        payload: {
+          taskId,
+        },
+      });
+
+    const users = await handleRpcRequest(
+      usersResult,
+      async (response) => response
+    );
+
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      deadline: task.deadline,
+      projectId: task.projectId,
+      taskStatus: task.taskStatus,
+      taskPriority: task.taskPriority,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      users,
+    };
   }
 
   @RabbitRPC({
