@@ -10,6 +10,7 @@ import {
   AssignTaskToUserContract,
   CheckTaskContract,
   CheckUserContract,
+  CreateActionContract,
   GetTaskParticipantsContract,
   GetUsersByIdsContract,
   UnassignTaskFromUserContract,
@@ -94,6 +95,30 @@ export class AppService {
 
     await this.tasksUsersRepository.save(entry);
 
+    const usersResult =
+      await this.amqpConnection.request<GetUsersByIdsContract.Response>({
+        exchange: GetUsersByIdsContract.exchange,
+        routingKey: GetUsersByIdsContract.routingKey,
+        payload: {
+          ids: [userId],
+        } as GetUsersByIdsContract.Request,
+      });
+
+    const response = await handleRpcRequest(
+      usersResult,
+      async (response) => response
+    );
+
+    await this.amqpConnection.request({
+      exchange: CreateActionContract.exchange,
+      routingKey: CreateActionContract.routingKey,
+      payload: {
+        title: `Task ${taskId} assigned to user ${response[0].name}`,
+        userId,
+        taskId,
+      } as CreateActionContract.Dto,
+    });
+
     return {
       success: Boolean(entry),
     };
@@ -116,6 +141,30 @@ export class AppService {
     const entry = await this.tasksUsersRepository.delete({
       userId,
       taskId,
+    });
+
+    const usersResult =
+      await this.amqpConnection.request<GetUsersByIdsContract.Response>({
+        exchange: GetUsersByIdsContract.exchange,
+        routingKey: GetUsersByIdsContract.routingKey,
+        payload: {
+          ids: [userId],
+        } as GetUsersByIdsContract.Request,
+      });
+
+    const response = await handleRpcRequest(
+      usersResult,
+      async (response) => response
+    );
+
+    await this.amqpConnection.request({
+      exchange: CreateActionContract.exchange,
+      routingKey: CreateActionContract.routingKey,
+      payload: {
+        title: `Task ${taskId} unassigned from user ${response[0].name}`,
+        userId,
+        taskId,
+      } as CreateActionContract.Dto,
     });
 
     return {
