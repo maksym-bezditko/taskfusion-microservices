@@ -34,6 +34,11 @@ services:
       file: ./apps/tasks-users/docker-compose.yml
       service: tasks-users-db
 
+  projects-users-db:
+    extends:
+      file: ./apps/projects-users/docker-compose.yml
+      service: projects-users-db
+
   rabbit:
     image: 'rabbitmq:3-management'
     container_name: 'rabbitmq'
