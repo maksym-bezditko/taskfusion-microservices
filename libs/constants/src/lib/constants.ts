@@ -11,3 +11,4 @@ export const PROJECTS_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.projects`;
 export const COMMENTS_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.comments`;
 export const TASKS_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.tasks`;
 export const TASKS_USERS_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.tasks-users`;
+export const INVITES_QUEUE_NAME = `${GENERAL_EXCHANGE_NAME}.invites`;

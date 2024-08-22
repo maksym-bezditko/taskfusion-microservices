@@ -15,7 +15,6 @@ export namespace GetProjectByIdContract {
   export type Response = Errorable<ProjectEntity>;
 
   export class Dto {
-    userId: number;
 		projectId: number;
   }
 }

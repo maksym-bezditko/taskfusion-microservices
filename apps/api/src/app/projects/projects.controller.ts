@@ -4,8 +4,13 @@ import {
   CreateProjectContract,
   GetProjectByIdContract,
   GetProjectsContract,
+  InvitePmContract,
 } from '@taskfusion-microservices/contracts';
-import { AtJwtGuard, UserIdFromJwt } from '@taskfusion-microservices/common';
+import {
+  AtJwtGuard,
+  ClientGuard,
+  UserIdFromJwt,
+} from '@taskfusion-microservices/common';
 
 @Controller('projects')
 export class ProjectsController {
@@ -47,8 +52,23 @@ export class ProjectsController {
       GetProjectByIdContract.exchange,
       GetProjectByIdContract.routingKey,
       {
-        userId,
         projectId: id,
+      }
+    );
+  }
+
+  @UseGuards(AtJwtGuard, ClientGuard)
+  @Post('/invites/invite-pm')
+  async invitePm(
+    @Body() dto: InvitePmContract.Request,
+    @UserIdFromJwt() userId: number
+  ): Promise<InvitePmContract.Response> {
+    return this.projectsService.invitePm(
+      InvitePmContract.exchange,
+      InvitePmContract.routingKey,
+      {
+        ...dto,
+        clientUserId: userId,
       }
     );
   }
