@@ -37,3 +37,5 @@ export * from './contracts/actions/get-actions-by-task-id.contract';
 
 export * from './contracts/comments/create-comment.contract';
 export * from './contracts/comments/get-comments-by-task-id.contract';
+
+export * from './contracts/invites/invite-pm.contract';

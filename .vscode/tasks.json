@@ -11,7 +11,8 @@
         "nx run tasks:serve",
         "nx run users:serve",
         "nx run tasks-users:serve",
-        "nx run actions:serve"
+        "nx run actions:serve",
+        "nx run projects-users:serve"
       ],
       "problemMatcher": [],
       "presentation": {
@@ -172,6 +173,27 @@
       "label": "nx run actions:serve",
       "type": "shell",
       "command": "nx run actions:serve",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "options": {
+        "statusbar": {
+          "hide": true
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": false
+      }
+    },
+    {
+      "label": "nx run projects-users:serve",
+      "type": "shell",
+      "command": "nx run projects-users:serve",
       "problemMatcher": [],
       "group": {
         "kind": "build",

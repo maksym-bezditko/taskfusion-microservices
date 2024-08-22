@@ -141,27 +141,9 @@ export class AppService {
   async getProjectById(
     dto: GetProjectByIdContract.Dto
   ): Promise<GetProjectByIdContract.Response> {
-    const clientResult =
-      await this.amqpConnection.request<GetClientByUserIdContract.Response>({
-        exchange: GetClientByUserIdContract.exchange,
-        routingKey: GetClientByUserIdContract.routingKey,
-        payload: {
-          userId: dto.userId,
-        } as GetClientByUserIdContract.Dto,
-      });
-
-    const clientId = await handleRpcRequest(clientResult, async (response) => {
-      if (!response.id) {
-        throw new NotFoundException('Client not found!');
-      }
-
-      return response.id;
-    });
-
     const project = await this.projectRepository.findOne({
       where: {
         id: dto.projectId,
-        clientId: clientId,
       },
     });
 
