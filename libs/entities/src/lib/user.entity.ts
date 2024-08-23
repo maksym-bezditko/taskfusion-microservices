@@ -10,6 +10,7 @@ import {
 import { ClientEntity } from './client.entity';
 import { DeveloperEntity } from './developer.entity';
 import { PmEntity } from './pm.entity';
+import { plainToClass } from 'class-transformer';
 
 export enum UserType {
   CLIENT = 'Client',
@@ -83,4 +84,10 @@ export class UserEntity {
     name: 'updated_at',
   })
   updatedAt: Date;
+
+  toObject() {
+    return plainToClass(UserEntity, this, {
+      excludeExtraneousValues: true,
+    });
+  }
 }
