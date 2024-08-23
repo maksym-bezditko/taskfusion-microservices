@@ -1,14 +1,17 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import {
+  AcceptPmInviteContract,
   CreateProjectContract,
   GetProjectByIdContract,
   GetProjectsContract,
   InvitePmContract,
+  RejectPmInviteContract,
 } from '@taskfusion-microservices/contracts';
 import {
   AtJwtGuard,
   ClientGuard,
+  PmGuard,
   UserIdFromJwt,
 } from '@taskfusion-microservices/common';
 
@@ -62,13 +65,46 @@ export class ProjectsController {
   async invitePm(
     @Body() dto: InvitePmContract.Request,
     @UserIdFromJwt() userId: number
-  ): Promise<InvitePmContract.Response> {
+  ) {
     return this.projectsService.invitePm(
       InvitePmContract.exchange,
       InvitePmContract.routingKey,
       {
-        ...dto,
         clientUserId: userId,
+        pmUserId: dto.pmUserId,
+        projectId: dto.projectId,
+      }
+    );
+  }
+
+  @UseGuards(AtJwtGuard, PmGuard)
+  @Post('/invites/accept-pm-invite')
+  async acceptPmInvite(
+    @Body() dto: AcceptPmInviteContract.Request,
+    @UserIdFromJwt() userId: number
+  ) {
+    return this.projectsService.acceptPmInvite(
+      AcceptPmInviteContract.exchange,
+      AcceptPmInviteContract.routingKey,
+      {
+        inviteId: dto.inviteId,
+        pmUserId: userId,
+      }
+    );
+  }
+
+  @UseGuards(AtJwtGuard, PmGuard)
+  @Post('/invites/reject-pm-invite')
+  async rejectPmInvite(
+    @Body() dto: RejectPmInviteContract.Request,
+    @UserIdFromJwt() userId: number
+  ) {
+    return this.projectsService.rejectPmInvite(
+      RejectPmInviteContract.exchange,
+      RejectPmInviteContract.routingKey,
+      {
+        inviteId: dto.inviteId,
+        pmUserId: userId,
       }
     );
   }
