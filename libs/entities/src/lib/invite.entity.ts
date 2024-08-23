@@ -1,13 +1,18 @@
 import {
   Entity,
   PrimaryGeneratedColumn,
-  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
-	OneToMany,
-	Column,
+  Column,
+  ManyToOne,
 } from 'typeorm';
 import { ProjectEntity } from './project.entity';
+
+export enum InviteStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+}
 
 @Entity({
   name: 'invites',
@@ -16,21 +21,24 @@ export class InviteEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToMany(() => ProjectEntity, (project) => project.id)
-  @JoinColumn()
+  @Column()
   projectId: number;
 
-	@Column()
-	clientUserId: number;
+  @Column()
+  clientUserId: number;
 
-	@Column()
-	pmUserId: number;
+  @Column()
+  pmUserId: number;
 
-	@Column()
-	expiresAt: Date;
+  @Column()
+  expiresAt: Date;
 
-	@Column()
-	isActive: boolean;
+  @Column({
+    type: 'enum',
+    enum: InviteStatus,
+    name: 'invite_status',
+  })
+  inviteStatus: InviteStatus;
 
   @CreateDateColumn({
     name: 'created_at',
@@ -41,4 +49,7 @@ export class InviteEntity {
     name: 'updated_at',
   })
   updatedAt: Date;
+
+  @ManyToOne(() => ProjectEntity, (project) => project.invites)
+  project: ProjectEntity;
 }
