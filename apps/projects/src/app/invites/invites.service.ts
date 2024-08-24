@@ -12,12 +12,18 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   AcceptPmInviteContract,
+  AssignUserToProjectContract,
   CheckUserContract,
   GetUsersByIdsContract,
   InvitePmContract,
   RejectPmInviteContract,
 } from '@taskfusion-microservices/contracts';
-import { InviteEntity, InviteStatus, UserType } from '@taskfusion-microservices/entities';
+import {
+  InviteEntity,
+  InviteStatus,
+  ProjectParticipantRole,
+  UserType,
+} from '@taskfusion-microservices/entities';
 import { Repository } from 'typeorm';
 import { AppService } from '../app.service';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
@@ -157,6 +163,16 @@ export class InvitesService {
         updatedAt: new Date(),
       }
     );
+
+    await this.amqpConnection.request<AssignUserToProjectContract.Response>({
+      exchange: AssignUserToProjectContract.exchange,
+      routingKey: AssignUserToProjectContract.routingKey,
+      payload: {
+        projectId: invite.projectId,
+        userId: pmUserId,
+        role: ProjectParticipantRole.PM,
+      } as AssignUserToProjectContract.Request,
+    });
 
     return {
       success: true,

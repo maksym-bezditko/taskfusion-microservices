@@ -4,6 +4,7 @@ import {
   AcceptPmInviteContract,
   CreateProjectContract,
   GetProjectByIdContract,
+  GetProjectPmUserContract,
   GetProjectsContract,
   InvitePmContract,
   RejectPmInviteContract,
@@ -97,6 +98,21 @@ export class ProjectsService {
   ): Promise<RejectPmInviteContract.Response> {
     const result =
       await this.amqpConnection.request<RejectPmInviteContract.Response>({
+        exchange,
+        routingKey,
+        payload: dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async getProjectPmUser(
+    exchange: string,
+    routingKey: string,
+    dto: GetProjectPmUserContract.Request
+  ): Promise<GetProjectPmUserContract.Response> {
+    const result =
+      await this.amqpConnection.request<GetProjectPmUserContract.Response>({
         exchange,
         routingKey,
         payload: dto,

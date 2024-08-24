@@ -3,7 +3,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   PrimaryColumn,
+  Column,
 } from 'typeorm';
+
+export enum ProjectParticipantRole {
+  DEVELOPER = 'Developer',
+  PM = 'Project Manager',
+}
 
 @Entity({
   name: 'projects_users',
@@ -18,6 +24,13 @@ export class ProjectsUsersEntity {
     name: 'project_id',
   })
   projectId: number;
+
+  @Column({
+    type: 'enum',
+    enum: ProjectParticipantRole,
+    name: 'role',
+  })
+  role: ProjectParticipantRole;
 
   @CreateDateColumn({
     name: 'created_at',
