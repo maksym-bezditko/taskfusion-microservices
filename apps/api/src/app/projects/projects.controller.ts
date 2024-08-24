@@ -4,6 +4,7 @@ import {
   AcceptPmInviteContract,
   CreateProjectContract,
   GetProjectByIdContract,
+  GetProjectPmUserContract,
   GetProjectsContract,
   InvitePmContract,
   RejectPmInviteContract,
@@ -106,6 +107,16 @@ export class ProjectsController {
         inviteId: dto.inviteId,
         pmUserId: userId,
       }
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Post('/get-project-pm-user')
+  async getProjectPmUser(@Body() dto: GetProjectPmUserContract.Request) {
+    return this.projectsService.getProjectPmUser(
+      GetProjectPmUserContract.exchange,
+      GetProjectPmUserContract.routingKey,
+      dto
     );
   }
 }
