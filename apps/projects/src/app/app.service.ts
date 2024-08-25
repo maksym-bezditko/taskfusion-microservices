@@ -13,7 +13,10 @@ import {
   CreateProjectContract,
   GetClientByUserIdContract,
   GetProjectByIdContract,
+  GetProjectPmIdContract,
+  GetProjectPmUserContract,
   GetProjectsContract,
+  GetUsersByIdsContract,
 } from '@taskfusion-microservices/contracts';
 import { ProjectEntity } from '@taskfusion-microservices/entities';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
@@ -171,5 +174,68 @@ export class AppService {
     return {
       exists: Boolean(project),
     };
+  }
+
+  @RabbitRPC({
+    exchange: GetProjectPmUserContract.exchange,
+    routingKey: GetProjectPmUserContract.routingKey,
+    queue: GetProjectPmUserContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-project-pm-user',
+  })
+  async getProjectPmUser(
+    dto: GetProjectPmUserContract.Request
+  ): Promise<GetProjectPmUserContract.Response> {
+    const { projectId } = dto;
+
+    const project = await this.projectRepository.findOne({
+      where: {
+        id: projectId,
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found!');
+    }
+
+    const result =
+      await this.amqpConnection.request<GetProjectPmIdContract.Response>({
+        exchange: GetProjectPmIdContract.exchange,
+        routingKey: GetProjectPmIdContract.routingKey,
+        payload: {
+          projectId,
+        } as GetProjectPmIdContract.Dto,
+      });
+
+    const { pmUserId } = await handleRpcRequest(
+      result,
+      async (response) => response
+    );
+
+    if (!pmUserId) {
+      throw new NotFoundException('Project pm not found!');
+    }
+
+    const usersResult =
+      await this.amqpConnection.request<GetUsersByIdsContract.Response>({
+        exchange: GetUsersByIdsContract.exchange,
+        routingKey: GetUsersByIdsContract.routingKey,
+        payload: {
+          ids: [pmUserId],
+        } as GetUsersByIdsContract.Request,
+      });
+
+    const users = await handleRpcRequest(
+      usersResult,
+      async (response) => response
+    );
+
+    if (!users[0]) {
+      throw new NotFoundException('Project pm not found!');
+    }
+
+    return users[0];
   }
 }
