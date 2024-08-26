@@ -7,6 +7,7 @@ export * from './contracts/developers/check-developer.contract';
 
 export * from './contracts/pms/create-pm.contract';
 export * from './contracts/pms/check-pm.contract';
+export * from './contracts/pms/check-pm-email.contract';
 
 export * from './contracts/users/check-user.contract';
 export * from './contracts/users/get-users-by-ids.contract';

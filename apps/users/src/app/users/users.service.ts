@@ -234,6 +234,10 @@ export class UsersService {
     return user;
   }
 
+  async getUserByEmail(email: string) {
+    return this.userRepository.findOne({ where: { email } });
+  }
+
   async updateUser(userId: number, userParams: DeepPartial<UserEntity>) {
     const user = await this.userRepository.update({ id: userId }, userParams);
 
