@@ -3,10 +3,15 @@ import {
   MessageHandlerErrorBehavior,
   defaultNackErrorHandler,
 } from '@golevelup/nestjs-rabbitmq';
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   CheckPmContract,
+  CheckPmEmailContract,
   CreatePmContract,
 } from '@taskfusion-microservices/contracts';
 import { PmEntity, UserType } from '@taskfusion-microservices/entities';
@@ -88,6 +93,35 @@ export class PmsService {
 
     return {
       exists: Boolean(pm),
+    };
+  }
+
+  @RabbitRPC({
+    exchange: CheckPmEmailContract.exchange,
+    routingKey: CheckPmEmailContract.routingKey,
+    queue: CheckPmEmailContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'check-pm-email',
+  })
+  async checkPmEmail(
+    dto: CheckPmEmailContract.Request
+  ): Promise<CheckPmEmailContract.Response> {
+    const { email } = dto;
+
+    const pmUser = await this.usersService.getUserByEmail(email);
+
+    if (!pmUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (pmUser.userType !== UserType.PM) {
+      throw new BadRequestException('User is not a project manager');
+    }
+
+    return {
+      exists: true,
     };
   }
 
