@@ -110,7 +110,9 @@ export class PmsService {
   ): Promise<CheckPmEmailContract.Response> {
     const { email } = dto;
 
-    const pmUser = await this.usersService.getUserByEmail(email);
+    const pmUser = await this.usersService.getUserByEmail({
+      email,
+    });
 
     if (!pmUser) {
       throw new NotFoundException('User not found');
