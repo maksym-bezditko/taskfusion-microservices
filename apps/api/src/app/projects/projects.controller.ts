@@ -72,7 +72,7 @@ export class ProjectsController {
       InvitePmContract.routingKey,
       {
         clientUserId: userId,
-        pmUserId: dto.pmUserId,
+        email: dto.email,
         projectId: dto.projectId,
       }
     );
