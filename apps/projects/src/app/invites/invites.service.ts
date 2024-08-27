@@ -14,9 +14,11 @@ import {
   AcceptPmInviteContract,
   AssignUserToProjectContract,
   CheckUserContract,
-  GetUsersByIdsContract,
+  GetUserByEmailContract,
+  GetUserByIdContract,
   InvitePmContract,
   RejectPmInviteContract,
+  SendEmailContract,
 } from '@taskfusion-microservices/contracts';
 import {
   InviteEntity,
@@ -49,7 +51,7 @@ export class InvitesService {
   async invitePm(
     dto: InvitePmContract.Dto
   ): Promise<InvitePmContract.Response> {
-    const { clientUserId, pmUserId, projectId } = dto;
+    const { clientUserId, email, projectId } = dto;
 
     const project = await this.appService.getProjectById({
       projectId,
@@ -63,40 +65,92 @@ export class InvitesService {
       throw new Error('Project not found');
     }
 
-    const usersResult =
-      await this.amqpConnection.request<GetUsersByIdsContract.Response>({
-        exchange: GetUsersByIdsContract.exchange,
-        routingKey: GetUsersByIdsContract.routingKey,
+    const pmUserResult =
+      await this.amqpConnection.request<GetUserByEmailContract.Response>({
+        exchange: GetUserByEmailContract.exchange,
+        routingKey: GetUserByEmailContract.routingKey,
         payload: {
-          ids: [clientUserId, pmUserId],
-        } as GetUsersByIdsContract.Request,
+          email,
+        } as GetUserByEmailContract.Request,
       });
 
-    const users = await handleRpcRequest(
-      usersResult,
+    const pmUser = await handleRpcRequest(
+      pmUserResult,
       async (response) => response
     );
-
-    const clientUser = users.find((user) => user.id === clientUserId);
-    const pmUser = users.find((user) => user.id === pmUserId);
-
-    if (!clientUser || clientUser.userType !== UserType.CLIENT) {
-      throw new Error('Client user not found');
-    }
 
     if (!pmUser || pmUser.userType !== UserType.PM) {
       throw new Error('PM user not found');
     }
 
+    const clientUserResult =
+      await this.amqpConnection.request<GetUserByIdContract.Response>({
+        exchange: GetUserByIdContract.exchange,
+        routingKey: GetUserByIdContract.routingKey,
+        payload: {
+          id: clientUserId,
+        } as GetUserByIdContract.Request,
+      });
+
+    const clientUser = await handleRpcRequest(
+      clientUserResult,
+      async (response) => response
+    );
+
+    if (!clientUser || clientUser.userType !== UserType.CLIENT) {
+      throw new Error('Client user not found');
+    }
+
+    const existingInvite = await this.inviteEntityRepositoty.findOne({
+      where: {
+        clientUserId,
+        pmUserId: pmUser.id,
+        projectId: project.id,
+      },
+    });
+
+    if (existingInvite) {
+      throw new Error('Invite already exists');
+    }
+
     const invite = await this.inviteEntityRepositoty.save({
       clientUserId,
-      pmUserId,
+      pmUserId: pmUser.id,
       project: project,
       isActive: true,
       expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1), // 1 day
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+
+    await this.amqpConnection.publish(
+      SendEmailContract.exchange,
+      SendEmailContract.routingKey,
+      {
+        recipientEmail: pmUser.email,
+        subject: 'Project Invitation from TaskFusion',
+        message: `
+          <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+            <h2 style="color: #4CAF50; text-align: center;">Project Invitation</h2>
+            <p>Hi,</p>
+            <p>You have been invited to join the project <strong>${project.title}</strong> by <strong>${clientUser.name}</strong> (${clientUser.email}).</p>
+            <p style="text-align: center;">
+              <a href="http://localhost:8000/accept-invite/${invite.id}" 
+                style="display: inline-block; padding: 10px 20px; color: white; background-color: #4CAF50; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                Accept Invitation
+              </a>
+            </p>
+            <p>If the button above doesn’t work, please click on the link below or copy and paste it into your browser:</p>
+            <p style="word-break: break-all;">
+              <a href="http://localhost:8000/accept-invite/${invite.id}" style="color: #4CAF50;">
+                http://localhost:8000/accept-invite/${invite.id}
+              </a>
+            </p>
+            <p>Thank you!</p>
+          </div>
+        `,
+      } as SendEmailContract.Dto
+    );
 
     return {
       id: invite.id,
