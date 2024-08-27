@@ -12,6 +12,8 @@ import { ConfigService } from '@nestjs/config';
 import {
   CheckUserContract,
   GetProfileContract,
+  GetUserByEmailContract,
+  GetUserByIdContract,
   GetUsersByIdsContract,
   LoginContract,
   LogoutContract,
@@ -31,6 +33,68 @@ export class UsersService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService
   ) {}
+
+  @RabbitRPC({
+    exchange: GetUserByIdContract.exchange,
+    routingKey: GetUserByIdContract.routingKey,
+    queue: GetUserByIdContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-user-by-id',
+  })
+  async getUserById(
+    dto: GetUserByIdContract.Request
+  ): Promise<GetUserByIdContract.Response> {
+    const { id } = dto;
+
+    const user = await this.userRepository.findOne({
+      where: { id },
+      select: [
+        'id',
+        'name',
+        'email',
+        'description',
+        'userType',
+        'telegramId',
+        'createdAt',
+        'updatedAt',
+      ],
+    });
+
+    return user;
+  }
+
+  @RabbitRPC({
+    exchange: GetUserByEmailContract.exchange,
+    routingKey: GetUserByEmailContract.routingKey,
+    queue: GetUserByEmailContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-user-by-email',
+  })
+  async getUserByEmail(
+    dto: GetUserByEmailContract.Request
+  ): Promise<GetUserByEmailContract.Response> {
+    const { email } = dto;
+
+    const user = await this.userRepository.findOne({
+      where: { email },
+      select: [
+        'id',
+        'name',
+        'email',
+        'description',
+        'userType',
+        'telegramId',
+        'createdAt',
+        'updatedAt',
+      ],
+    });
+
+    return user;
+  }
 
   @RabbitRPC({
     exchange: GetUsersByIdsContract.exchange,
@@ -232,10 +296,6 @@ export class UsersService {
     await this.userRepository.save(user);
 
     return user;
-  }
-
-  async getUserByEmail(email: string) {
-    return this.userRepository.findOne({ where: { email } });
   }
 
   async updateUser(userId: number, userParams: DeepPartial<UserEntity>) {
