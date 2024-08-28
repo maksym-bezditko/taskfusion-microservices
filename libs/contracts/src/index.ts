@@ -49,5 +49,6 @@ export * from './contracts/comments/get-comments-by-task-id.contract';
 export * from './contracts/invites/invite-pm.contract';
 export * from './contracts/invites/accept-pm-invite.contract';
 export * from './contracts/invites/reject-pm-invite.contract';
+export * from './contracts/invites/get-invite-by-id.contract';
 
 export * from './contracts/email/send-email.contract';

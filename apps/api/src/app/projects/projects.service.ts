@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import {
   AcceptPmInviteContract,
   CreateProjectContract,
+  GetInviteByIdContract,
   GetProjectByIdContract,
   GetProjectPmUserContract,
   GetProjectsContract,
@@ -113,6 +114,21 @@ export class ProjectsService {
   ): Promise<GetProjectPmUserContract.Response> {
     const result =
       await this.amqpConnection.request<GetProjectPmUserContract.Response>({
+        exchange,
+        routingKey,
+        payload: dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async getInviteById(
+    exchange: string,
+    routingKey: string,
+    dto: GetInviteByIdContract.Request
+  ): Promise<GetInviteByIdContract.Response> {
+    const result =
+      await this.amqpConnection.request<GetInviteByIdContract.Response>({
         exchange,
         routingKey,
         payload: dto,
