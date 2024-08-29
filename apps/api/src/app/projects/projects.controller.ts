@@ -3,6 +3,7 @@ import { ProjectsService } from './projects.service';
 import {
   AcceptPmInviteContract,
   CreateProjectContract,
+  GetInviteByIdContract,
   GetProjectByIdContract,
   GetProjectPmUserContract,
   GetProjectsContract,
@@ -107,6 +108,16 @@ export class ProjectsController {
         inviteId: dto.inviteId,
         pmUserId: userId,
       }
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Post('/invites/get-invite-by-id')
+  async getInviteById(@Body() dto: GetInviteByIdContract.Request) {
+    return this.projectsService.getInviteById(
+      GetInviteByIdContract.exchange,
+      GetInviteByIdContract.routingKey,
+      dto
     );
   }
 

@@ -14,6 +14,7 @@ import {
   AcceptPmInviteContract,
   AssignUserToProjectContract,
   CheckUserContract,
+  GetInviteByIdContract,
   GetUserByEmailContract,
   GetUserByIdContract,
   InvitePmContract,
@@ -135,15 +136,15 @@ export class InvitesService {
             <p>Hi,</p>
             <p>You have been invited to join the project <strong>${project.title}</strong> by <strong>${clientUser.name}</strong> (${clientUser.email}).</p>
             <p style="text-align: center;">
-              <a href="http://localhost:8000/accept-invite/${invite.id}" 
+              <a href="http://localhost:8000/pm/project-invitation/${invite.id}" 
                 style="display: inline-block; padding: 10px 20px; color: white; background-color: #4CAF50; border-radius: 5px; text-decoration: none; font-weight: bold;">
                 Accept Invitation
               </a>
             </p>
             <p>If the button above doesn’t work, please click on the link below or copy and paste it into your browser:</p>
             <p style="word-break: break-all;">
-              <a href="http://localhost:8000/accept-invite/${invite.id}" style="color: #4CAF50;">
-                http://localhost:8000/accept-invite/${invite.id}
+              <a href="http://localhost:8000/pm/project-invitation/${invite.id}" style="color: #4CAF50;">
+                http://localhost:8000/pm/project-invitation/${invite.id}
               </a>
             </p>
             <p>Thank you!</p>
@@ -297,5 +298,29 @@ export class InvitesService {
     return {
       success: true,
     };
+  }
+
+  @RabbitRPC({
+    exchange: GetInviteByIdContract.exchange,
+    routingKey: GetInviteByIdContract.routingKey,
+    queue: GetInviteByIdContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-invite-by-id',
+  })
+  async getInviteById(
+    dto: GetInviteByIdContract.Dto
+  ): Promise<GetInviteByIdContract.Response> {
+    const { id } = dto;
+
+    const invite = await this.inviteEntityRepositoty.findOne({
+      where: {
+        id,
+      },
+      relations: ['project'],
+    });
+
+    return invite;
   }
 }
