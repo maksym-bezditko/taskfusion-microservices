@@ -6,9 +6,10 @@ import {
   GetInviteByIdContract,
   GetProjectByIdContract,
   GetProjectPmUserContract,
-  GetProjectsContract,
+  GetClientProjectsContract,
   InvitePmContract,
   RejectPmInviteContract,
+  GetPmProjectsContract,
 } from '@taskfusion-microservices/contracts';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 
@@ -31,13 +32,28 @@ export class ProjectsService {
     return handleRpcRequest(result, async (response) => response);
   }
 
-  async getProjects(
+  async getClientProjects(
     exchange: string,
     routingKey: string,
-    dto: GetProjectsContract.Dto
-  ): Promise<GetProjectsContract.Response> {
+    dto: GetClientProjectsContract.Dto
+  ): Promise<GetClientProjectsContract.Response> {
     const result =
-      await this.amqpConnection.request<GetProjectsContract.Response>({
+      await this.amqpConnection.request<GetClientProjectsContract.Response>({
+        exchange,
+        routingKey,
+        payload: dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async getPmProjects(
+    exchange: string,
+    routingKey: string,
+    dto: GetPmProjectsContract.Dto
+  ): Promise<GetPmProjectsContract.Response> {
+    const result =
+      await this.amqpConnection.request<GetPmProjectsContract.Response>({
         exchange,
         routingKey,
         payload: dto,
