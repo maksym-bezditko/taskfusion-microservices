@@ -5,16 +5,16 @@ import {
 } from '@taskfusion-microservices/constants';
 import { ProjectEntity } from '@taskfusion-microservices/entities';
 
-export namespace GetProjectsContract {
+export namespace GetPmProjectsContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
 
-  export const routingKey = `get-projects`;
+  export const routingKey = `get-pm-projects`;
 
   export const queue = `${PROJECTS_QUEUE_NAME}.${routingKey}`;
 
   export type Response = Errorable<ProjectEntity[]>;
 
   export class Dto {
-    userId: number;
+    pmUserId: number;
   }
 }

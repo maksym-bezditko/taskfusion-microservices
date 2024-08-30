@@ -15,12 +15,14 @@ import {
   GetProjectByIdContract,
   GetProjectPmIdContract,
   GetProjectPmUserContract,
-  GetProjectsContract,
+  GetClientProjectsContract,
   GetUsersByIdsContract,
+  GetPmProjectsContract,
+  GetUserProjectIdsContract,
 } from '@taskfusion-microservices/contracts';
 import { ProjectEntity } from '@taskfusion-microservices/entities';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 @Injectable()
 export class AppService {
@@ -95,23 +97,23 @@ export class AppService {
   }
 
   @RabbitRPC({
-    exchange: GetProjectsContract.exchange,
-    routingKey: GetProjectsContract.routingKey,
-    queue: GetProjectsContract.queue,
+    exchange: GetClientProjectsContract.exchange,
+    routingKey: GetClientProjectsContract.routingKey,
+    queue: GetClientProjectsContract.queue,
     errorBehavior: MessageHandlerErrorBehavior.NACK,
     errorHandler: defaultNackErrorHandler,
     allowNonJsonMessages: true,
-    name: 'get-projects',
+    name: 'get-client-projects',
   })
-  async getProjects(
-    dto: GetProjectsContract.Dto
-  ): Promise<GetProjectsContract.Response> {
+  async getClientProjects(
+    dto: GetClientProjectsContract.Dto
+  ): Promise<GetClientProjectsContract.Response> {
     const clientResult =
       await this.amqpConnection.request<GetClientByUserIdContract.Response>({
         exchange: GetClientByUserIdContract.exchange,
         routingKey: GetClientByUserIdContract.routingKey,
         payload: {
-          userId: dto.userId,
+          userId: dto.clientUserId,
         } as GetClientByUserIdContract.Dto,
       });
 
@@ -130,6 +132,43 @@ export class AppService {
     });
 
     return projects;
+  }
+
+  @RabbitRPC({
+    exchange: GetPmProjectsContract.exchange,
+    routingKey: GetPmProjectsContract.routingKey,
+    queue: GetPmProjectsContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-pm-projects',
+  })
+  async getPmProjects(
+    dto: GetPmProjectsContract.Dto
+  ): Promise<GetPmProjectsContract.Response> {
+    const { pmUserId } = dto;
+
+    const result =
+      await this.amqpConnection.request<GetUserProjectIdsContract.Response>({
+        exchange: GetUserProjectIdsContract.exchange,
+        routingKey: GetUserProjectIdsContract.routingKey,
+        payload: {
+          userId: pmUserId,
+        } as GetUserProjectIdsContract.Dto,
+      });
+
+    const projectIds = await handleRpcRequest(
+      result,
+      async (response) => response
+    );
+
+    console.log(projectIds);
+
+    return this.projectRepository.find({
+      where: {
+        id: In(projectIds),
+      },
+    });
   }
 
   @RabbitRPC({
