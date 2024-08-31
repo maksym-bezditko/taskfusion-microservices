@@ -3,13 +3,17 @@ import { Injectable } from '@nestjs/common';
 import {
   AcceptPmInviteContract,
   CreateProjectContract,
-  GetInviteByIdContract,
+  GetPmInviteByIdContract,
   GetProjectByIdContract,
   GetProjectPmUserContract,
   GetClientProjectsContract,
   InvitePmContract,
   RejectPmInviteContract,
   GetPmProjectsContract,
+  InviteDeveloperContract,
+  AcceptDeveloperInviteContract,
+  RejectDeveloperInviteContract,
+  GetDeveloperInviteByIdContract,
 } from '@taskfusion-microservices/contracts';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 
@@ -138,17 +142,83 @@ export class ProjectsService {
     return handleRpcRequest(result, async (response) => response);
   }
 
-  async getInviteById(
+  async getPmInviteById(
     exchange: string,
     routingKey: string,
-    dto: GetInviteByIdContract.Request
-  ): Promise<GetInviteByIdContract.Response> {
+    dto: GetPmInviteByIdContract.Request
+  ): Promise<GetPmInviteByIdContract.Response> {
     const result =
-      await this.amqpConnection.request<GetInviteByIdContract.Response>({
+      await this.amqpConnection.request<GetPmInviteByIdContract.Response>({
         exchange,
         routingKey,
         payload: dto,
       });
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async inviteDeveloper(
+    exchange: string,
+    routingKey: string,
+    dto: InviteDeveloperContract.Dto
+  ): Promise<InviteDeveloperContract.Response> {
+    const result =
+      await this.amqpConnection.request<InviteDeveloperContract.Response>({
+        exchange,
+        routingKey,
+        payload: dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async acceptDeveloperInvite(
+    exchange: string,
+    routingKey: string,
+    dto: AcceptDeveloperInviteContract.Dto
+  ): Promise<AcceptDeveloperInviteContract.Response> {
+    const result =
+      await this.amqpConnection.request<AcceptDeveloperInviteContract.Response>(
+        {
+          exchange,
+          routingKey,
+          payload: dto,
+        }
+      );
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async rejectDeveloperInvite(
+    exchange: string,
+    routingKey: string,
+    dto: RejectDeveloperInviteContract.Dto
+  ): Promise<RejectDeveloperInviteContract.Response> {
+    const result =
+      await this.amqpConnection.request<RejectDeveloperInviteContract.Response>(
+        {
+          exchange,
+          routingKey,
+          payload: dto,
+        }
+      );
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async getDeveloperInviteById(
+    exchange: string,
+    routingKey: string,
+    dto: GetDeveloperInviteByIdContract.Request
+  ): Promise<GetDeveloperInviteByIdContract.Response> {
+    const result =
+      await this.amqpConnection.request<GetDeveloperInviteByIdContract.Response>(
+        {
+          exchange,
+          routingKey,
+          payload: dto,
+        }
+      );
 
     return handleRpcRequest(result, async (response) => response);
   }
