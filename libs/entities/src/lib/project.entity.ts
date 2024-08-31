@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { InviteEntity } from './invite.entity';
+import { InviteEntity } from './pm-invite.entity';
 
 @Entity({
   name: 'projects',
