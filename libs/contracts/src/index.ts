@@ -51,6 +51,10 @@ export * from './contracts/comments/get-comments-by-task-id.contract';
 export * from './contracts/invites/invite-pm.contract';
 export * from './contracts/invites/accept-pm-invite.contract';
 export * from './contracts/invites/reject-pm-invite.contract';
-export * from './contracts/invites/get-invite-by-id.contract';
+export * from './contracts/invites/get-pm-invite-by-id.contract';
+export * from './contracts/invites/get-developer-invite-by-id.contract';
+export * from './contracts/invites/invite-developer.contract';
+export * from './contracts/invites/accept-developer-invite.contract';
+export * from './contracts/invites/reject-developer-invite.contract';
 
 export * from './contracts/email/send-email.contract';
