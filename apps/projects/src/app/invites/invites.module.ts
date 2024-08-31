@@ -1,12 +1,12 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { InvitesService } from './invites.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { InviteEntity } from '@taskfusion-microservices/entities';
+import { PmInviteEntity, DeveloperInviteEntity } from '@taskfusion-microservices/entities';
 import { AppModule } from '../app.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([InviteEntity]),
+    TypeOrmModule.forFeature([PmInviteEntity, DeveloperInviteEntity]),
     forwardRef(() => AppModule),
   ],
   providers: [InvitesService],
