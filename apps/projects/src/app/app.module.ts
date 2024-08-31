@@ -3,7 +3,11 @@ import { Module } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { InviteEntity, ProjectEntity } from '@taskfusion-microservices/entities';
+import {
+  PmInviteEntity,
+  DeveloperInviteEntity,
+  ProjectEntity,
+} from '@taskfusion-microservices/entities';
 import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
 import { RmqDynamicModule } from '@taskfusion-microservices/modules';
 import { InvitesModule } from './invites/invites.module';
@@ -18,7 +22,11 @@ import { InvitesModule } from './invites/invites.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>
-        getTypeOrmConfig(configService, [ProjectEntity, InviteEntity]),
+        getTypeOrmConfig(configService, [
+          ProjectEntity,
+          PmInviteEntity,
+          DeveloperInviteEntity,
+        ]),
     }),
     TypeOrmModule.forFeature([ProjectEntity]),
     RmqDynamicModule.register(),
