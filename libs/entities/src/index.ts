@@ -9,4 +9,5 @@ export * from './lib/comment.entity';
 export * from './lib/tasksUsers.entity';
 export * from './lib/action.entity';
 export * from './lib/projectsUsers.entity';
-export * from './lib/invite.entity';
+export * from './lib/pm-invite.entity';
+export * from './lib/developer-invite.entity';
