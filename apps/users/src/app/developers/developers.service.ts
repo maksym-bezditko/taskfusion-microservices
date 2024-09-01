@@ -3,9 +3,17 @@ import {
   MessageHandlerErrorBehavior,
   defaultNackErrorHandler,
 } from '@golevelup/nestjs-rabbitmq';
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CheckDeveloperContract, CreateDeveloperContract } from '@taskfusion-microservices/contracts';
+import {
+  CheckDeveloperContract,
+  CheckDeveloperEmailContract,
+  CreateDeveloperContract,
+} from '@taskfusion-microservices/contracts';
 import { DeveloperEntity, UserType } from '@taskfusion-microservices/entities';
 import { DeepPartial, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
@@ -85,6 +93,37 @@ export class DevelopersService {
 
     return {
       exists: Boolean(developer),
+    };
+  }
+
+  @RabbitRPC({
+    exchange: CheckDeveloperEmailContract.exchange,
+    routingKey: CheckDeveloperEmailContract.routingKey,
+    queue: CheckDeveloperEmailContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'check-developer-email',
+  })
+  async checkDeveloperEmail(
+    dto: CheckDeveloperEmailContract.Request
+  ): Promise<CheckDeveloperEmailContract.Response> {
+    const { email } = dto;
+
+    const developerUser = await this.usersService.getUserByEmail({
+      email,
+    });
+
+    if (!developerUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (developerUser.userType !== UserType.DEVELOPER) {
+      throw new BadRequestException('User is not a project manager');
+    }
+
+    return {
+      exists: true,
     };
   }
 
