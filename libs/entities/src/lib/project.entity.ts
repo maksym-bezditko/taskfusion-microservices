@@ -6,7 +6,8 @@ import {
   CreateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { InviteEntity } from './pm-invite.entity';
+import { PmInviteEntity } from './pm-invite.entity';
+import { DeveloperInviteEntity } from './developer-invite.entity';
 
 @Entity({
   name: 'projects',
@@ -46,6 +47,9 @@ export class ProjectEntity {
   })
   updatedAt: Date;
 
-  @OneToMany(() => InviteEntity, (invite) => invite.project, { cascade: true })
-  invites: InviteEntity[];
+  @OneToMany(() => PmInviteEntity, (invite) => invite.project, { cascade: true })
+  pmInvites: PmInviteEntity[];
+
+  @OneToMany(() => DeveloperInviteEntity, (invite) => invite.project, { cascade: true })
+  developerInvites: DeveloperInviteEntity[];
 }
