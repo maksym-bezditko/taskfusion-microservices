@@ -15,6 +15,7 @@ import {
   AcceptPmInviteContract,
   AssignUserToProjectContract,
   CheckUserContract,
+  GetDeveloperInviteByIdContract,
   GetPmInviteByIdContract,
   GetProjectPmIdContract,
   GetUserByEmailContract,
@@ -192,6 +193,30 @@ export class InvitesService {
     return {
       success: true,
     };
+  }
+
+  @RabbitRPC({
+    exchange: GetDeveloperInviteByIdContract.exchange,
+    routingKey: GetDeveloperInviteByIdContract.routingKey,
+    queue: GetDeveloperInviteByIdContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-developer-invite-by-id',
+  })
+  async getDeveloperInviteById(
+    dto: GetDeveloperInviteByIdContract.Dto
+  ): Promise<GetDeveloperInviteByIdContract.Response> {
+    const { id } = dto;
+
+    const developerInvite = await this.developerInviteEntityRepositoty.findOne({
+      where: {
+        id,
+      },
+      relations: ['project'],
+    });
+
+    return developerInvite;
   }
 
   @RabbitRPC({
