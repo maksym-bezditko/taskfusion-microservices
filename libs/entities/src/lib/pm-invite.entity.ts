@@ -50,6 +50,6 @@ export class PmInviteEntity {
   })
   updatedAt: Date;
 
-  @ManyToOne(() => ProjectEntity, (project) => project.invites)
+  @ManyToOne(() => ProjectEntity, (project) => project.pmInvites)
   project: ProjectEntity;
 }
