@@ -4,6 +4,7 @@ export * from './contracts/clients/get-client-by-user-id.contract';
 
 export * from './contracts/developers/create-developer.contract';
 export * from './contracts/developers/check-developer.contract';
+export * from './contracts/developers/check-developer-email.contract';
 
 export * from './contracts/pms/create-pm.contract';
 export * from './contracts/pms/check-pm.contract';
