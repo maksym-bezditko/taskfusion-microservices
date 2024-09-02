@@ -14,6 +14,7 @@ import {
   AcceptDeveloperInviteContract,
   RejectDeveloperInviteContract,
   GetDeveloperInviteByIdContract,
+  GetProjectDeveloperUsersContract,
 } from '@taskfusion-microservices/contracts';
 import {
   AtJwtGuard,
@@ -70,7 +71,6 @@ export class ProjectsController {
   @UseGuards(AtJwtGuard)
   @Get(':id')
   async getProjectById(
-    @UserIdFromJwt() userId: number,
     @Param('id') id: number
   ): Promise<GetProjectByIdContract.Response> {
     return this.projectsService.getProjectById(
@@ -147,6 +147,18 @@ export class ProjectsController {
     return this.projectsService.getProjectPmUser(
       GetProjectPmUserContract.exchange,
       GetProjectPmUserContract.routingKey,
+      dto
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Post('/get-project-developer-users')
+  async getProjectDeveloperUsers(
+    @Body() dto: GetProjectDeveloperUsersContract.Request
+  ) {
+    return this.projectsService.getProjectDeveloperUsers(
+      GetProjectDeveloperUsersContract.exchange,
+      GetProjectDeveloperUsersContract.routingKey,
       dto
     );
   }
