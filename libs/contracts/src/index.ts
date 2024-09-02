@@ -21,11 +21,13 @@ export * from './contracts/projects/get-client-projects.contract';
 export * from './contracts/projects/get-pm-projects.contract';
 export * from './contracts/projects/get-project-by-id.contract';
 export * from './contracts/projects/get-project-pm-user.contract';
+export * from './contracts/projects/get-project-developer-users.contract';
 
 export * from './contracts/projects-users/get-project-pm-id.contract';
 export * from './contracts/projects-users/assign-user-to-project.contract';
 export * from './contracts/projects-users/unassign-user-from-project.contract';
 export * from './contracts/projects-users/get-user-project-ids.contract';
+export * from './contracts/projects-users/get-project-developer-ids.contract';
 
 export * from './contracts/auth/refresh-tokens.contract';
 export * from './contracts/auth/logout.contract';

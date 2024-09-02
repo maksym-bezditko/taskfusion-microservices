@@ -8,6 +8,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   AssignUserToProjectContract,
+  GetProjectDeveloperIdsContract,
   GetProjectPmIdContract,
   GetUserProjectIdsContract,
   UnassignUserFromProjectContract,
@@ -78,6 +79,32 @@ export class AppService {
 
     return {
       pmUserId: entry.userId,
+    };
+  }
+
+  @RabbitRPC({
+    exchange: GetProjectDeveloperIdsContract.exchange,
+    routingKey: GetProjectDeveloperIdsContract.routingKey,
+    queue: GetProjectDeveloperIdsContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-project-developer-ids',
+  })
+  async getProjectDeveloperIds(
+    dto: GetProjectDeveloperIdsContract.Dto
+  ): Promise<GetProjectDeveloperIdsContract.Response> {
+    const { projectId } = dto;
+
+    const entry = await this.projectsUsersRepository.find({
+      where: {
+        projectId,
+        role: ProjectParticipantRole.DEVELOPER,
+      },
+    });
+
+    return {
+      developerUserIds: entry.map((entry) => entry.userId),
     };
   }
 
