@@ -15,6 +15,7 @@ import {
   RejectDeveloperInviteContract,
   GetDeveloperInviteByIdContract,
   GetProjectDeveloperUsersContract,
+  GetDeveloperProjectsContract,
 } from '@taskfusion-microservices/contracts';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 
@@ -59,6 +60,21 @@ export class ProjectsService {
   ): Promise<GetPmProjectsContract.Response> {
     const result =
       await this.amqpConnection.request<GetPmProjectsContract.Response>({
+        exchange,
+        routingKey,
+        payload: dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async getDeveloperProjects(
+    exchange: string,
+    routingKey: string,
+    dto: GetDeveloperProjectsContract.Dto
+  ): Promise<GetDeveloperProjectsContract.Response> {
+    const result =
+      await this.amqpConnection.request<GetDeveloperProjectsContract.Response>({
         exchange,
         routingKey,
         payload: dto,
