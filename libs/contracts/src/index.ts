@@ -22,6 +22,7 @@ export * from './contracts/projects/get-pm-projects.contract';
 export * from './contracts/projects/get-project-by-id.contract';
 export * from './contracts/projects/get-project-pm-user.contract';
 export * from './contracts/projects/get-project-developer-users.contract';
+export * from './contracts/projects/get-developer-projects.contract';
 
 export * from './contracts/projects-users/get-project-pm-id.contract';
 export * from './contracts/projects-users/assign-user-to-project.contract';
