@@ -1,10 +1,13 @@
 import {
   Entity,
   PrimaryGeneratedColumn,
+  Column,
   CreateDateColumn,
   UpdateDateColumn,
-  Column,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { TaskEntity } from './task.entity';
 
 @Entity({
   name: 'actions',
@@ -35,4 +38,8 @@ export class ActionEntity {
     name: 'updated_at',
   })
   updatedAt: Date;
+
+  @ManyToOne(() => TaskEntity, (task) => task.actions)
+  @JoinColumn({ name: 'task_id' })
+  task: TaskEntity;
 }

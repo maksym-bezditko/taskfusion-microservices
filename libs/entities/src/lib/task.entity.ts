@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { CommentEntity } from './comment.entity';
+import { ActionEntity } from './action.entity';
 
 export enum TaskStatus {
   TO_DO = 'To do',
@@ -65,4 +68,10 @@ export class TaskEntity {
     name: 'updated_at',
   })
   updatedAt: Date;
+
+  @OneToMany(() => CommentEntity, (comment) => comment.task)
+  comments: CommentEntity[];
+
+  @OneToMany(() => ActionEntity, (action) => action.task)
+  actions: ActionEntity[];
 }
