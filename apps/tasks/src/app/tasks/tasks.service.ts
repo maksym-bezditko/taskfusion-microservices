@@ -1,28 +1,28 @@
 import {
   AmqpConnection,
-  defaultNackErrorHandler,
-  MessageHandlerErrorBehavior,
   RabbitRPC,
+  MessageHandlerErrorBehavior,
+  defaultNackErrorHandler,
 } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-  ChangeTaskStatusContract,
-  CheckProjectContract,
   CheckTaskContract,
+  GetTasksByStatusContract,
+  GetTaskParticipantsContract,
+  GetTaskByIdContract,
+  ChangeTaskStatusContract,
+  GetUsersByIdsContract,
   CreateActionContract,
   CreateTaskContract,
-  GetTaskByIdContract,
-  GetTaskParticipantsContract,
-  GetTasksByStatusContract,
-  GetUsersByIdsContract,
+  CheckProjectContract,
 } from '@taskfusion-microservices/contracts';
 import { TaskEntity } from '@taskfusion-microservices/entities';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class AppService {
+export class TasksService {
   constructor(
     @InjectRepository(TaskEntity)
     private readonly taskRepository: Repository<TaskEntity>,
@@ -93,15 +93,7 @@ export class AppService {
       );
 
       return {
-        id: task.id,
-        title: task.title,
-        description: task.description,
-        deadline: task.deadline,
-        projectId: task.projectId,
-        taskStatus: task.taskStatus,
-        taskPriority: task.taskPriority,
-        createdAt: task.createdAt,
-        updatedAt: task.updatedAt,
+        ...task,
         users,
       };
     });
@@ -144,15 +136,7 @@ export class AppService {
     );
 
     return {
-      id: task.id,
-      title: task.title,
-      description: task.description,
-      deadline: task.deadline,
-      projectId: task.projectId,
-      taskStatus: task.taskStatus,
-      taskPriority: task.taskPriority,
-      createdAt: task.createdAt,
-      updatedAt: task.updatedAt,
+      ...task,
       users,
     };
   }
