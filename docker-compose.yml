@@ -1,9 +1,4 @@
 services:
-  comments-db:
-    extends:
-      file: ./apps/comments/docker-compose.yml
-      service: comments-db
-
   payments-db:
     extends:
       file: ./apps/payments/docker-compose.yml
@@ -23,11 +18,6 @@ services:
     extends:
       file: ./apps/users/docker-compose.yml
       service: users-db
-
-  actions-db:
-    extends:
-      file: ./apps/actions/docker-compose.yml
-      service: actions-db
 
   tasks-users-db:
     extends:
