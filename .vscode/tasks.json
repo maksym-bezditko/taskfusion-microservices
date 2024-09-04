@@ -5,13 +5,11 @@
       "label": "Run all services",
       "dependsOn": [
         "nx run api:serve",
-        "nx run comments:serve",
         "nx run payments:serve",
         "nx run projects:serve",
         "nx run tasks:serve",
         "nx run users:serve",
         "nx run tasks-users:serve",
-        "nx run actions:serve",
         "nx run projects-users:serve",
         "nx run email:serve"
       ],
@@ -27,27 +25,6 @@
       "label": "nx run api:serve",
       "type": "shell",
       "command": "nx run api:serve",
-      "problemMatcher": [],
-      "group": {
-        "kind": "build",
-        "isDefault": false
-      },
-      "options": {
-        "statusbar": {
-          "hide": true
-        }
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "showReuseMessage": false,
-        "clear": false
-      }
-    },
-    {
-      "label": "nx run comments:serve",
-      "type": "shell",
-      "command": "nx run comments:serve",
       "problemMatcher": [],
       "group": {
         "kind": "build",
@@ -153,27 +130,6 @@
       "label": "nx run tasks-users:serve",
       "type": "shell",
       "command": "nx run tasks-users:serve",
-      "problemMatcher": [],
-      "group": {
-        "kind": "build",
-        "isDefault": false
-      },
-      "options": {
-        "statusbar": {
-          "hide": true
-        }
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "showReuseMessage": false,
-        "clear": false
-      }
-    },
-    {
-      "label": "nx run actions:serve",
-      "type": "shell",
-      "command": "nx run actions:serve",
       "problemMatcher": [],
       "group": {
         "kind": "build",
