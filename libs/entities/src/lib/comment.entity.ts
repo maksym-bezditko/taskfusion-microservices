@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { TaskEntity } from './task.entity';
 
 @Entity({
   name: 'comments',
@@ -35,4 +38,8 @@ export class CommentEntity {
     name: 'updated_at',
   })
   updatedAt: Date;
+
+  @ManyToOne(() => TaskEntity, (task) => task.comments)
+  @JoinColumn({ name: 'task_id' })
+  task: TaskEntity;
 }
