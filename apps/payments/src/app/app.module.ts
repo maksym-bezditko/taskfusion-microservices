@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PaymentEntity } from '@taskfusion-microservices/entities';
 import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -20,8 +19,7 @@ import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
         getTypeOrmConfig(configService, [PaymentEntity]),
     }),
     TypeOrmModule.forFeature([PaymentEntity]),
+    PaymentsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
