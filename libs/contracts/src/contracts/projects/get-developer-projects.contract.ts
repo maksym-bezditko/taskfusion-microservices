@@ -8,7 +8,7 @@ import { ProjectEntity, UserEntity } from '@taskfusion-microservices/entities';
 export namespace GetDeveloperProjectsContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
 
-  export const routingKey = `get-pm-projects`;
+  export const routingKey = `get-developer-projects`;
 
   export const queue = `${PROJECTS_QUEUE_NAME}.${routingKey}`;
 
