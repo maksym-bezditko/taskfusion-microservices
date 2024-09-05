@@ -8,6 +8,6 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: password
     ports:
-      - '3307:3306'
+      - '3304:3306'
     volumes:
       - ./[tasks-users-db]-mysql-data:/var/lib/mysql
