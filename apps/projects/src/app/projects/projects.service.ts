@@ -1,35 +1,35 @@
 import {
+  AmqpConnection,
   RabbitRPC,
   MessageHandlerErrorBehavior,
   defaultNackErrorHandler,
-  AmqpConnection,
 } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-  CheckClientContract,
-  CheckPmContract,
   CreateProjectContract,
-  GetClientByUserIdContract,
-  GetProjectByIdContract,
   GetClientProjectsContract,
   GetPmProjectsContract,
-  GetUserProjectIdsContract,
+  GetDeveloperProjectsContract,
+  GetProjectByIdContract,
   CheckProjectContract,
   GetProjectPmUserContract,
-  GetProjectPmIdContract,
-  GetUserByIdContract,
   GetProjectDeveloperUsersContract,
+  CheckClientContract,
+  CheckPmContract,
+  GetProjectPmIdContract,
+  GetUserProjectIdsContract,
   GetProjectDeveloperIdsContract,
+  GetUserByIdContract,
   GetUsersByIdsContract,
-  GetDeveloperProjectsContract,
+  GetClientByUserIdContract,
 } from '@taskfusion-microservices/contracts';
 import { ProjectEntity } from '@taskfusion-microservices/entities';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
-import { In, Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 
 @Injectable()
-export class AppService {
+export class ProjectsService {
   constructor(
     @InjectRepository(ProjectEntity)
     private readonly projectRepository: Repository<ProjectEntity>,
