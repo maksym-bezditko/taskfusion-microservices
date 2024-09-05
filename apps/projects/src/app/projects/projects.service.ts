@@ -224,8 +224,6 @@ export class ProjectsService {
       async (response) => response
     );
 
-    if (!pmUserId) throw new NotFoundException('Project PM not found!');
-
     return pmUserId;
   }
 
@@ -241,9 +239,15 @@ export class ProjectsService {
         projectId: project.id,
       });
 
+      const users = developerUsers;
+
+      if (pmUser) {
+        users.unshift(pmUser);
+      }
+
       return {
         ...project,
-        users: [pmUser, ...developerUsers],
+        users,
       };
     });
 
@@ -274,7 +278,7 @@ export class ProjectsService {
 
       return {
         ...project,
-        developerUsers,
+        developerUsers: developerUsers || [],
       };
     });
 
@@ -326,6 +330,10 @@ export class ProjectsService {
     await this.ensureProjectById(projectId);
 
     const pmUserId = await this.getProjectPmId(projectId);
+
+    if (!pmUserId) {
+      return null;
+    }
 
     const user = await this.getUserById(pmUserId);
 
