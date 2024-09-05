@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 
-import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RmqDynamicModule } from '@taskfusion-microservices/modules';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -25,7 +25,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
         },
       }),
     }),
+    EmailModule,
   ],
-  providers: [AppService],
 })
 export class AppModule {}
