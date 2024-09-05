@@ -5,8 +5,8 @@ import { ConfigService } from '@nestjs/config';
 import { SendEmailContract } from '@taskfusion-microservices/contracts';
 
 @Injectable()
-export class AppService {
-  constructor(private readonly mailService: MailerService, private readonly configService: ConfigService) {}
+export class EmailService {
+	constructor(private readonly mailService: MailerService, private readonly configService: ConfigService) {}
 
   @RabbitSubscribe({
     exchange: SendEmailContract.exchange,
