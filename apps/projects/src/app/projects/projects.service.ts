@@ -46,7 +46,7 @@ export class ProjectsService {
     name: 'create-project',
   })
   async createProject(
-    dto: CreateProjectContract.Request
+    dto: CreateProjectContract.Dto
   ): Promise<CreateProjectContract.Response> {
     await this.checkClientExistence(dto.clientId);
 
@@ -139,7 +139,7 @@ export class ProjectsService {
     name: 'check-project',
   })
   async checkProject(
-    dto: CheckProjectContract.Request
+    dto: CheckProjectContract.Dto
   ): Promise<CheckProjectContract.Response> {
     const project = await this.projectRepository.findOne({
       where: { id: dto.projectId },
@@ -158,7 +158,7 @@ export class ProjectsService {
     name: 'get-project-pm-user',
   })
   async getProjectPmUser(
-    dto: GetProjectPmUserContract.Request
+    dto: GetProjectPmUserContract.Dto
   ): Promise<GetProjectPmUserContract.Response> {
     return this.findProjectPmUser(dto.projectId);
   }
@@ -173,7 +173,7 @@ export class ProjectsService {
     name: 'get-project-developer-users',
   })
   async getProjectDeveloperUsers(
-    dto: GetProjectDeveloperUsersContract.Request
+    dto: GetProjectDeveloperUsersContract.Dto
   ): Promise<GetProjectDeveloperUsersContract.Response> {
     return this.findProjectDeveloperUsers(dto.projectId);
   }
@@ -183,7 +183,7 @@ export class ProjectsService {
       await this.amqpConnection.request<CheckClientContract.Response>({
         exchange: CheckClientContract.exchange,
         routingKey: CheckClientContract.routingKey,
-        payload: { clientId } as CheckClientContract.Request,
+        payload: { clientId } as CheckClientContract.Dto,
       });
 
     await handleRpcRequest<CheckClientContract.Response>(
@@ -201,7 +201,7 @@ export class ProjectsService {
       await this.amqpConnection.request<CheckPmContract.Response>({
         exchange: CheckPmContract.exchange,
         routingKey: CheckPmContract.routingKey,
-        payload: { pmId } as CheckPmContract.Request,
+        payload: { pmId } as CheckPmContract.Dto,
       });
 
     await handleRpcRequest(pmResult, async (response) => {
@@ -377,7 +377,7 @@ export class ProjectsService {
       await this.amqpConnection.request<GetUserByIdContract.Response>({
         exchange: GetUserByIdContract.exchange,
         routingKey: GetUserByIdContract.routingKey,
-        payload: { id: userId } as GetUserByIdContract.Request,
+        payload: { id: userId } as GetUserByIdContract.Dto,
       });
 
     const user = await handleRpcRequest(
@@ -397,7 +397,7 @@ export class ProjectsService {
       await this.amqpConnection.request<GetUsersByIdsContract.Response>({
         exchange: GetUsersByIdsContract.exchange,
         routingKey: GetUsersByIdsContract.routingKey,
-        payload: { ids: userIds } as GetUsersByIdsContract.Request,
+        payload: { ids: userIds } as GetUsersByIdsContract.Dto,
       });
 
     const users = await handleRpcRequest(

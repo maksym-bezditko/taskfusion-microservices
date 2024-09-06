@@ -32,7 +32,7 @@ export class TasksService {
   async getTasksByStatus(
     exchange: string,
     routingKey: string,
-    dto: GetTasksByStatusContract.Request
+    dto: GetTasksByStatusContract.Dto
   ) {
     const result =
       await this.amqpConnection.request<GetTasksByStatusContract.Response>({
@@ -47,7 +47,7 @@ export class TasksService {
   async getTaskById(
     exchange: string,
     routingKey: string,
-    dto: GetTaskByIdContract.Request
+    dto: GetTaskByIdContract.Dto
   ) {
     const result =
       await this.amqpConnection.request<GetTaskByIdContract.Response>({
@@ -62,7 +62,7 @@ export class TasksService {
   async assingTaskToUser(
     exchange: string,
     routingKey: string,
-    dto: AssignTaskToUserContract.Request
+    dto: AssignTaskToUserContract.Dto
   ) {
     const result =
       await this.amqpConnection.request<AssignTaskToUserContract.Response>({
@@ -77,7 +77,7 @@ export class TasksService {
   async unassignTaskFromUser(
     exchange: string,
     routingKey: string,
-    dto: UnassignTaskFromUserContract.Request
+    dto: UnassignTaskFromUserContract.Dto
   ) {
     const result =
       await this.amqpConnection.request<UnassignTaskFromUserContract.Response>({

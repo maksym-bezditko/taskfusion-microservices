@@ -10,8 +10,8 @@ import {
   CreateCommentContract,
   CreateActionContract,
   GetUserByIdContract,
-	GetCommentsByTaskIdContract,
-	GetUsersByIdsContract,
+  GetCommentsByTaskIdContract,
+  GetUsersByIdsContract,
 } from '@taskfusion-microservices/contracts';
 import { CommentEntity } from '@taskfusion-microservices/entities';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
@@ -47,7 +47,7 @@ export class CommentsService {
         routingKey: GetUserByIdContract.routingKey,
         payload: {
           id: userId,
-        } as GetUserByIdContract.Request,
+        } as GetUserByIdContract.Dto,
       });
 
     const user = await handleRpcRequest(
@@ -88,7 +88,7 @@ export class CommentsService {
     return { id: comment.id };
   }
 
-	@RabbitRPC({
+  @RabbitRPC({
     exchange: GetCommentsByTaskIdContract.exchange,
     routingKey: GetCommentsByTaskIdContract.routingKey,
     queue: GetCommentsByTaskIdContract.queue,
@@ -115,7 +115,7 @@ export class CommentsService {
         routingKey: GetUsersByIdsContract.routingKey,
         payload: {
           ids: userIds,
-        } as GetUsersByIdsContract.Request,
+        } as GetUsersByIdsContract.Dto,
       });
 
     const users = await handleRpcRequest(

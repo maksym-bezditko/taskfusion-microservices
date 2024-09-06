@@ -139,7 +139,7 @@ export class PmInvitesService {
         projectId: invite.projectId,
         userId: pmUserId,
         role: ProjectParticipantRole.PM,
-      } as AssignUserToProjectContract.Request,
+      } as AssignUserToProjectContract.Dto,
     });
 
     return {

@@ -142,7 +142,7 @@ export class InvitesService {
       await this.amqpConnection.request<GetUserByEmailContract.Response>({
         exchange: GetUserByEmailContract.exchange,
         routingKey: GetUserByEmailContract.routingKey,
-        payload: { email } as GetUserByEmailContract.Request,
+        payload: { email } as GetUserByEmailContract.Dto,
       });
 
     const user = await handleRpcRequest(
@@ -164,7 +164,7 @@ export class InvitesService {
         routingKey: GetUserByIdContract.routingKey,
         payload: {
           id,
-        } as GetUserByIdContract.Request,
+        } as GetUserByIdContract.Dto,
       });
 
     const user = await handleRpcRequest(
@@ -184,7 +184,7 @@ export class InvitesService {
       await this.amqpConnection.request<GetUserByIdContract.Response>({
         exchange: GetUserByIdContract.exchange,
         routingKey: GetUserByIdContract.routingKey,
-        payload: { id: clientUserId } as GetUserByIdContract.Request,
+        payload: { id: clientUserId } as GetUserByIdContract.Dto,
       });
 
     const clientUser = await handleRpcRequest(
@@ -313,7 +313,7 @@ export class InvitesService {
         routingKey: CheckUserContract.routingKey,
         payload: {
           userId,
-        } as CheckUserContract.Request,
+        } as CheckUserContract.Dto,
       });
 
     await handleRpcRequest<CheckUserContract.Response>(

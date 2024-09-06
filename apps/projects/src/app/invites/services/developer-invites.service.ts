@@ -166,7 +166,7 @@ export class DeveloperInvitesService {
         projectId: invite.projectId,
         userId: developerUserId,
         role: ProjectParticipantRole.DEVELOPER,
-      } as AssignUserToProjectContract.Request,
+      } as AssignUserToProjectContract.Dto,
     });
 
     return {

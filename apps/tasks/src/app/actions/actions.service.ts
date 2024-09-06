@@ -66,7 +66,7 @@ export class ActionsService {
     name: 'get-actions-by-task-id',
   })
   async getActionsByTaskId(
-    dto: GetActionsByTaskIdContract.Request
+    dto: GetActionsByTaskIdContract.Dto
   ): Promise<GetActionsByTaskIdContract.Response> {
     const { taskId } = dto;
 
@@ -85,7 +85,7 @@ export class ActionsService {
         routingKey: GetUsersByIdsContract.routingKey,
         payload: {
           ids: userIds,
-        } as GetUsersByIdsContract.Request,
+        } as GetUsersByIdsContract.Dto,
       });
 
     const users = await handleRpcRequest(

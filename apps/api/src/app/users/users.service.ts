@@ -29,7 +29,7 @@ export class UsersService {
   async checkPmEmail(
     exchange: string,
     routingKey: string,
-    dto: CheckPmEmailContract.Request
+    dto: CheckPmEmailContract.Dto
   ): Promise<CheckPmEmailContract.Response> {
     const result =
       await this.amqpConnection.request<CheckPmEmailContract.Response>({
@@ -44,7 +44,7 @@ export class UsersService {
   async checkDeveloperEmail(
     exchange: string,
     routingKey: string,
-    dto: CheckDeveloperEmailContract.Request
+    dto: CheckDeveloperEmailContract.Dto
   ): Promise<CheckDeveloperEmailContract.Response> {
     const result =
       await this.amqpConnection.request<CheckDeveloperEmailContract.Response>({

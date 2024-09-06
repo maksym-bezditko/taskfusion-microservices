@@ -36,7 +36,7 @@ export class DevelopersService {
     name: 'create-developer',
   })
   async createDeveloper(
-    dto: CreateDeveloperContract.Request
+    dto: CreateDeveloperContract.Dto
   ): Promise<CreateDeveloperContract.Response> {
     const developer = this.developerRepository.create();
 
@@ -83,7 +83,7 @@ export class DevelopersService {
     name: 'check-developer',
   })
   async checkDeveloper(
-    dto: CheckDeveloperContract.Request
+    dto: CheckDeveloperContract.Dto
   ): Promise<CheckDeveloperContract.Response> {
     const developer = await this.developerRepository.findOne({
       where: {
@@ -106,7 +106,7 @@ export class DevelopersService {
     name: 'check-developer-email',
   })
   async checkDeveloperEmail(
-    dto: CheckDeveloperEmailContract.Request
+    dto: CheckDeveloperEmailContract.Dto
   ): Promise<CheckDeveloperEmailContract.Response> {
     const { email } = dto;
 

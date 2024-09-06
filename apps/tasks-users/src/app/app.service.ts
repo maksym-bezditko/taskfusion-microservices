@@ -37,7 +37,7 @@ export class AppService {
     name: 'assign-task-to-user',
   })
   async assingTaskToUser(
-    dto: AssignTaskToUserContract.Request
+    dto: AssignTaskToUserContract.Dto
   ): Promise<AssignTaskToUserContract.Response> {
     const { userId, taskId } = dto;
 
@@ -47,7 +47,7 @@ export class AppService {
         routingKey: CheckUserContract.routingKey,
         payload: {
           userId: dto.userId,
-        } as CheckUserContract.Request,
+        } as CheckUserContract.Dto,
       });
 
     await handleRpcRequest<CheckUserContract.Response>(
@@ -65,7 +65,7 @@ export class AppService {
         routingKey: CheckTaskContract.routingKey,
         payload: {
           taskId: dto.taskId,
-        } as CheckTaskContract.Request,
+        } as CheckTaskContract.Dto,
       });
 
     await handleRpcRequest<CheckTaskContract.Response>(
@@ -101,7 +101,7 @@ export class AppService {
         routingKey: GetUsersByIdsContract.routingKey,
         payload: {
           ids: [userId],
-        } as GetUsersByIdsContract.Request,
+        } as GetUsersByIdsContract.Dto,
       });
 
     const response = await handleRpcRequest(
@@ -134,7 +134,7 @@ export class AppService {
     name: 'unassign-task-from-user',
   })
   async unassingTaskFromUser(
-    dto: UnassignTaskFromUserContract.Request
+    dto: UnassignTaskFromUserContract.Dto
   ): Promise<UnassignTaskFromUserContract.Response> {
     const { userId, taskId } = dto;
 
@@ -149,7 +149,7 @@ export class AppService {
         routingKey: GetUsersByIdsContract.routingKey,
         payload: {
           ids: [userId],
-        } as GetUsersByIdsContract.Request,
+        } as GetUsersByIdsContract.Dto,
       });
 
     const response = await handleRpcRequest(
@@ -202,7 +202,7 @@ export class AppService {
         routingKey: GetUsersByIdsContract.routingKey,
         payload: {
           ids: userIds,
-        } as GetUsersByIdsContract.Request,
+        } as GetUsersByIdsContract.Dto,
       });
 
     const users = await handleRpcRequest(

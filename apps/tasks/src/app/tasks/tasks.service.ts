@@ -39,7 +39,7 @@ export class TasksService {
     name: 'check-task',
   })
   async checkTask(
-    dto: CheckTaskContract.Request
+    dto: CheckTaskContract.Dto
   ): Promise<CheckTaskContract.Response> {
     const { taskId } = dto;
 
@@ -64,7 +64,7 @@ export class TasksService {
     name: 'get-tasks-by-status',
   })
   async getTasksByStatus(
-    dto: GetTasksByStatusContract.Request
+    dto: GetTasksByStatusContract.Dto
   ): Promise<GetTasksByStatusContract.Response> {
     const { projectId, taskStatus } = dto;
 
@@ -111,7 +111,7 @@ export class TasksService {
     name: 'get-task-by-id',
   })
   async getTaskById(
-    dto: GetTaskByIdContract.Request
+    dto: GetTaskByIdContract.Dto
   ): Promise<GetTaskByIdContract.Response> {
     const { taskId } = dto;
 
@@ -176,7 +176,7 @@ export class TasksService {
         routingKey: GetUsersByIdsContract.routingKey,
         payload: {
           ids: [userId],
-        } as GetUsersByIdsContract.Request,
+        } as GetUsersByIdsContract.Dto,
       });
 
     const response = await handleRpcRequest(
@@ -227,7 +227,7 @@ export class TasksService {
         routingKey: CheckProjectContract.routingKey,
         payload: {
           projectId,
-        } as CheckProjectContract.Request,
+        } as CheckProjectContract.Dto,
       });
 
     await handleRpcRequest<CheckProjectContract.Response>(

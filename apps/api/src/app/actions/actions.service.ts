@@ -10,7 +10,7 @@ export class ActionsService {
   async getActionsByTaskId(
     exchange: string,
     routingKey: string,
-    dto: GetActionsByTaskIdContract.Request
+    dto: GetActionsByTaskIdContract.Dto
   ): Promise<GetActionsByTaskIdContract.Response> {
     const result =
       await this.amqpConnection.request<GetActionsByTaskIdContract.Response>({

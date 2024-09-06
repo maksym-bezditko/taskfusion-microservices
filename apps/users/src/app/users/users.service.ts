@@ -44,7 +44,7 @@ export class UsersService {
     name: 'get-user-by-id',
   })
   async getUserById(
-    dto: GetUserByIdContract.Request
+    dto: GetUserByIdContract.Dto
   ): Promise<GetUserByIdContract.Response> {
     const { id } = dto;
 
@@ -75,7 +75,7 @@ export class UsersService {
     name: 'get-user-by-email',
   })
   async getUserByEmail(
-    dto: GetUserByEmailContract.Request
+    dto: GetUserByEmailContract.Dto
   ): Promise<GetUserByEmailContract.Response> {
     const { email } = dto;
 
@@ -106,7 +106,7 @@ export class UsersService {
     name: 'get-users-by-ids',
   })
   async getUsersByIds(
-    dto: GetUsersByIdsContract.Request
+    dto: GetUsersByIdsContract.Dto
   ): Promise<GetUsersByIdsContract.Response> {
     const { ids } = dto;
 
@@ -137,7 +137,7 @@ export class UsersService {
     name: 'check-user',
   })
   async checkUser(
-    dto: CheckUserContract.Request
+    dto: CheckUserContract.Dto
   ): Promise<CheckUserContract.Response> {
     const user = await this.userRepository.findOne({
       where: { id: dto.userId },
@@ -193,7 +193,7 @@ export class UsersService {
     allowNonJsonMessages: true,
     name: 'login',
   })
-  async login(dto: LoginContract.Request): Promise<LoginContract.Response> {
+  async login(dto: LoginContract.Dto): Promise<LoginContract.Response> {
     const user = await this.userRepository.findOne({
       where: { email: dto.email },
     });

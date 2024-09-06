@@ -36,7 +36,7 @@ export class PmsService {
     name: 'create-pm',
   })
   async createPm(
-    dto: CreatePmContract.Request
+    dto: CreatePmContract.Dto
   ): Promise<CreatePmContract.Response> {
     const pm = this.pmRepository.create();
 
@@ -82,9 +82,7 @@ export class PmsService {
     allowNonJsonMessages: true,
     name: 'check-pm',
   })
-  async checkPm(
-    dto: CheckPmContract.Request
-  ): Promise<CheckPmContract.Response> {
+  async checkPm(dto: CheckPmContract.Dto): Promise<CheckPmContract.Response> {
     const pm = await this.pmRepository.findOne({
       where: {
         id: dto.pmId,
@@ -106,7 +104,7 @@ export class PmsService {
     name: 'check-pm-email',
   })
   async checkPmEmail(
-    dto: CheckPmEmailContract.Request
+    dto: CheckPmEmailContract.Dto
   ): Promise<CheckPmEmailContract.Response> {
     const { email } = dto;
 
