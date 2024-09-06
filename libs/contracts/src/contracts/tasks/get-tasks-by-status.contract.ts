@@ -26,4 +26,6 @@ export namespace GetTasksByStatusContract {
     @IsEnum(TaskStatus)
     taskStatus: TaskStatus;
   }
+
+  export class Dto extends Request {}
 }

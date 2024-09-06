@@ -4,6 +4,7 @@ import {
   USERS_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
 import { UserEntity } from '@taskfusion-microservices/entities';
+import { IsEmail } from 'class-validator';
 
 export namespace GetUserByEmailContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
@@ -15,6 +16,9 @@ export namespace GetUserByEmailContract {
   export type Response = Errorable<UserEntity>;
 
   export class Request {
+    @IsEmail()
     email: string;
   }
+
+  export class Dto extends Request {}
 }

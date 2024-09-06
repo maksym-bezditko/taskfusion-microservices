@@ -33,4 +33,6 @@ export namespace CreateProjectContract {
     @IsDateString()
     deadline: string;
   }
+
+  export class Dto extends Request {}
 }

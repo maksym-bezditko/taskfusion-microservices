@@ -4,6 +4,7 @@ import {
   ACTIONS_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
 import { ActionEntity, UserEntity } from '@taskfusion-microservices/entities';
+import { IsInt } from 'class-validator';
 
 export namespace GetActionsByTaskIdContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
@@ -15,6 +16,9 @@ export namespace GetActionsByTaskIdContract {
   export type Response = Errorable<(ActionEntity & { user: UserEntity })[]>;
 
   export class Request {
+    @IsInt()
     taskId: number;
   }
+
+  export class Dto extends Request {}
 }

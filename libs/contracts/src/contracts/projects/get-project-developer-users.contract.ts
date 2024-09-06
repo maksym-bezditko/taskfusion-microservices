@@ -19,4 +19,6 @@ export namespace GetProjectDeveloperUsersContract {
 		@IsInt()
 		projectId: number;
   }
+
+  export class Dto extends Request {}
 }

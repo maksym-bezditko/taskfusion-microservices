@@ -1,9 +1,10 @@
 import { Errorable } from '@taskfusion-microservices/types';
 import {
   GENERAL_EXCHANGE_NAME,
-	CLIENTS_QUEUE_NAME,
+  CLIENTS_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
 import { ClientEntity } from '@taskfusion-microservices/entities';
+import { IsInt } from 'class-validator';
 
 export namespace GetClientByUserIdContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
@@ -14,7 +15,10 @@ export namespace GetClientByUserIdContract {
 
   export type Response = Errorable<ClientEntity>;
 
-  export class Dto {
+  export class Request {
+    @IsInt()
     userId: number;
   }
+
+  export class Dto extends Request {}
 }

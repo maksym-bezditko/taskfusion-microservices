@@ -23,4 +23,6 @@ export namespace AssignTaskToUserContract {
     @IsInt()
     userId: number;
   }
+
+  export class Dto extends Request {}
 }

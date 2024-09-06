@@ -20,4 +20,6 @@ export namespace CheckDeveloperEmailContract {
     @IsEmail()
     email: string;
   }
+
+  export class Dto extends Request {}
 }

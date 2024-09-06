@@ -35,4 +35,6 @@ export namespace CreateDeveloperContract {
     @IsString()
     description: string;
   }
+
+  export class Dto extends Request {}
 }

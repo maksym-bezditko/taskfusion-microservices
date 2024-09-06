@@ -4,6 +4,7 @@ import {
   PROJECTS_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
 import { ProjectEntity } from '@taskfusion-microservices/entities';
+import { IsInt } from 'class-validator';
 
 export namespace GetProjectByIdContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
@@ -14,7 +15,10 @@ export namespace GetProjectByIdContract {
 
   export type Response = Errorable<ProjectEntity>;
 
-  export class Dto {
+  export class Request {
+    @IsInt()
 		projectId: number;
   }
+
+  export class Dto extends Request {}
 }

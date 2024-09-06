@@ -24,9 +24,7 @@ export namespace CreateCommentContract {
     taskId: number;
   }
 
-  export class Dto {
-    text: string;
-    taskId: number;
+  export class Dto extends Request {
     userId: number;
   }
 }

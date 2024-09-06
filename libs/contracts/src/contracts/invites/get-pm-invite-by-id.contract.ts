@@ -4,6 +4,7 @@ import {
   INVITES_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
 import { PmInviteEntity } from '@taskfusion-microservices/entities';
+import { IsInt } from 'class-validator';
 
 export namespace GetPmInviteByIdContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
@@ -15,6 +16,7 @@ export namespace GetPmInviteByIdContract {
   export type Response = Errorable<PmInviteEntity>;
 
   export class Request {
+    @IsInt()
     id: number;
   }
 
