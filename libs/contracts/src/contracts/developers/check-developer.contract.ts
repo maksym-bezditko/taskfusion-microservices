@@ -20,4 +20,6 @@ export namespace CheckDeveloperContract {
     @IsInt()
     developerId: number;
   }
+
+  export class Dto extends Request {}
 }

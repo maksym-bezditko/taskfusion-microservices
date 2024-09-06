@@ -25,9 +25,7 @@ export namespace ChangeTaskStatusContract {
     taskStatus: TaskStatus;
   }
 
-  export class Dto {
-    taskId: number;
-    taskStatus: TaskStatus;
+  export class Dto extends Request {
     userId: number;
   }
 }

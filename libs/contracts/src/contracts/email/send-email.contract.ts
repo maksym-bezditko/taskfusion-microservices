@@ -1,7 +1,8 @@
 import {
-	EMAIL_QUEUE_NAME,
+  EMAIL_QUEUE_NAME,
   GENERAL_EXCHANGE_NAME,
 } from '@taskfusion-microservices/constants';
+import { IsEmail, IsString } from 'class-validator';
 
 export namespace SendEmailContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
@@ -10,9 +11,16 @@ export namespace SendEmailContract {
 
   export const queue = `${EMAIL_QUEUE_NAME}.${routingKey}`;
 
-  export class Dto {
+  export class Request {
+    @IsEmail()
     recipientEmail: string;
-		subject: string;
-		message: string;
+
+    @IsString()
+    subject: string;
+
+    @IsString()
+    message: string;
   }
+
+  export class Dto extends Request {}
 }

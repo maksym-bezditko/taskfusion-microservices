@@ -20,4 +20,6 @@ export namespace CheckTaskContract {
     @IsInt()
     taskId: number;
   }
+
+  export class Dto extends Request {}
 }

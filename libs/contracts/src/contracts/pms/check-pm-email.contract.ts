@@ -20,4 +20,6 @@ export namespace CheckPmEmailContract {
     @IsEmail()
     email: string;
   }
+
+  export class Dto extends Request {}
 }

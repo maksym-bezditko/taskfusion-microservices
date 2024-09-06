@@ -40,7 +40,6 @@ export namespace CreateTaskContract {
   }
 
   export class Dto extends Request {
-    @IsInt()
     userId: number;
   }
 }

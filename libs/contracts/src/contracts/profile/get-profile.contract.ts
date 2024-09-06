@@ -4,6 +4,7 @@ import {
   PROFILES_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
 import { UserEntity } from '@taskfusion-microservices/entities';
+import { IsInt } from 'class-validator';
 
 export namespace GetProfileContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
@@ -27,7 +28,10 @@ export namespace GetProfileContract {
     >
   >;
 
-  export class Dto {
+  export class Request {
+    @IsInt()
     userId: number;
   }
+
+  export class Dto extends Request {}
 }

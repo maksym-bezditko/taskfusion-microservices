@@ -20,4 +20,6 @@ export namespace CheckProjectContract {
     @IsInt()
     projectId: number;
   }
+
+  export class Dto extends Request {}
 }

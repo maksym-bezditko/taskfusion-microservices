@@ -19,4 +19,6 @@ export namespace GetTaskByIdContract {
     @IsInt()
     taskId: number;
   }
+
+  export class Dto extends Request {}
 }

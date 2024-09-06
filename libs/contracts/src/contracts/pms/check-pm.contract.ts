@@ -20,4 +20,6 @@ export namespace CheckPmContract {
     @IsInt()
     pmId: number;
   }
+
+  export class Dto extends Request {}
 }

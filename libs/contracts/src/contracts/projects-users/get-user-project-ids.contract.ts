@@ -3,6 +3,7 @@ import {
   GENERAL_EXCHANGE_NAME,
   PROJECTS_USERS_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
+import { IsInt } from 'class-validator';
 
 export namespace GetUserProjectIdsContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
@@ -13,7 +14,10 @@ export namespace GetUserProjectIdsContract {
 
   export type Response = Errorable<number[]>;
 
-  export class Dto {
+  export class Request {
+    @IsInt()
     userId: number;
   }
+
+  export class Dto extends Request {}
 }

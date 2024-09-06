@@ -16,8 +16,10 @@ export namespace GetProjectDeveloperIdsContract {
     developerUserIds: number[];
   }>;
 
-  export class Dto {
+  export class Request {
     @IsInt()
     projectId: number;
   }
+
+  export class Dto extends Request {}
 }

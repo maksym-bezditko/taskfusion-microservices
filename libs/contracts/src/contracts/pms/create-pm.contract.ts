@@ -35,4 +35,6 @@ export namespace CreatePmContract {
     @IsString()
     description: string;
   }
+
+  export class Dto extends Request {}
 }

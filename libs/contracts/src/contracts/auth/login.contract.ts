@@ -24,4 +24,6 @@ export namespace LoginContract {
     @IsString()
     password: string;
   }
+
+  export class Dto extends Request {}
 }

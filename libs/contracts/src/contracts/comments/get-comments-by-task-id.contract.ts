@@ -4,6 +4,7 @@ import {
   COMMENTS_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
 import { CommentEntity, UserEntity } from '@taskfusion-microservices/entities';
+import { IsInt } from 'class-validator';
 
 export namespace GetCommentsByTaskIdContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
@@ -14,7 +15,10 @@ export namespace GetCommentsByTaskIdContract {
 
   export type Response = Errorable<(CommentEntity & { user: UserEntity })[]>;
 
-  export class Dto {
+  export class Request {
+    @IsInt()
     taskId: number;
   }
+
+  export class Dto extends Request {}
 }

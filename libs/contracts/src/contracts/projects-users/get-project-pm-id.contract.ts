@@ -16,8 +16,10 @@ export namespace GetProjectPmIdContract {
     pmUserId: number;
   }>;
 
-  export class Dto {
+  export class Request {
     @IsInt()
     projectId: number;
   }
+
+  export class Dto extends Request {}
 }
