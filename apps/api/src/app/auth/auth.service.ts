@@ -54,7 +54,7 @@ export class AuthService {
   async login(
     exchange: string,
     routingKey: string,
-    dto: LoginContract.Request
+    dto: LoginContract.Dto
   ) {
     const result =
       await this.amqpConnection.request<LoginContract.Response>({

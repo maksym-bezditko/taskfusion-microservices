@@ -32,7 +32,7 @@ export class ClientsService {
     name: 'create-client',
   })
   async createClient(
-    dto: CreateClientContract.Request
+    dto: CreateClientContract.Dto
   ): Promise<CreateClientContract.Response> {
     const client = this.clientRepository.create();
 
@@ -79,7 +79,7 @@ export class ClientsService {
     name: 'check-client',
   })
   async checkClient(
-    dto: CheckClientContract.Request
+    dto: CheckClientContract.Dto
   ): Promise<CheckClientContract.Response> {
     const client = await this.clientRepository.findOne({
       where: {
@@ -108,7 +108,7 @@ export class ClientsService {
       where: {
         user: {
           id: dto.userId,
-        }
+        },
       },
     });
 
