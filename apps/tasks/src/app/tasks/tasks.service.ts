@@ -16,10 +16,13 @@ import {
   CreateActionContract,
   CreateTaskContract,
   CheckProjectContract,
+  GetUserIdsByTaskIdContract,
+  GetUserTasksByStatusContract,
+  GetTaskIdsByUserIdContract,
 } from '@taskfusion-microservices/contracts';
 import { TaskEntity } from '@taskfusion-microservices/entities';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 @Injectable()
 export class TasksService {
@@ -261,5 +264,96 @@ export class TasksService {
     });
 
     return task;
+  }
+
+  @RabbitRPC({
+    exchange: GetTaskParticipantsContract.exchange,
+    routingKey: GetTaskParticipantsContract.routingKey,
+    queue: GetTaskParticipantsContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-task-participants',
+  })
+  async getTaskParticipants(dto: GetTaskParticipantsContract.Dto) {
+    const { taskId } = dto;
+
+    const userIdsResult =
+      await this.amqpConnection.request<GetUserIdsByTaskIdContract.Response>({
+        exchange: GetUserIdsByTaskIdContract.exchange,
+        routingKey: GetUserIdsByTaskIdContract.routingKey,
+        payload: {
+          taskId,
+        } as GetUserIdsByTaskIdContract.Dto,
+      });
+
+    const { userIds } = await handleRpcRequest(
+      userIdsResult,
+      async (response) => response
+    );
+
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    const usersResult =
+      await this.amqpConnection.request<GetUsersByIdsContract.Response>({
+        exchange: GetUsersByIdsContract.exchange,
+        routingKey: GetUsersByIdsContract.routingKey,
+        payload: {
+          ids: userIds,
+        } as GetUsersByIdsContract.Dto,
+      });
+
+    const users = await handleRpcRequest(
+      usersResult,
+      async (response) => response
+    );
+
+    return users;
+  }
+
+  @RabbitRPC({
+    exchange: GetUserTasksByStatusContract.exchange,
+    routingKey: GetUserTasksByStatusContract.routingKey,
+    queue: GetUserTasksByStatusContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-user-tasks-by-status',
+  })
+  async getUserTasksByStatus(
+    dto: GetUserTasksByStatusContract.Dto
+  ): Promise<GetUserTasksByStatusContract.Response> {
+    const { status, userId } = dto;
+    
+    const taskIdsResult =
+      await this.amqpConnection.request<GetTaskIdsByUserIdContract.Response>({
+        exchange: GetTaskIdsByUserIdContract.exchange,
+        routingKey: GetTaskIdsByUserIdContract.routingKey,
+        payload: {
+          userId,
+        } as GetTaskIdsByUserIdContract.Dto,
+      });
+
+    const { taskIds } = await handleRpcRequest(
+      taskIdsResult,
+      async (response) => response
+    );
+
+    if (taskIds.length === 0) {
+      return [];
+    }
+
+    const tasks = await this.taskRepository.find({
+      where: {
+        id: In(taskIds),
+        taskStatus: status,
+      },
+    });
+
+    console.log(tasks);
+
+    return tasks;
   }
 }

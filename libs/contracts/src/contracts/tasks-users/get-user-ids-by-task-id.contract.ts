@@ -1,17 +1,18 @@
 import { Errorable } from '@taskfusion-microservices/types';
 import { GENERAL_EXCHANGE_NAME } from '@taskfusion-microservices/constants';
-import { UserEntity } from '@taskfusion-microservices/entities';
 import { TASKS_USERS_QUEUE_NAME } from '@taskfusion-microservices/constants';
 import { IsInt } from 'class-validator';
 
-export namespace GetTaskParticipantsContract {
+export namespace GetUserIdsByTaskIdContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
 
-  export const routingKey = `get-task-participants`;
+  export const routingKey = `get-user-ids-by-test-id`;
 
   export const queue = `${TASKS_USERS_QUEUE_NAME}.${routingKey}`;
 
-  export type Response = Errorable<UserEntity[]>;
+  export type Response = Errorable<{
+    userIds: number[];
+  }>;
 
   export class Request {
     @IsInt()
