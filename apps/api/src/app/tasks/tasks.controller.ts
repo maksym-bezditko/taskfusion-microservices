@@ -6,6 +6,7 @@ import {
   CreateTaskContract,
   GetTaskByIdContract,
   GetTasksByStatusContract,
+  GetUserTasksByStatusContract,
   UnassignTaskFromUserContract,
 } from '@taskfusion-microservices/contracts';
 import { AtJwtGuard, UserIdFromJwt } from '@taskfusion-microservices/common';
@@ -27,18 +28,6 @@ export class TasksController {
         ...dto,
         userId,
       }
-    );
-  }
-
-  @UseGuards(AtJwtGuard)
-  @Post('get-tasks-by-status')
-  async getTasksByStatus(
-    @Body() dto: GetTasksByStatusContract.Request
-  ): Promise<GetTasksByStatusContract.Response> {
-    return this.tasksService.getTasksByStatus(
-      GetTasksByStatusContract.exchange,
-      GetTasksByStatusContract.routingKey,
-      dto
     );
   }
 
@@ -67,20 +56,6 @@ export class TasksController {
   }
 
   @UseGuards(AtJwtGuard)
-  @Get(':taskId')
-  async getTaskById(
-    @Param('taskId') taskId: string
-  ): Promise<GetTaskByIdContract.Response> {
-    return this.tasksService.getTaskById(
-      GetTaskByIdContract.exchange,
-      GetTaskByIdContract.routingKey,
-      {
-        taskId: +taskId,
-      }
-    );
-  }
-
-  @UseGuards(AtJwtGuard)
   @Post('change-task-status')
   async changeTaskStatus(
     @Body() dto: ChangeTaskStatusContract.Request,
@@ -93,6 +68,48 @@ export class TasksController {
         taskId: dto.taskId,
         taskStatus: dto.taskStatus,
         userId,
+      }
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Post('get-user-tasks-by-status')
+  async getUserTasksByStatus(
+    @Body() dto: GetUserTasksByStatusContract.Request,
+    @UserIdFromJwt() userId: number
+  ): Promise<GetUserTasksByStatusContract.Response> {
+    return this.tasksService.getUserTasksByStatus(
+      GetUserTasksByStatusContract.exchange,
+      GetUserTasksByStatusContract.routingKey,
+      {
+        status: dto.status,
+        userId,
+      }
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Post('get-tasks-by-status')
+  async getTasksByStatus(
+    @Body() dto: GetTasksByStatusContract.Request
+  ): Promise<GetTasksByStatusContract.Response> {
+    return this.tasksService.getTasksByStatus(
+      GetTasksByStatusContract.exchange,
+      GetTasksByStatusContract.routingKey,
+      dto
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Get(':taskId')
+  async getTaskById(
+    @Param('taskId') taskId: string
+  ): Promise<GetTaskByIdContract.Response> {
+    return this.tasksService.getTaskById(
+      GetTaskByIdContract.exchange,
+      GetTaskByIdContract.routingKey,
+      {
+        taskId: +taskId,
       }
     );
   }
