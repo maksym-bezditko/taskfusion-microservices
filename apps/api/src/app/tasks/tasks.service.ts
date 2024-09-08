@@ -6,6 +6,7 @@ import {
   CreateTaskContract,
   GetTaskByIdContract,
   GetTasksByStatusContract,
+  GetUserTasksByStatusContract,
   UnassignTaskFromUserContract,
 } from '@taskfusion-microservices/contracts';
 import { handleRpcRequest } from '@taskfusion-microservices/helpers';
@@ -21,21 +22,6 @@ export class TasksService {
   ) {
     const result =
       await this.amqpConnection.request<CreateTaskContract.Response>({
-        exchange,
-        routingKey,
-        payload: dto,
-      });
-
-    return handleRpcRequest(result, async (response) => response);
-  }
-
-  async getTasksByStatus(
-    exchange: string,
-    routingKey: string,
-    dto: GetTasksByStatusContract.Dto
-  ) {
-    const result =
-      await this.amqpConnection.request<GetTasksByStatusContract.Response>({
         exchange,
         routingKey,
         payload: dto,
@@ -96,6 +82,36 @@ export class TasksService {
   ) {
     const result =
       await this.amqpConnection.request<ChangeTaskStatusContract.Response>({
+        exchange,
+        routingKey,
+        payload: dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async getUserTasksByStatus(
+    exchange: string,
+    routingKey: string,
+    dto: GetUserTasksByStatusContract.Dto
+  ) {
+    const result =
+      await this.amqpConnection.request<GetUserTasksByStatusContract.Response>({
+        exchange,
+        routingKey,
+        payload: dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
+  }
+
+  async getTasksByStatus(
+    exchange: string,
+    routingKey: string,
+    dto: GetTasksByStatusContract.Dto
+  ) {
+    const result =
+      await this.amqpConnection.request<GetTasksByStatusContract.Response>({
         exchange,
         routingKey,
         payload: dto,
