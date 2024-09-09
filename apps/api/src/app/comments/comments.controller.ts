@@ -1,14 +1,15 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { CommentsService } from './comments.service';
 import { AtJwtGuard, UserIdFromJwt } from '@taskfusion-microservices/common';
 import {
   CreateCommentContract,
   GetCommentsByTaskIdContract,
 } from '@taskfusion-microservices/contracts';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 
 @Controller('comments')
 export class CommentsController {
-  constructor(private readonly commentsService: CommentsService) {}
+  constructor(private readonly amqpConnection: AmqpConnection) {}
 
   @UseGuards(AtJwtGuard)
   @Post('create-comment')
@@ -16,15 +17,18 @@ export class CommentsController {
     @Body() dto: CreateCommentContract.Request,
     @UserIdFromJwt() userId: number
   ): Promise<CreateCommentContract.Response> {
-    return this.commentsService.createComment(
-      CreateCommentContract.exchange,
-      CreateCommentContract.routingKey,
-      {
-        taskId: dto.taskId,
-        text: dto.text,
-        userId,
-      }
-    );
+    const result =
+      await this.amqpConnection.request<CreateCommentContract.Response>({
+        exchange: CreateCommentContract.exchange,
+        routingKey: CreateCommentContract.routingKey,
+        payload: {
+          taskId: dto.taskId,
+          text: dto.text,
+          userId,
+        } as CreateCommentContract.Dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
   }
 
   @UseGuards(AtJwtGuard)
@@ -32,12 +36,15 @@ export class CommentsController {
   async getCommentsByTaskId(
     @Param('taskId') taskId: string
   ): Promise<GetCommentsByTaskIdContract.Response> {
-    return this.commentsService.getCommentsByTaskId(
-      GetCommentsByTaskIdContract.exchange,
-      GetCommentsByTaskIdContract.routingKey,
-      {
-        taskId: +taskId,
-      }
-    );
+    const result =
+      await this.amqpConnection.request<GetCommentsByTaskIdContract.Response>({
+        exchange: GetCommentsByTaskIdContract.exchange,
+        routingKey: GetCommentsByTaskIdContract.routingKey,
+        payload: {
+          taskId: +taskId,
+        } as GetCommentsByTaskIdContract.Dto,
+      });
+
+    return handleRpcRequest(result, async (response) => response);
   }
 }
