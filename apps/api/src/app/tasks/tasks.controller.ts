@@ -8,15 +8,15 @@ import {
   GetUserTasksByStatusContract,
   UnassignTaskFromUserContract,
 } from '@taskfusion-microservices/contracts';
-import { AtJwtGuard, UserIdFromJwt } from '@taskfusion-microservices/common';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { handleRpcRequest } from '@taskfusion-microservices/helpers';
+import {
+  AtJwtGuard,
+  CustomAmqpConnection,
+  UserIdFromJwt,
+} from '@taskfusion-microservices/common';
 
 @Controller('tasks')
 export class TasksController {
-  constructor(
-    private readonly amqpConnection: AmqpConnection
-  ) {}
+  constructor(private readonly customAmqpConnection: CustomAmqpConnection) {}
 
   @UseGuards(AtJwtGuard)
   @Post('create-task')
@@ -24,17 +24,15 @@ export class TasksController {
     @Body() dto: CreateTaskContract.Request,
     @UserIdFromJwt() userId: number
   ): Promise<CreateTaskContract.Response> {
-    const result =
-      await this.amqpConnection.request<CreateTaskContract.Response>({
-        exchange: CreateTaskContract.exchange,
-        routingKey: CreateTaskContract.routingKey,
-        payload: {
-          ...dto,
-          userId,
-        } as CreateTaskContract.Dto,
-      });
+    const payload: CreateTaskContract.Dto = {
+      ...dto,
+      userId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<CreateTaskContract.Response>(
+      CreateTaskContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard)
@@ -42,14 +40,10 @@ export class TasksController {
   async assingTaskToUser(
     @Body() dto: AssignTaskToUserContract.Request
   ): Promise<AssignTaskToUserContract.Response> {
-    const result =
-      await this.amqpConnection.request<AssignTaskToUserContract.Response>({
-        exchange: AssignTaskToUserContract.exchange,
-        routingKey: AssignTaskToUserContract.routingKey,
-        payload: dto as AssignTaskToUserContract.Dto,
-      });
-
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<AssignTaskToUserContract.Response>(
+      AssignTaskToUserContract.routingKey,
+      dto
+    );
   }
 
   @UseGuards(AtJwtGuard)
@@ -57,14 +51,10 @@ export class TasksController {
   async unassignTaskFromUser(
     @Body() dto: UnassignTaskFromUserContract.Request
   ): Promise<UnassignTaskFromUserContract.Response> {
-    const result =
-      await this.amqpConnection.request<UnassignTaskFromUserContract.Response>({
-        exchange: UnassignTaskFromUserContract.exchange,
-        routingKey: UnassignTaskFromUserContract.routingKey,
-        payload: dto as UnassignTaskFromUserContract.Dto,
-      });
-
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<UnassignTaskFromUserContract.Response>(
+      UnassignTaskFromUserContract.routingKey,
+      dto
+    );
   }
 
   @UseGuards(AtJwtGuard)
@@ -73,18 +63,16 @@ export class TasksController {
     @Body() dto: ChangeTaskStatusContract.Request,
     @UserIdFromJwt() userId: number
   ): Promise<ChangeTaskStatusContract.Response> {
-    const result =
-      await this.amqpConnection.request<ChangeTaskStatusContract.Response>({
-        exchange: ChangeTaskStatusContract.exchange,
-        routingKey: ChangeTaskStatusContract.routingKey,
-        payload: {
-          taskId: dto.taskId,
-          taskStatus: dto.taskStatus,
-          userId,
-        } as ChangeTaskStatusContract.Dto,
-      });
+    const payload: ChangeTaskStatusContract.Dto = {
+      taskId: dto.taskId,
+      taskStatus: dto.taskStatus,
+      userId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<ChangeTaskStatusContract.Response>(
+      ChangeTaskStatusContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard)
@@ -93,17 +81,15 @@ export class TasksController {
     @Body() dto: GetUserTasksByStatusContract.Request,
     @UserIdFromJwt() userId: number
   ): Promise<GetUserTasksByStatusContract.Response> {
-    const result =
-      await this.amqpConnection.request<GetUserTasksByStatusContract.Response>({
-        exchange: GetUserTasksByStatusContract.exchange,
-        routingKey: GetUserTasksByStatusContract.routingKey,
-        payload: {
-          status: dto.status,
-          userId,
-        } as GetUserTasksByStatusContract.Dto,
-      });
+    const payload: GetUserTasksByStatusContract.Dto = {
+      status: dto.status,
+      userId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<GetUserTasksByStatusContract.Response>(
+      GetUserTasksByStatusContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard)
@@ -111,17 +97,15 @@ export class TasksController {
   async getTasksByStatus(
     @Body() dto: GetTasksByStatusContract.Request
   ): Promise<GetTasksByStatusContract.Response> {
-    const result =
-      await this.amqpConnection.request<GetTasksByStatusContract.Response>({
-        exchange: GetTasksByStatusContract.exchange,
-        routingKey: GetTasksByStatusContract.routingKey,
-        payload: {
-          projectId: dto.projectId,
-          taskStatus: dto.taskStatus,
-        } as GetTasksByStatusContract.Dto,
-      });
+    const payload: GetTasksByStatusContract.Dto = {
+      projectId: dto.projectId,
+      taskStatus: dto.taskStatus,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<GetTasksByStatusContract.Response>(
+      GetTasksByStatusContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard)
@@ -129,15 +113,13 @@ export class TasksController {
   async getTaskById(
     @Param('taskId') taskId: string
   ): Promise<GetTaskByIdContract.Response> {
-    const result =
-      await this.amqpConnection.request<GetTaskByIdContract.Response>({
-        exchange: GetTaskByIdContract.exchange,
-        routingKey: GetTaskByIdContract.routingKey,
-        payload: {
-          taskId: +taskId,
-        } as GetTaskByIdContract.Dto,
-      });
+    const payload: GetTaskByIdContract.Dto = {
+      taskId: +taskId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<GetTaskByIdContract.Response>(
+      GetTaskByIdContract.routingKey,
+      payload
+    );
   }
 }
