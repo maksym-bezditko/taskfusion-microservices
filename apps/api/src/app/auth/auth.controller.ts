@@ -13,56 +13,40 @@ import {
   RtJwtGuard,
   UserIdFromJwt,
 } from '@taskfusion-microservices/common';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { handleRpcRequest } from '@taskfusion-microservices/helpers';
+import { CustomAmqpConnection } from '@taskfusion-microservices/common';
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly amqpConnection: AmqpConnection
-  ) {}
+  constructor(private readonly customAmqpConnection: CustomAmqpConnection) {}
 
   @Post('create-client')
   async createClient(
     @Body() dto: CreateClientContract.Request
   ): Promise<CreateClientContract.Response> {
-    const result =
-      await this.amqpConnection.request<CreateClientContract.Response>({
-        exchange: CreateClientContract.exchange,
-        routingKey: CreateClientContract.routingKey,
-        payload: dto as CreateClientContract.Dto,
-      });
-
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<CreateClientContract.Response>(
+      CreateClientContract.routingKey,
+      dto
+    );
   }
 
   @Post('create-developer')
   async createDeveloper(
     @Body() dto: CreateDeveloperContract.Request
   ): Promise<CreateDeveloperContract.Response> {
-    const result =
-      await this.amqpConnection.request<CreateDeveloperContract.Response>({
-        exchange: CreateDeveloperContract.exchange,
-        routingKey: CreateDeveloperContract.routingKey,
-        payload: dto as CreateDeveloperContract.Dto,
-      });
-
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<CreateDeveloperContract.Response>(
+      CreateDeveloperContract.routingKey,
+      dto
+    );
   }
 
   @Post('create-pm')
   async createPm(
     @Body() dto: CreatePmContract.Request
   ): Promise<CreatePmContract.Response> {
-    const result = await this.amqpConnection.request<CreatePmContract.Response>(
-      {
-        exchange: CreatePmContract.exchange,
-        routingKey: CreatePmContract.routingKey,
-        payload: dto as CreatePmContract.Dto,
-      }
+    return this.customAmqpConnection.requestOrThrow<CreatePmContract.Response>(
+      CreatePmContract.routingKey,
+      dto
     );
-
-    return handleRpcRequest(result, async (response) => response);
   }
 
   @UseGuards(RtJwtGuard)
@@ -71,17 +55,15 @@ export class AuthController {
     @UserIdFromJwt() userId: number,
     @JwtTokenFromBearer() refreshToken: string
   ): Promise<RefreshTokensContract.Response> {
-    const result =
-      await this.amqpConnection.request<RefreshTokensContract.Response>({
-        exchange: RefreshTokensContract.exchange,
-        routingKey: RefreshTokensContract.routingKey,
-        payload: {
-          userId,
-          refreshToken,
-        } as RefreshTokensContract.Dto,
-      });
+    const payload: RefreshTokensContract.Dto = {
+      refreshToken,
+      userId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<RefreshTokensContract.Response>(
+      RefreshTokensContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard)
@@ -89,27 +71,23 @@ export class AuthController {
   async logout(
     @UserIdFromJwt() userId: number
   ): Promise<LogoutContract.Response> {
-    const result = await this.amqpConnection.request<LogoutContract.Response>({
-      exchange: LogoutContract.exchange,
-      routingKey: LogoutContract.routingKey,
-      payload: {
-        userId,
-      } as LogoutContract.Dto,
-    });
+    const payload: LogoutContract.Dto = {
+      userId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<LogoutContract.Response>(
+      LogoutContract.routingKey,
+      payload
+    );
   }
 
   @Post('login')
   async login(
     @Body() dto: LoginContract.Request
   ): Promise<LoginContract.Response> {
-    const result = await this.amqpConnection.request<LoginContract.Response>({
-      exchange: LoginContract.exchange,
-      routingKey: LoginContract.routingKey,
-      payload: dto as LoginContract.Dto,
-    });
-
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<LoginContract.Response>(
+      LoginContract.routingKey,
+      dto
+    );
   }
 }

@@ -19,30 +19,25 @@ import {
 import {
   AtJwtGuard,
   ClientGuard,
+  CustomAmqpConnection,
   DeveloperGuard,
   PmGuard,
   UserIdFromJwt,
 } from '@taskfusion-microservices/common';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 
 @Controller('projects')
 export class ProjectsController {
-  constructor(private readonly amqpConnection: AmqpConnection) {}
+  constructor(private readonly customAmqpConnection: CustomAmqpConnection) {}
 
   @UseGuards(AtJwtGuard)
   @Post('create-project')
   async createProject(
     @Body() dto: CreateProjectContract.Request
   ): Promise<CreateProjectContract.Response> {
-    const result =
-      await this.amqpConnection.request<CreateProjectContract.Response>({
-        exchange: CreateProjectContract.exchange,
-        routingKey: CreateProjectContract.routingKey,
-        payload: dto as CreateProjectContract.Dto,
-      });
-
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<CreateProjectContract.Response>(
+      CreateProjectContract.routingKey,
+      dto
+    );
   }
 
   @UseGuards(AtJwtGuard, ClientGuard)
@@ -50,16 +45,14 @@ export class ProjectsController {
   async getClientProjects(
     @UserIdFromJwt() clientUserId: number
   ): Promise<GetClientProjectsContract.Response> {
-    const result =
-      await this.amqpConnection.request<GetClientProjectsContract.Response>({
-        exchange: GetClientProjectsContract.exchange,
-        routingKey: GetClientProjectsContract.routingKey,
-        payload: {
-          clientUserId,
-        } as GetClientProjectsContract.Dto,
-      });
+    const payload: GetClientProjectsContract.Dto = {
+      clientUserId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<GetClientProjectsContract.Response>(
+      GetClientProjectsContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard, DeveloperGuard)
@@ -67,16 +60,14 @@ export class ProjectsController {
   async getDeveloperProjects(
     @UserIdFromJwt() developerUserId: number
   ): Promise<GetDeveloperProjectsContract.Response> {
-    const result =
-      await this.amqpConnection.request<GetDeveloperProjectsContract.Response>({
-        exchange: GetDeveloperProjectsContract.exchange,
-        routingKey: GetDeveloperProjectsContract.routingKey,
-        payload: {
-          developerUserId,
-        } as GetDeveloperProjectsContract.Dto,
-      });
+    const payload: GetDeveloperProjectsContract.Dto = {
+      developerUserId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<GetDeveloperProjectsContract.Response>(
+      GetDeveloperProjectsContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard, PmGuard)
@@ -84,16 +75,14 @@ export class ProjectsController {
   async getPmProjects(
     @UserIdFromJwt() pmUserId: number
   ): Promise<GetPmProjectsContract.Response> {
-    const result =
-      await this.amqpConnection.request<GetPmProjectsContract.Response>({
-        exchange: GetPmProjectsContract.exchange,
-        routingKey: GetPmProjectsContract.routingKey,
-        payload: {
-          pmUserId,
-        } as GetPmProjectsContract.Dto,
-      });
+    const payload: GetPmProjectsContract.Dto = {
+      pmUserId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<GetPmProjectsContract.Response>(
+      GetPmProjectsContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard)
@@ -101,16 +90,14 @@ export class ProjectsController {
   async getProjectById(
     @Param('id') id: number
   ): Promise<GetProjectByIdContract.Response> {
-    const result =
-      await this.amqpConnection.request<GetProjectByIdContract.Response>({
-        exchange: GetProjectByIdContract.exchange,
-        routingKey: GetProjectByIdContract.routingKey,
-        payload: {
-          projectId: id,
-        } as GetProjectByIdContract.Dto,
-      });
+    const payload: GetProjectByIdContract.Dto = {
+      projectId: id,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<GetProjectByIdContract.Response>(
+      GetProjectByIdContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard, ClientGuard)
@@ -119,19 +106,16 @@ export class ProjectsController {
     @Body() dto: InvitePmContract.Request,
     @UserIdFromJwt() userId: number
   ) {
-    const result = await this.amqpConnection.request<InvitePmContract.Response>(
-      {
-        exchange: InvitePmContract.exchange,
-        routingKey: InvitePmContract.routingKey,
-        payload: {
-          clientUserId: userId,
-          email: dto.email,
-          projectId: dto.projectId,
-        } as InvitePmContract.Dto,
-      }
-    );
+    const payload: InvitePmContract.Dto = {
+      clientUserId: userId,
+      email: dto.email,
+      projectId: dto.projectId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<InvitePmContract.Response>(
+      InvitePmContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard, PmGuard)
@@ -140,17 +124,15 @@ export class ProjectsController {
     @Body() dto: AcceptPmInviteContract.Request,
     @UserIdFromJwt() userId: number
   ) {
-    const result =
-      await this.amqpConnection.request<AcceptPmInviteContract.Response>({
-        exchange: AcceptPmInviteContract.exchange,
-        routingKey: AcceptPmInviteContract.routingKey,
-        payload: {
-          inviteId: dto.inviteId,
-          pmUserId: userId,
-        } as AcceptPmInviteContract.Dto,
-      });
+    const payload: AcceptPmInviteContract.Dto = {
+      inviteId: dto.inviteId,
+      pmUserId: userId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<AcceptPmInviteContract.Response>(
+      AcceptPmInviteContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard, PmGuard)
@@ -159,43 +141,33 @@ export class ProjectsController {
     @Body() dto: RejectPmInviteContract.Request,
     @UserIdFromJwt() userId: number
   ) {
-    const result =
-      await this.amqpConnection.request<RejectPmInviteContract.Response>({
-        exchange: RejectPmInviteContract.exchange,
-        routingKey: RejectPmInviteContract.routingKey,
-        payload: {
-          inviteId: dto.inviteId,
-          pmUserId: userId,
-        } as RejectPmInviteContract.Dto,
-      });
+    const payload: RejectPmInviteContract.Dto = {
+      inviteId: dto.inviteId,
+      pmUserId: userId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<RejectPmInviteContract.Response>(
+      RejectPmInviteContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard)
   @Post('/invites/get-pm-invite-by-id')
   async getInviteById(@Body() dto: GetPmInviteByIdContract.Request) {
-    const result =
-      await this.amqpConnection.request<GetPmInviteByIdContract.Response>({
-        exchange: GetPmInviteByIdContract.exchange,
-        routingKey: GetPmInviteByIdContract.routingKey,
-        payload: dto as GetPmInviteByIdContract.Dto,
-      });
-
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<GetPmInviteByIdContract.Response>(
+      GetPmInviteByIdContract.routingKey,
+      dto
+    );
   }
 
   @UseGuards(AtJwtGuard)
   @Post('/get-project-pm-user')
   async getProjectPmUser(@Body() dto: GetProjectPmUserContract.Request) {
-    const result =
-      await this.amqpConnection.request<GetProjectPmUserContract.Response>({
-        exchange: GetProjectPmUserContract.exchange,
-        routingKey: GetProjectPmUserContract.routingKey,
-        payload: dto as GetProjectPmUserContract.Dto,
-      });
-
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<GetProjectPmUserContract.Response>(
+      GetProjectPmUserContract.routingKey,
+      dto
+    );
   }
 
   @UseGuards(AtJwtGuard)
@@ -203,16 +175,10 @@ export class ProjectsController {
   async getProjectDeveloperUsers(
     @Body() dto: GetProjectDeveloperUsersContract.Request
   ) {
-    const result =
-      await this.amqpConnection.request<GetProjectDeveloperUsersContract.Response>(
-        {
-          exchange: GetProjectDeveloperUsersContract.exchange,
-          routingKey: GetProjectDeveloperUsersContract.routingKey,
-          payload: dto as GetProjectDeveloperUsersContract.Dto,
-        }
-      );
-
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<GetProjectDeveloperUsersContract.Response>(
+      GetProjectDeveloperUsersContract.routingKey,
+      dto
+    );
   }
 
   @UseGuards(AtJwtGuard, PmGuard)
@@ -221,18 +187,16 @@ export class ProjectsController {
     @Body() dto: InviteDeveloperContract.Request,
     @UserIdFromJwt() userId: number
   ) {
-    const result =
-      await this.amqpConnection.request<InviteDeveloperContract.Response>({
-        exchange: InviteDeveloperContract.exchange,
-        routingKey: InviteDeveloperContract.routingKey,
-        payload: {
-          pmUserId: userId,
-          email: dto.email,
-          projectId: dto.projectId,
-        } as InviteDeveloperContract.Dto,
-      });
+    const payload: InviteDeveloperContract.Dto = {
+      pmUserId: userId,
+      email: dto.email,
+      projectId: dto.projectId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<InviteDeveloperContract.Response>(
+      InviteDeveloperContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard, DeveloperGuard)
@@ -241,19 +205,15 @@ export class ProjectsController {
     @Body() dto: AcceptDeveloperInviteContract.Request,
     @UserIdFromJwt() userId: number
   ) {
-    const result =
-      await this.amqpConnection.request<AcceptDeveloperInviteContract.Response>(
-        {
-          exchange: AcceptDeveloperInviteContract.exchange,
-          routingKey: AcceptDeveloperInviteContract.routingKey,
-          payload: {
-            inviteId: dto.inviteId,
-            developerUserId: userId,
-          } as AcceptDeveloperInviteContract.Dto,
-        }
-      );
+    const payload: AcceptDeveloperInviteContract.Dto = {
+      inviteId: dto.inviteId,
+      developerUserId: userId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<AcceptDeveloperInviteContract.Response>(
+      AcceptDeveloperInviteContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard, DeveloperGuard)
@@ -262,19 +222,15 @@ export class ProjectsController {
     @Body() dto: RejectDeveloperInviteContract.Request,
     @UserIdFromJwt() userId: number
   ) {
-    const result =
-      await this.amqpConnection.request<RejectDeveloperInviteContract.Response>(
-        {
-          exchange: RejectDeveloperInviteContract.exchange,
-          routingKey: RejectDeveloperInviteContract.routingKey,
-          payload: {
-            inviteId: dto.inviteId,
-            developerUserId: userId,
-          } as RejectDeveloperInviteContract.Dto,
-        }
-      );
+    const payload: RejectDeveloperInviteContract.Dto = {
+      inviteId: dto.inviteId,
+      developerUserId: userId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<RejectDeveloperInviteContract.Response>(
+      RejectDeveloperInviteContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard)
@@ -282,15 +238,9 @@ export class ProjectsController {
   async getDeveloperInviteById(
     @Body() dto: GetDeveloperInviteByIdContract.Request
   ) {
-    const result =
-      await this.amqpConnection.request<GetDeveloperInviteByIdContract.Response>(
-        {
-          exchange: GetDeveloperInviteByIdContract.exchange,
-          routingKey: GetDeveloperInviteByIdContract.routingKey,
-          payload: dto as GetDeveloperInviteByIdContract.Dto,
-        }
-      );
-
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<GetDeveloperInviteByIdContract.Response>(
+      GetDeveloperInviteByIdContract.routingKey,
+      dto
+    );
   }
 }

@@ -1,34 +1,32 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { AtJwtGuard, UserIdFromJwt } from '@taskfusion-microservices/common';
+import {
+  AtJwtGuard,
+  CustomAmqpConnection,
+  UserIdFromJwt,
+} from '@taskfusion-microservices/common';
 import {
   CheckDeveloperEmailContract,
   CheckPmEmailContract,
   GetProfileContract,
 } from '@taskfusion-microservices/contracts';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 
 @Controller('users')
 export class UsersController {
-  constructor(
-    private readonly amqpConnection: AmqpConnection
-  ) {}
+  constructor(private readonly customAmqpConnection: CustomAmqpConnection) {}
 
   @UseGuards(AtJwtGuard)
   @Get('profile')
   async getProfile(
     @UserIdFromJwt() userId: number
   ): Promise<GetProfileContract.Response> {
-    const result =
-      await this.amqpConnection.request<GetProfileContract.Response>({
-        exchange: GetProfileContract.exchange,
-        routingKey: GetProfileContract.routingKey,
-        payload: {
-          userId,
-        },
-      });
+    const payload: GetProfileContract.Dto = {
+      userId,
+    };
 
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<GetProfileContract.Response>(
+      GetProfileContract.routingKey,
+      payload
+    );
   }
 
   @UseGuards(AtJwtGuard)
@@ -36,14 +34,10 @@ export class UsersController {
   async checkPmEmail(
     @Body() dto: CheckPmEmailContract.Request
   ): Promise<CheckPmEmailContract.Response> {
-    const result =
-      await this.amqpConnection.request<CheckPmEmailContract.Response>({
-        exchange: CheckPmEmailContract.exchange,
-        routingKey: CheckPmEmailContract.routingKey,
-        payload: dto,
-      });
-
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<CheckPmEmailContract.Response>(
+      CheckPmEmailContract.routingKey,
+      dto
+    );
   }
 
   @UseGuards(AtJwtGuard)
@@ -51,13 +45,9 @@ export class UsersController {
   async checkDeveloperEmail(
     @Body() dto: CheckDeveloperEmailContract.Request
   ): Promise<CheckDeveloperEmailContract.Response> {
-    const result =
-      await this.amqpConnection.request<CheckDeveloperEmailContract.Response>({
-        exchange: CheckDeveloperEmailContract.exchange,
-        routingKey: CheckDeveloperEmailContract.routingKey,
-        payload: dto,
-      });
-
-    return handleRpcRequest(result, async (response) => response);
+    return this.customAmqpConnection.requestOrThrow<CheckDeveloperEmailContract.Response>(
+      CheckDeveloperEmailContract.routingKey,
+      dto
+    );
   }
 }
