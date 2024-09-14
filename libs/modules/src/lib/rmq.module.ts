@@ -1,8 +1,7 @@
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { Module, DynamicModule, Global } from '@nestjs/common';
-import {
-  GENERAL_EXCHANGE_NAME,
-} from '@taskfusion-microservices/constants';
+import { CustomAmqpConnection } from '@taskfusion-microservices/common';
+import { GENERAL_EXCHANGE_NAME } from '@taskfusion-microservices/constants';
 
 @Global()
 @Module({})
@@ -22,7 +21,13 @@ export class RmqDynamicModule {
           ],
         }),
       ],
-      exports: [RabbitMQModule],
+      providers: [
+        {
+          provide: CustomAmqpConnection,
+          useClass: CustomAmqpConnection,
+        },
+      ],
+      exports: [RabbitMQModule, CustomAmqpConnection],
     };
   }
 }
