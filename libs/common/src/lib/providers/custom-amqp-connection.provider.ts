@@ -19,11 +19,29 @@ export class CustomAmqpConnection implements OnModuleInit {
     routingKey: string,
     payload: P
   ): Promise<R> {
+    return this.makeRequestHandleErrorsAndCheckForRpcResultErrors<R>(
+      routingKey,
+      payload
+    );
+  }
+
+  private async makeRequestHandleErrorsAndCheckForRpcResultErrors<R>(
+    routingKey: string,
+    payload: unknown
+  ) {
+    const response = await this.makeRequestHandleErrors<R>(routingKey, payload);
+
+    await this.checkForRpcResultErrors(response);
+
+    return response;
+  }
+
+  private async makeRequestHandleErrors<R>(
+    routingKey: string,
+    payload: unknown
+  ) {
     try {
-      const response = await this.makeRequestAndCheckForRpcResultErrors<R>(
-        routingKey,
-        payload
-      );
+      const response = await this.makeRequest<R>(routingKey, payload);
 
       return response;
     } catch (e) {
@@ -31,23 +49,14 @@ export class CustomAmqpConnection implements OnModuleInit {
     }
   }
 
-  private async makeRequestAndCheckForRpcResultErrors<R>(
-    routingKey: string,
-    payload: unknown
-  ) {
-    const response = await this.makeRequest<R>(routingKey, payload);
-
-    await this.checkForRpcResultErrors(response);
-
-    return response;
-  }
-
   private async makeRequest<R>(
     routingKey: string,
     payload: unknown
   ): Promise<R> {
     this.logger.log(
-      `Custom call: Requesting ${routingKey} with payload ${payload}`
+      `Custom call: Requesting ${routingKey} with payload ${JSON.stringify(
+        payload
+      )}`
     );
 
     const response = await this.amqpConnection.request<R>({
@@ -56,13 +65,15 @@ export class CustomAmqpConnection implements OnModuleInit {
       payload,
     });
 
-    this.logger.log(`Custom call: Response ${response}`);
+    this.logger.log(`Custom call: Response ${JSON.stringify(response)}`);
 
     return response;
   }
 
   private async checkForRpcResultErrors(response: unknown) {
     if (isError(response)) {
+      console.log(response?.error, response?.status);
+
       throw new HttpException(
         response?.error || 'Internal server error',
         response?.status || 500
@@ -80,7 +91,9 @@ export class CustomAmqpConnection implements OnModuleInit {
 
   private async publish<P = unknown>(routingKey: string, payload: P) {
     this.logger.log(
-      `Custom call: Publishing ${routingKey} with payload ${payload}`
+      `Custom call: Publishing ${routingKey} with payload ${JSON.stringify(
+        payload
+      )}`
     );
 
     await this.amqpConnection.publish(
