@@ -1,5 +1,4 @@
 import {
-  AmqpConnection,
   defaultNackErrorHandler,
   MessageHandlerErrorBehavior,
   RabbitRPC,
@@ -20,11 +19,10 @@ import {
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class AppService {
+export class ProjectsUsersService {
   constructor(
     @InjectRepository(ProjectsUsersEntity)
     private readonly projectsUsersRepository: Repository<ProjectsUsersEntity>,
-    private readonly amqpConnection: AmqpConnection
   ) {}
 
   @RabbitRPC({
