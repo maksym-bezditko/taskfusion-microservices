@@ -1,5 +1,4 @@
 import {
-  AmqpConnection,
   defaultNackErrorHandler,
   MessageHandlerErrorBehavior,
   RabbitRPC,
@@ -14,14 +13,14 @@ import {
 import { ActionEntity } from '@taskfusion-microservices/entities';
 import { Repository } from 'typeorm';
 import { TasksService } from '../tasks/tasks.service';
-import { handleRpcRequest } from '@taskfusion-microservices/helpers';
+import { CustomAmqpConnection } from '@taskfusion-microservices/common';
 
 @Injectable()
 export class ActionsService {
   constructor(
     @InjectRepository(ActionEntity)
     private readonly actionRepository: Repository<ActionEntity>,
-    private readonly amqpConnection: AmqpConnection,
+    private readonly customAmqpConnection: CustomAmqpConnection,
     private readonly tasksService: TasksService
   ) {}
 
@@ -79,19 +78,15 @@ export class ActionsService {
 
     const userIds = actionsResult.map((action) => action.userId);
 
-    const usersResult =
-      await this.amqpConnection.request<GetUsersByIdsContract.Response>({
-        exchange: GetUsersByIdsContract.exchange,
-        routingKey: GetUsersByIdsContract.routingKey,
-        payload: {
-          ids: userIds,
-        } as GetUsersByIdsContract.Dto,
-      });
+    const getUsersByIdsDto: GetUsersByIdsContract.Dto = {
+      ids: userIds,
+    };
 
-    const users = await handleRpcRequest(
-      usersResult,
-      async (response) => response
-    );
+    const users =
+      await this.customAmqpConnection.requestOrThrow<GetUsersByIdsContract.Response>(
+        GetUsersByIdsContract.routingKey,
+        getUsersByIdsDto
+      );
 
     return actionsResult.map((action) => ({
       ...action,
