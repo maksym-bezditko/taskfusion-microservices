@@ -20,9 +20,8 @@ import {
   UserEntity,
 } from '@taskfusion-microservices/entities';
 import { Repository } from 'typeorm';
-import { handleRpcRequest } from '@taskfusion-microservices/helpers';
 import { ProjectsService } from '../../projects/projects.service';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { CustomAmqpConnection } from '@taskfusion-microservices/common';
 
 @Injectable()
 export class InvitesService {
@@ -35,7 +34,7 @@ export class InvitesService {
 
     private readonly projectsService: ProjectsService,
 
-    private readonly amqpConnection: AmqpConnection
+    private readonly customAmqpConnection: CustomAmqpConnection
   ) {}
   isPmInviteActive(invite: PmInviteEntity) {
     return (
@@ -75,8 +74,7 @@ export class InvitesService {
         ? `http://localhost:8000/pm/project-invitation/${inviteId}`
         : `http://localhost:8000/developer/project-invitation/${inviteId}`;
 
-    await this.amqpConnection.publish(
-      SendEmailContract.exchange,
+    await this.customAmqpConnection.publishOrThrow(
       SendEmailContract.routingKey,
       {
         recipientEmail,
@@ -114,19 +112,17 @@ export class InvitesService {
   }
 
   async validateProjectPm(project: ProjectEntity, pmUserId: number) {
-    const result =
-      await this.amqpConnection.request<GetProjectPmIdContract.Response>({
-        exchange: GetProjectPmIdContract.exchange,
-        routingKey: GetProjectPmIdContract.routingKey,
-        payload: {
-          projectId: project.id,
-        } as GetProjectPmIdContract.Dto,
-      });
+    const payload: GetProjectPmIdContract.Dto = {
+      projectId: project.id,
+    };
 
-    const { pmUserId: projectPmUserId } = await handleRpcRequest(
-      result,
-      async (response) => response
-    );
+    const result =
+      await this.customAmqpConnection.requestOrThrow<GetProjectPmIdContract.Response>(
+        GetProjectPmIdContract.routingKey,
+        payload
+      );
+
+    const { pmUserId: projectPmUserId } = result;
 
     if (!projectPmUserId || projectPmUserId !== pmUserId) {
       throw new BadRequestException('Project not found');
@@ -134,21 +130,19 @@ export class InvitesService {
   }
 
   async getProjectById(id: number) {
-    return this.projectsService.getProjectById({ projectId: id });
+    return this.projectsService.getProjectByIdRpcHandler({ projectId: id });
   }
 
   async getUserByEmail(email: string, expectedUserType: UserType) {
-    const userResult =
-      await this.amqpConnection.request<GetUserByEmailContract.Response>({
-        exchange: GetUserByEmailContract.exchange,
-        routingKey: GetUserByEmailContract.routingKey,
-        payload: { email } as GetUserByEmailContract.Dto,
-      });
+    const payload: GetUserByEmailContract.Dto = {
+      email,
+    };
 
-    const user = await handleRpcRequest(
-      userResult,
-      async (response) => response
-    );
+    const user =
+      await this.customAmqpConnection.requestOrThrow<GetUserByEmailContract.Response>(
+        GetUserByEmailContract.routingKey,
+        payload
+      );
 
     if (!user || user.userType !== expectedUserType) {
       throw new Error(`${expectedUserType} user not found`);
@@ -158,19 +152,15 @@ export class InvitesService {
   }
 
   async getUserById(id: number, expectedUserType: UserType) {
-    const userResult =
-      await this.amqpConnection.request<GetUserByIdContract.Response>({
-        exchange: GetUserByIdContract.exchange,
-        routingKey: GetUserByIdContract.routingKey,
-        payload: {
-          id,
-        } as GetUserByIdContract.Dto,
-      });
+    const payload: GetUserByIdContract.Dto = {
+      id,
+    };
 
-    const user = await handleRpcRequest(
-      userResult,
-      async (response) => response
-    );
+    const user =
+      await this.customAmqpConnection.requestOrThrow<GetUserByIdContract.Response>(
+        GetUserByIdContract.routingKey,
+        payload
+      );
 
     if (!user || user.userType !== expectedUserType) {
       throw new Error(`${expectedUserType} user not found`);
@@ -180,17 +170,15 @@ export class InvitesService {
   }
 
   async getClientUserById(clientUserId: number) {
-    const clientUserResult =
-      await this.amqpConnection.request<GetUserByIdContract.Response>({
-        exchange: GetUserByIdContract.exchange,
-        routingKey: GetUserByIdContract.routingKey,
-        payload: { id: clientUserId } as GetUserByIdContract.Dto,
-      });
+    const payload: GetUserByIdContract.Dto = {
+      id: clientUserId,
+    };
 
-    const clientUser = await handleRpcRequest(
-      clientUserResult,
-      async (response) => response
-    );
+    const clientUser =
+      await this.customAmqpConnection.requestOrThrow<GetUserByIdContract.Response>(
+        GetUserByIdContract.routingKey,
+        payload
+      );
 
     if (!clientUser || clientUser.userType !== UserType.CLIENT) {
       throw new Error('Client user not found');
@@ -307,22 +295,20 @@ export class InvitesService {
   }
 
   async checkIfUserExists(userId: number) {
-    const userResult =
-      await this.amqpConnection.request<CheckUserContract.Response>({
-        exchange: CheckUserContract.exchange,
-        routingKey: CheckUserContract.routingKey,
-        payload: {
-          userId,
-        } as CheckUserContract.Dto,
-      });
+    const payload: CheckUserContract.Dto = {
+      userId,
+    };
 
-    await handleRpcRequest<CheckUserContract.Response>(
-      userResult,
-      async (response) => {
-        if (!response.exists) {
-          throw new NotFoundException('User not found!');
-        }
-      }
-    );
+    const user =
+      await this.customAmqpConnection.requestOrThrow<CheckUserContract.Response>(
+        CheckUserContract.routingKey,
+        payload
+      );
+
+    if (!user || !user.exists) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
   }
 }
