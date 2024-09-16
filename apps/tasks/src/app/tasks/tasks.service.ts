@@ -328,9 +328,24 @@ export class TasksService {
       },
     });
 
-    console.log(tasks);
+    const tasksWithParticipants = tasks.map(async (task) => {
+      const getTaskParticipantsDto: GetTaskParticipantsContract.Dto = {
+        taskId: task.id,
+      };
 
-    return tasks;
+      const users =
+        await this.customAmqpConnection.requestOrThrow<GetTaskParticipantsContract.Response>(
+          GetTaskParticipantsContract.routingKey,
+          getTaskParticipantsDto
+        );
+
+      return {
+        ...task,
+        users,
+      };
+    });
+
+    return Promise.all(tasksWithParticipants);
   }
 
   @RabbitRPC({
