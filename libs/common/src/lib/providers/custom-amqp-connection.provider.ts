@@ -63,6 +63,7 @@ export class CustomAmqpConnection implements OnModuleInit {
       exchange: GENERAL_EXCHANGE_NAME,
       routingKey,
       payload,
+      timeout: 3000,
     });
 
     this.logger.log(`Custom call: Response ${JSON.stringify(response)}`);
@@ -72,7 +73,7 @@ export class CustomAmqpConnection implements OnModuleInit {
 
   private async checkForRpcResultErrors(response: unknown) {
     if (isError(response)) {
-      console.log(response?.error, response?.status);
+      this.logger.error(response.error);
 
       throw new HttpException(
         response?.error || 'Internal server error',
