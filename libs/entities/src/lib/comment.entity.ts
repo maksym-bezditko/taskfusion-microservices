@@ -21,7 +21,9 @@ export class CommentEntity {
   })
   taskId: number;
 
-  @Column()
+  @Column({
+    type: 'longtext'
+  })
   text: string;
 
   @Column({
