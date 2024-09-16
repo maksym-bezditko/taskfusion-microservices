@@ -3,7 +3,11 @@ import {
   GENERAL_EXCHANGE_NAME,
   TASKS_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
-import { TaskEntity, TaskStatus } from '@taskfusion-microservices/entities';
+import {
+  TaskEntity,
+  TaskStatus,
+  UserEntity,
+} from '@taskfusion-microservices/entities';
 import { IsEnum } from 'class-validator';
 
 export namespace GetUserTasksByStatusContract {
@@ -13,7 +17,7 @@ export namespace GetUserTasksByStatusContract {
 
   export const queue = `${TASKS_QUEUE_NAME}.${routingKey}`;
 
-  export type Response = Errorable<TaskEntity[]>;
+  export type Response = Errorable<(TaskEntity & { users: UserEntity[] })[]>;
 
   export class Request {
     @IsEnum(TaskStatus)

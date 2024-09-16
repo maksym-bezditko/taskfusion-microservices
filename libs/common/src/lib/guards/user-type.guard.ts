@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { UserType } from '@taskfusion-microservices/entities';
 
@@ -17,7 +17,7 @@ export class UserTypeGuard implements CanActivate {
     }
 
     if (this.requiredUserType && user.userType !== this.requiredUserType) {
-      throw new UnauthorizedException(`User type ${user.userType} is not allowed`);
+      throw new ForbiddenException(`User type ${user.userType} is not allowed`);
     }
 
     return true;
