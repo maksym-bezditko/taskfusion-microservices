@@ -2,7 +2,6 @@ import {
   RabbitRPC,
   MessageHandlerErrorBehavior,
   defaultNackErrorHandler,
-  AmqpConnection,
 } from '@golevelup/nestjs-rabbitmq';
 import {
   BadRequestException,
@@ -12,7 +11,6 @@ import {
 import {
   InvitePmContract,
   AcceptPmInviteContract,
-  AssignUserToProjectContract,
   RejectPmInviteContract,
   GetPmInviteByIdContract,
 } from '@taskfusion-microservices/contracts';
@@ -24,16 +22,13 @@ import {
 } from '@taskfusion-microservices/entities';
 import { InvitesService } from './invites.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
 
 @Injectable()
 export class PmInvitesService {
   constructor(
     @InjectRepository(PmInviteEntity)
-    readonly pmInviteEntityRepositoty: Repository<PmInviteEntity>,
-
-    readonly amqpConnection: AmqpConnection,
-
+    private readonly pmInviteEntityRepositoty: Repository<PmInviteEntity>,
     private readonly invitesService: InvitesService
   ) {}
 
@@ -46,26 +41,40 @@ export class PmInvitesService {
     allowNonJsonMessages: true,
     name: 'invite-pm',
   })
-  async invitePm(
+  async invitePmRpcHandler(
     dto: InvitePmContract.Dto
   ): Promise<InvitePmContract.Response> {
-    const { clientUserId, email, projectId } = dto;
+    return this.invitePm(dto.clientUserId, dto.email, dto.projectId);
+  }
 
-    const project = await this.invitesService.getProjectById(projectId);
+  private async invitePm(
+    clientUserId: number,
+    email: string,
+    projectId: number
+  ) {
+    const project = await this.invitesService.getProjectByIdOrThrow(projectId);
 
-    await this.invitesService.validateProjectClient(project, clientUserId);
+    if (project.clientId !== clientUserId) {
+      throw new BadRequestException('Project does not belong to client');
+    }
 
-    const pmUser = await this.invitesService.getUserByEmail(email, UserType.PM);
-    const clientUser = await this.invitesService.getClientUserById(
+    const pmUser = await this.invitesService.getUserByEmailOrThrow(email);
+
+    await this.invitesService.throwIfUserTypeDoesNotMatch(pmUser, UserType.PM);
+
+    const clientUser = await this.invitesService.getClientUserByIdOrThrow(
       clientUserId
     );
 
-    const existingInvite = await this.pmInviteEntityRepositoty.findOne({
-      where: {
-        clientUserId,
-        pmUserId: pmUser.id,
-        projectId: project.id,
-      },
+    await this.invitesService.throwIfUserTypeDoesNotMatch(
+      clientUser,
+      UserType.CLIENT
+    );
+
+    const existingInvite = await this.findPmInvite({
+      clientUserId,
+      pmUserId: pmUser.id,
+      projectId: project.id,
     });
 
     if (existingInvite) {
@@ -94,6 +103,12 @@ export class PmInvitesService {
     return { id: invite.id };
   }
 
+  private async findPmInvite(where: FindOptionsWhere<PmInviteEntity>) {
+    return this.pmInviteEntityRepositoty.findOne({
+      where,
+    });
+  }
+
   @RabbitRPC({
     exchange: AcceptPmInviteContract.exchange,
     routingKey: AcceptPmInviteContract.routingKey,
@@ -103,49 +118,40 @@ export class PmInvitesService {
     allowNonJsonMessages: true,
     name: 'accept-pm-invite',
   })
-  async acceptPmInvite(
+  async acceptPmInviteRpcHandler(
     dto: AcceptPmInviteContract.Dto
   ): Promise<AcceptPmInviteContract.Response> {
-    const { inviteId, pmUserId } = dto;
+    return this.acceptPmInvite(dto.inviteId, dto.pmUserId);
+  }
 
-    await this.invitesService.checkIfUserExists(pmUserId);
+  private readonly acceptPmInvite = async (
+    inviteId: number,
+    pmUserId: number
+  ) => {
+    await this.invitesService.throwIfUserDoesNotExist(pmUserId);
 
-    const invite = await this.getPmInviteById({
-      id: inviteId,
-    });
+    const invite = await this.getPmInviteById(inviteId);
 
     if (!invite) {
       throw new NotFoundException('Invite not found');
     }
 
-    if (!this.invitesService.isPmInviteActive(invite)) {
+    const isPmInviteActive = this.invitesService.isPmInviteActive(invite);
+
+    if (!isPmInviteActive) {
       throw new BadRequestException('Invite is not valid anymore');
     }
 
-    await this.pmInviteEntityRepositoty.update(
-      {
-        id: inviteId,
-      },
-      {
-        inviteStatus: InviteStatus.ACCEPTED,
-        updatedAt: new Date(),
-      }
-    );
-
-    await this.amqpConnection.request<AssignUserToProjectContract.Response>({
-      exchange: AssignUserToProjectContract.exchange,
-      routingKey: AssignUserToProjectContract.routingKey,
-      payload: {
-        projectId: invite.projectId,
-        userId: pmUserId,
-        role: ProjectParticipantRole.PM,
-      } as AssignUserToProjectContract.Dto,
+    await this.updatePmInvite(invite, {
+      inviteStatus: InviteStatus.ACCEPTED,
     });
 
-    return {
-      success: true,
-    };
-  }
+    return this.invitesService.assignUserToProject(
+      invite.projectId,
+      pmUserId,
+      ProjectParticipantRole.PM
+    );
+  };
 
   @RabbitRPC({
     exchange: RejectPmInviteContract.exchange,
@@ -156,40 +162,44 @@ export class PmInvitesService {
     allowNonJsonMessages: true,
     name: 'reject-pm-invite',
   })
-  async rejectPmInvite(
+  async rejectPmInviteRpcHandler(
     dto: RejectPmInviteContract.Dto
   ): Promise<RejectPmInviteContract.Response> {
-    const { inviteId, pmUserId } = dto;
+    return this.rejectPmInvite(dto.inviteId, dto.pmUserId);
+  }
 
-    await this.invitesService.checkIfUserExists(pmUserId);
+  private async rejectPmInvite(inviteId: number, pmUserId: number) {
+    await this.invitesService.throwIfUserDoesNotExist(pmUserId);
 
-    const invite = await this.pmInviteEntityRepositoty.findOne({
-      where: {
-        id: inviteId,
-      },
-    });
+    const invite = await this.getPmInviteById(inviteId);
 
     if (!invite) {
       throw new NotFoundException('Invite not found');
     }
 
-    if (!this.invitesService.isPmInviteActive(invite)) {
+    const isPmInviteActive = this.invitesService.isPmInviteActive(invite);
+
+    if (!isPmInviteActive) {
       throw new BadRequestException('Invite is not valid anymore');
     }
 
-    await this.pmInviteEntityRepositoty.update(
-      {
-        id: inviteId,
-      },
-      {
-        inviteStatus: InviteStatus.REJECTED,
-        updatedAt: new Date(),
-      }
-    );
+    await this.updatePmInvite(invite, { inviteStatus: InviteStatus.REJECTED });
 
     return {
       success: true,
     };
+  }
+
+  private async updatePmInvite(
+    existingInvite: PmInviteEntity,
+    updatedFields: DeepPartial<PmInviteEntity>
+  ) {
+    await this.pmInviteEntityRepositoty.update(
+      {
+        id: existingInvite.id,
+      },
+      updatedFields
+    );
   }
 
   @RabbitRPC({
@@ -201,18 +211,18 @@ export class PmInvitesService {
     allowNonJsonMessages: true,
     name: 'get-pm-invite-by-id',
   })
-  async getPmInviteById(
+  async getPmInviteByIdRpcHandler(
     dto: GetPmInviteByIdContract.Dto
   ): Promise<GetPmInviteByIdContract.Response> {
-    const { id } = dto;
+    return this.getPmInviteById(dto.id);
+  }
 
-    const pmInvite = await this.pmInviteEntityRepositoty.findOne({
+  private getPmInviteById(id: number) {
+    return this.pmInviteEntityRepositoty.findOne({
       where: {
         id,
       },
       relations: ['project'],
     });
-
-    return pmInvite;
   }
 }

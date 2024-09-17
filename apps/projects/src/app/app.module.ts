@@ -10,7 +10,6 @@ import {
 import { getTypeOrmConfig } from '@taskfusion-microservices/helpers';
 import { RmqDynamicModule } from '@taskfusion-microservices/modules';
 import { InvitesModule } from './invites/invites.module';
-import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
@@ -30,7 +29,6 @@ import { ProjectsModule } from './projects/projects.module';
     }),
     RmqDynamicModule.register(),
     InvitesModule,
-    ProjectsModule,
   ],
 })
 export class AppModule {}
