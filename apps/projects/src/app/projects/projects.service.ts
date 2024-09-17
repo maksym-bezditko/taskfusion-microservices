@@ -3,9 +3,12 @@ import {
   MessageHandlerErrorBehavior,
   defaultNackErrorHandler,
 } from '@golevelup/nestjs-rabbitmq';
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CustomAmqpConnection } from '@taskfusion-microservices/common';
+import {
+  BaseService,
+  CustomAmqpConnection,
+} from '@taskfusion-microservices/common';
 import {
   CreateProjectContract,
   GetClientProjectsContract,
@@ -28,14 +31,14 @@ import { ProjectEntity } from '@taskfusion-microservices/entities';
 import { Repository, In, DeepPartial } from 'typeorm';
 
 @Injectable()
-export class ProjectsService {
-  private readonly logger = new Logger(ProjectsService.name);
-
+export class ProjectsService extends BaseService {
   constructor(
     @InjectRepository(ProjectEntity)
     private readonly projectRepository: Repository<ProjectEntity>,
     private readonly customAmqpConnection: CustomAmqpConnection
-  ) {}
+  ) {
+    super(ProjectsService.name);
+  }
 
   @RabbitRPC({
     exchange: CreateProjectContract.exchange,
@@ -58,6 +61,8 @@ export class ProjectsService {
     }
 
     const project = await this.createProject(dto);
+
+    this.logger.log('Created project');
 
     return { id: project.id };
   }
@@ -96,21 +101,6 @@ export class ProjectsService {
     return pm;
   }
 
-  private logAndThrowError(error: string | Error): never {
-    if (typeof error === 'string') {
-      this.logger.error(error);
-      throw new Error(error);
-    }
-
-    if (error instanceof Error) {
-      this.logger.error(error.message || 'Unknown error', error.stack);
-      throw error;
-    }
-
-    this.logger.error('Unknown error');
-    throw new Error('Unknown error');
-  }
-
   private async createProject(project: DeepPartial<ProjectEntity>) {
     const entry = this.projectRepository.create(project);
 
@@ -131,6 +121,8 @@ export class ProjectsService {
   ): Promise<GetClientProjectsContract.Response> {
     const client = await this.getClientByUserId(dto.clientUserId);
 
+    this.logger.log(`Retrieving client projects: ${dto.clientUserId}`);
+
     return this.getClientProjectsWithPmAndDeveloperUsers(client.id);
   }
 
@@ -138,7 +130,6 @@ export class ProjectsService {
     const projects = await this.getClientProjects(clientId);
 
     // todo: fix n + 1 query
-
     const projectsWithUsers = projects.map(async (project) => {
       const developerUsers = await this.getProjectDeveloperUsers(project.id);
       const pmUser = await this.getProjectPmUser(project.id);
@@ -172,6 +163,20 @@ export class ProjectsService {
     return user;
   }
 
+  async getProjectByIdOrThrow(projectId: number) {
+    const project = await this.getProjectById(projectId);
+
+    if (!project) {
+      throw new NotFoundException('Project not found!');
+    }
+
+    return project;
+  }
+
+  async getProjectById(projectId: number) {
+    return this.projectRepository.findOne({ where: { id: projectId } });
+  }
+
   private async getProjectPmId(projectId: number) {
     const dto: GetProjectPmIdContract.Dto = {
       projectId,
@@ -187,7 +192,9 @@ export class ProjectsService {
   }
 
   private async getClientProjects(clientId: number) {
-    return this.projectRepository.find({ where: { clientId } });
+    const projects = await this.projectRepository.find({ where: { clientId } });
+
+    return projects;
   }
 
   private async getClientByUserId(clientUserId: number) {
@@ -240,16 +247,18 @@ export class ProjectsService {
   async getPmProjectsRpcHandler(
     dto: GetPmProjectsContract.Dto
   ): Promise<GetPmProjectsContract.Response> {
-    return this.getPmProjects(dto.pmUserId);
+    const pmProjects = await this.getPmProjects(dto.pmUserId);
+
+    this.logger.log(`Retrieving PM projects: ${dto.pmUserId}`);
+
+    return pmProjects;
   }
 
   private async getPmProjects(pmUserId: number) {
     const projectIds = await this.getUserProjectIds(pmUserId);
-
     const projects = await this.getProjectsByProjectIds(projectIds);
 
     // todo: fix n + 1 query
-
     const projectsWithDeveloperUsers = projects.map(async (project) => {
       const developerUsers = await this.getProjectDeveloperUsers(project.id);
 
@@ -293,7 +302,7 @@ export class ProjectsService {
       return [];
     }
 
-    const users = this.getUsersByIds(developerUserIds);
+    const users = await this.getUsersByIds(developerUserIds);
 
     return users;
   }
@@ -338,13 +347,19 @@ export class ProjectsService {
   async getDeveloperProjectsRpcHandler(
     dto: GetDeveloperProjectsContract.Dto
   ): Promise<GetDeveloperProjectsContract.Response> {
-    return this.getDeveloperProjects(dto.developerUserId);
+    const developerProjectsWithPmUser =
+      await this.getDeveloperProjectsWithPmUser(dto.developerUserId);
+
+    this.logger.log(`Retrieving developer projects: ${dto.developerUserId}`);
+
+    return developerProjectsWithPmUser;
   }
 
-  private async getDeveloperProjects(developerUserId: number) {
+  private async getDeveloperProjectsWithPmUser(developerUserId: number) {
     const projectIds = await this.getUserProjectIds(developerUserId);
-
     const projects = await this.getProjectsByProjectIds(projectIds);
+
+    // todo: fix n + 1 query
 
     const projectsWithPmUser = projects.map(async (project) => {
       const pmUser = await this.getProjectPmUser(project.id);
@@ -370,21 +385,11 @@ export class ProjectsService {
   async getProjectByIdRpcHandler(
     dto: GetProjectByIdContract.Dto
   ): Promise<GetProjectByIdContract.Response> {
-    return this.getProjectByIdOrThrow(dto.projectId);
-  }
+    const project = await this.getProjectById(dto.projectId);
 
-  async getProjectByIdOrThrow(projectId: number) {
-    const project = await this.getProjectById(projectId);
-
-    if (!project) {
-      throw new NotFoundException('Project not found!');
-    }
+    this.logger.log(`Retrieving project: ${dto.projectId}`);
 
     return project;
-  }
-
-  async getProjectById(projectId: number) {
-    return this.projectRepository.findOne({ where: { id: projectId } });
   }
 
   @RabbitRPC({
@@ -399,7 +404,11 @@ export class ProjectsService {
   async checkProjectRpcHandler(
     dto: CheckProjectContract.Dto
   ): Promise<CheckProjectContract.Response> {
-    return this.checkProject(dto.projectId);
+    const project = await this.checkProject(dto.projectId);
+
+    this.logger.log(`Checking if project exists: ${dto.projectId}`);
+
+    return project;
   }
 
   private async checkProject(projectId: number) {
@@ -422,7 +431,11 @@ export class ProjectsService {
   async getProjectPmUserRpcHandler(
     dto: GetProjectPmUserContract.Dto
   ): Promise<GetProjectPmUserContract.Response> {
-    return this.getProjectPmUser(dto.projectId);
+    const pmUser = await this.getProjectPmUser(dto.projectId);
+
+    this.logger.log(`Retrieving project pm user: ${dto.projectId}`);
+
+    return pmUser;
   }
 
   @RabbitRPC({
@@ -437,6 +450,12 @@ export class ProjectsService {
   async getProjectDeveloperUsersRpcHandler(
     dto: GetProjectDeveloperUsersContract.Dto
   ): Promise<GetProjectDeveloperUsersContract.Response> {
-    return this.getProjectDeveloperUsers(dto.projectId);
+    const projectDeveloperUsers = await this.getProjectDeveloperUsers(
+      dto.projectId
+    );
+
+    this.logger.log(`Retrieving project developer users: ${dto.projectId}`);
+
+    return projectDeveloperUsers;
   }
 }

@@ -14,23 +14,30 @@ import {
   InviteDeveloperContract,
   AcceptDeveloperInviteContract,
   RejectDeveloperInviteContract,
+  GetProjectPmIdContract,
 } from '@taskfusion-microservices/contracts';
 import {
   UserType,
   InviteStatus,
   ProjectParticipantRole,
   DeveloperInviteEntity,
+  ProjectEntity,
+  UserEntity,
 } from '@taskfusion-microservices/entities';
 import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
-import { InvitesService } from './invites.service';
+import { InvitesHelperService } from './invites-helper.service';
+import { BaseService, CustomAmqpConnection } from '@taskfusion-microservices/common';
 
 @Injectable()
-export class DeveloperInvitesService {
+export class DeveloperInvitesService extends BaseService {
   constructor(
     @InjectRepository(DeveloperInviteEntity)
     private readonly developerInviteEntityRepositoty: Repository<DeveloperInviteEntity>,
-    private readonly invitesService: InvitesService
-  ) {}
+    private readonly customAmqpConnection: CustomAmqpConnection,
+    private readonly invitesHelperService: InvitesHelperService
+  ) {
+    super(DeveloperInvitesService.name);
+  }
 
   @RabbitRPC({
     exchange: GetDeveloperInviteByIdContract.exchange,
@@ -48,12 +55,14 @@ export class DeveloperInvitesService {
   }
 
   private async getDeveloperInviteById(id: number) {
-    return this.developerInviteEntityRepositoty.findOne({
+    const invite = await this.developerInviteEntityRepositoty.findOne({
       where: {
         id,
       },
       relations: ['project'],
     });
+
+    return invite;
   }
 
   @RabbitRPC({
@@ -68,8 +77,6 @@ export class DeveloperInvitesService {
   async inviteDeveloperRpcHandler(
     dto: InviteDeveloperContract.Dto
   ): Promise<InviteDeveloperContract.Response> {
-    console.log(dto);
-
     return this.inviteDeveloper(dto.pmUserId, dto.email, dto.projectId);
   }
 
@@ -78,24 +85,31 @@ export class DeveloperInvitesService {
     email: string,
     projectId: number
   ) {
-    const project = await this.invitesService.getProjectByIdOrThrow(projectId);
+    const project = await this.invitesHelperService.getProjectByIdOrThrow(
+      projectId
+    );
 
-    const projectPmId = await this.invitesService.getProjectPmId(project.id);
+    const projectPmId = await this.getProjectPmId(project.id);
 
     if (projectPmId !== pmUserId) {
       throw new BadRequestException('Project not found');
     }
 
-    const developerUser = await this.invitesService.getUserByEmail(email);
+    const developerUser = await this.invitesHelperService.getUserByEmailOrThrow(
+      email
+    );
 
-    await this.invitesService.throwIfUserTypeDoesNotMatch(
+    await this.invitesHelperService.throwIfUserTypeDoesNotMatch(
       developerUser,
       UserType.DEVELOPER
     );
 
-    const pmUser = await this.invitesService.getUserById(pmUserId);
+    const pmUser = await this.invitesHelperService.getUserByIdOrThrow(pmUserId);
 
-    await this.invitesService.throwIfUserTypeDoesNotMatch(pmUser, UserType.PM);
+    await this.invitesHelperService.throwIfUserTypeDoesNotMatch(
+      pmUser,
+      UserType.PM
+    );
 
     const existingInvite = await this.findDeveloperInvite({
       pmUserId: pmUser.id,
@@ -104,20 +118,20 @@ export class DeveloperInvitesService {
     });
 
     if (existingInvite) {
-      return this.invitesService.handleExistingDeveloperInvite(
+      return this.handleExistingDeveloperInvite(
         existingInvite,
         pmUser,
         developerUser
       );
     }
 
-    const invite = await this.invitesService.createDeveloperInvite(
+    const invite = await this.createDeveloperInvite(
       pmUser.id,
       developerUser.id,
       project
     );
 
-    this.invitesService.sendInvitationEmail({
+    await this.invitesHelperService.sendInvitationEmail({
       recipientEmail: developerUser.email,
       title: 'Project Invitation from TaskFusion',
       inviterName: pmUser.name,
@@ -129,11 +143,130 @@ export class DeveloperInvitesService {
     return { id: invite.id };
   }
 
-  private async findDeveloperInvite(
-    where: FindOptionsWhere<DeveloperInviteEntity>
-  ) {
+  async getProjectPmId(projectId: number) {
+    const payload: GetProjectPmIdContract.Dto = {
+      projectId,
+    };
+
+    const result =
+      await this.customAmqpConnection.requestOrThrow<GetProjectPmIdContract.Response>(
+        GetProjectPmIdContract.routingKey,
+        payload
+      );
+
+    const { pmUserId: projectPmUserId } = result;
+
+    return projectPmUserId;
+  }
+
+  async findDeveloperInvite(where: FindOptionsWhere<DeveloperInviteEntity>) {
     return this.developerInviteEntityRepositoty.findOne({
       where,
+    });
+  }
+
+  async handleExistingDeveloperInvite(
+    existingInvite: DeveloperInviteEntity,
+    developerUser: UserEntity,
+    pmUser: UserEntity
+  ) {
+    switch (existingInvite.inviteStatus) {
+      case InviteStatus.ACCEPTED:
+        return this.logAndThrowError(
+          'Invite already accepted'
+        );
+
+      case InviteStatus.REJECTED:
+        return this.logAndThrowError(
+          'Invite already rejected'
+        );
+
+      case InviteStatus.PENDING:
+        return this.handlePendingExistingDeveloperInvite(
+          existingInvite,
+          pmUser,
+          developerUser
+        );
+
+      default:
+        return this.logAndThrowError(
+          'Unhandled invite status'
+        );
+    }
+  }
+
+  private async handlePendingExistingDeveloperInvite(
+    existingInvite: DeveloperInviteEntity,
+    pmUser: UserEntity,
+    developerUser: UserEntity
+  ) {
+    const isDeveloperInviteActive =
+      this.isDeveloperInviteActive(existingInvite);
+
+    if (isDeveloperInviteActive) {
+      this.logAndThrowError(
+        'Active invite already exists'
+      );
+    }
+
+    await this.updateDeveloperInvite(
+      existingInvite,
+      { expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24) } // 1 day
+    );
+
+    this.invitesHelperService.sendInvitationEmail({
+      recipientEmail: developerUser.email,
+      title: 'Project Invitation from TaskFusion',
+      inviterName: pmUser.name,
+      inviterEmail: pmUser.email,
+      inviteId: existingInvite.id,
+      invitedUserType: UserType.DEVELOPER,
+    });
+
+    return { id: existingInvite.id };
+  }
+
+  async updateDeveloperInvite(
+    existingInvite: DeveloperInviteEntity,
+    updatedFields: DeepPartial<DeveloperInviteEntity>
+  ) {
+    await this.developerInviteEntityRepositoty.update(
+      {
+        id: existingInvite.id,
+      },
+      updatedFields
+    );
+  }
+
+  async throwIfDeveloperInviteIsNotActive(invite: DeveloperInviteEntity) {
+    if (!this.isDeveloperInviteActive(invite)) {
+      this.logAndThrowError(
+        new BadRequestException('Invite is not valid anymore')
+      );
+    }
+  }
+
+  isDeveloperInviteActive(invite: DeveloperInviteEntity) {
+    return (
+      new Date(invite.expiresAt) > new Date() &&
+      invite.developerUserId === invite.developerUserId &&
+      invite.inviteStatus === InviteStatus.PENDING
+    );
+  }
+
+  async createDeveloperInvite(
+    pmUserId: number,
+    developerUserId: number,
+    project: ProjectEntity
+  ) {
+    return this.developerInviteEntityRepositoty.save({
+      developerUserId,
+      pmUserId,
+      project,
+      isActive: true,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 day
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
   }
 
@@ -156,22 +289,17 @@ export class DeveloperInvitesService {
     inviteId: number,
     developerUserId: number
   ) {
-    await this.invitesService.throwIfUserDoesNotExist(developerUserId);
+    await this.invitesHelperService.throwIfUserDoesNotExist(developerUserId);
 
     const invite = await this.getDeveloperInviteByIdOrThrow(inviteId);
 
-    const isDeveloperInviteActive =
-      this.invitesService.isDeveloperInviteActive(invite);
-
-    if (!isDeveloperInviteActive) {
-      throw new BadRequestException('Invite is not valid anymore');
-    }
+    await this.throwIfDeveloperInviteIsNotActive(invite);
 
     await this.updateDeveloperInvite(invite, {
       inviteStatus: InviteStatus.ACCEPTED,
     });
 
-    return this.invitesService.assignUserToProject(
+    return this.invitesHelperService.assignUserToProject(
       invite.projectId,
       developerUserId,
       ProjectParticipantRole.DEVELOPER
@@ -207,16 +335,11 @@ export class DeveloperInvitesService {
     inviteId: number,
     developerUserId: number
   ) {
-    await this.invitesService.throwIfUserDoesNotExist(developerUserId);
+    await this.invitesHelperService.throwIfUserDoesNotExist(developerUserId);
 
     const invite = await this.getDeveloperInviteByIdOrThrow(inviteId);
 
-    const isDeveloperInviteActive =
-      this.invitesService.isDeveloperInviteActive(invite);
-
-    if (!isDeveloperInviteActive) {
-      throw new BadRequestException('Invite is not valid anymore');
-    }
+    await this.throwIfDeveloperInviteIsNotActive(invite);
 
     await this.updateDeveloperInvite(invite, {
       inviteStatus: InviteStatus.REJECTED,
@@ -225,17 +348,5 @@ export class DeveloperInvitesService {
     return {
       success: true,
     };
-  }
-
-  private async updateDeveloperInvite(
-    existingInvite: DeveloperInviteEntity,
-    updatedFields: DeepPartial<DeveloperInviteEntity>
-  ) {
-    await this.developerInviteEntityRepositoty.update(
-      {
-        id: existingInvite.id,
-      },
-      updatedFields
-    );
   }
 }
