@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { InvitesService } from './services/invites.service';
+import { InvitesHelperService } from './services/invites-helper.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   PmInviteEntity,
@@ -14,6 +14,6 @@ import { DeveloperInvitesService } from './services/developer-invites.service';
     TypeOrmModule.forFeature([PmInviteEntity, DeveloperInviteEntity]),
     ProjectsModule,
   ],
-  providers: [InvitesService, PmInvitesService, DeveloperInvitesService],
+  providers: [InvitesHelperService, PmInvitesService, DeveloperInvitesService],
 })
 export class InvitesModule {}

@@ -13,24 +13,31 @@ import {
   AcceptPmInviteContract,
   RejectPmInviteContract,
   GetPmInviteByIdContract,
+  GetUserByIdContract,
 } from '@taskfusion-microservices/contracts';
 import {
   UserType,
   InviteStatus,
   ProjectParticipantRole,
   PmInviteEntity,
+  ProjectEntity,
+  UserEntity,
 } from '@taskfusion-microservices/entities';
-import { InvitesService } from './invites.service';
+import { InvitesHelperService } from './invites-helper.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
+import { BaseService, CustomAmqpConnection } from '@taskfusion-microservices/common';
 
 @Injectable()
-export class PmInvitesService {
+export class PmInvitesService extends BaseService {
   constructor(
     @InjectRepository(PmInviteEntity)
     private readonly pmInviteEntityRepositoty: Repository<PmInviteEntity>,
-    private readonly invitesService: InvitesService
-  ) {}
+    private readonly customAmqpConnection: CustomAmqpConnection,
+    private readonly invitesHelperService: InvitesHelperService
+  ) {
+    super(PmInvitesService.name);
+  }
 
   @RabbitRPC({
     exchange: InvitePmContract.exchange,
@@ -52,21 +59,26 @@ export class PmInvitesService {
     email: string,
     projectId: number
   ) {
-    const project = await this.invitesService.getProjectByIdOrThrow(projectId);
+    const project = await this.invitesHelperService.getProjectByIdOrThrow(
+      projectId
+    );
 
     if (project.clientId !== clientUserId) {
       throw new BadRequestException('Project does not belong to client');
     }
 
-    const pmUser = await this.invitesService.getUserByEmailOrThrow(email);
+    const pmUser = await this.invitesHelperService.getUserByEmailOrThrow(email);
 
-    await this.invitesService.throwIfUserTypeDoesNotMatch(pmUser, UserType.PM);
+    await this.invitesHelperService.throwIfUserTypeDoesNotMatch(
+      pmUser,
+      UserType.PM
+    );
 
-    const clientUser = await this.invitesService.getClientUserByIdOrThrow(
+    const clientUser = await this.getClientUserByIdOrThrow(
       clientUserId
     );
 
-    await this.invitesService.throwIfUserTypeDoesNotMatch(
+    await this.invitesHelperService.throwIfUserTypeDoesNotMatch(
       clientUser,
       UserType.CLIENT
     );
@@ -78,20 +90,16 @@ export class PmInvitesService {
     });
 
     if (existingInvite) {
-      return this.invitesService.handleExistingPmInvite(
+      return this.handleExistingPmInvite(
         existingInvite,
         pmUser,
         clientUser
       );
     }
 
-    const invite = await this.invitesService.createPmInvite(
-      clientUserId,
-      pmUser.id,
-      project
-    );
+    const invite = await this.createPmInvite(clientUserId, pmUser.id, project);
 
-    this.invitesService.sendInvitationEmail({
+    await this.invitesHelperService.sendInvitationEmail({
       recipientEmail: pmUser.email,
       title: 'Project Invitation from TaskFusion',
       inviterName: clientUser.name,
@@ -103,9 +111,119 @@ export class PmInvitesService {
     return { id: invite.id };
   }
 
-  private async findPmInvite(where: FindOptionsWhere<PmInviteEntity>) {
+  async findPmInvite(where: FindOptionsWhere<PmInviteEntity>) {
     return this.pmInviteEntityRepositoty.findOne({
       where,
+    });
+  }
+
+  async getClientUserById(clientUserId: number) {
+    const payload: GetUserByIdContract.Dto = {
+      id: clientUserId,
+    };
+
+    const clientUser =
+      await this.customAmqpConnection.requestOrThrow<GetUserByIdContract.Response>(
+        GetUserByIdContract.routingKey,
+        payload
+      );
+
+    return clientUser;
+  }
+  async getClientUserByIdOrThrow(clientUserId: number) {
+    const clientUser = await this.getClientUserById(clientUserId);
+
+    if (!clientUser) {
+      this.logAndThrowError(
+        new NotFoundException('Client user not found')
+      );
+    }
+
+    return clientUser;
+  }
+
+  async handleExistingPmInvite(
+    existingInvite: PmInviteEntity,
+    pmUser: UserEntity,
+    clientUser: UserEntity
+  ) {
+    switch (existingInvite.inviteStatus) {
+      case InviteStatus.ACCEPTED:
+        return this.logAndThrowError(
+          'Invite already accepted'
+        );
+
+      case InviteStatus.REJECTED:
+        return this.logAndThrowError(
+          'Invite already rejected'
+        );
+
+      case InviteStatus.PENDING:
+        return this.handlePendingExistingPmInvite(
+          existingInvite,
+          pmUser,
+          clientUser
+        );
+
+      default:
+        return this.logAndThrowError(
+          'Unhandled invite status'
+        );
+    }
+  }
+
+  async handlePendingExistingPmInvite(
+    existingInvite: PmInviteEntity,
+    pmUser: UserEntity,
+    clientUser: UserEntity
+  ) {
+    if (this.isPmInviteActive(existingInvite)) {
+      this.logAndThrowError(
+        'Active invite already exists'
+      );
+    }
+
+    await this.updatePmInvite(existingInvite, {
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 day
+    });
+
+    this.invitesHelperService.sendInvitationEmail({
+      recipientEmail: pmUser.email,
+      title: 'Project Invitation from TaskFusion',
+      inviterName: clientUser.name,
+      inviterEmail: clientUser.email,
+      inviteId: existingInvite.id,
+      invitedUserType: UserType.PM,
+    });
+
+    return { id: existingInvite.id };
+  }
+
+  async updatePmInvite(
+    existingInvite: PmInviteEntity,
+    updatedFields: DeepPartial<PmInviteEntity>
+  ) {
+    await this.pmInviteEntityRepositoty.update(
+      {
+        id: existingInvite.id,
+      },
+      updatedFields
+    );
+  }
+
+  async createPmInvite(
+    clientUserId: number,
+    pmUserId: number,
+    project: ProjectEntity
+  ) {
+    return this.pmInviteEntityRepositoty.save({
+      clientUserId,
+      pmUserId,
+      project,
+      isActive: true,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 day
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
   }
 
@@ -128,7 +246,7 @@ export class PmInvitesService {
     inviteId: number,
     pmUserId: number
   ) => {
-    await this.invitesService.throwIfUserDoesNotExist(pmUserId);
+    await this.invitesHelperService.throwIfUserDoesNotExist(pmUserId);
 
     const invite = await this.getPmInviteById(inviteId);
 
@@ -136,17 +254,13 @@ export class PmInvitesService {
       throw new NotFoundException('Invite not found');
     }
 
-    const isPmInviteActive = this.invitesService.isPmInviteActive(invite);
-
-    if (!isPmInviteActive) {
-      throw new BadRequestException('Invite is not valid anymore');
-    }
+    this.throwIfPmInviteIsNotActive(invite);
 
     await this.updatePmInvite(invite, {
       inviteStatus: InviteStatus.ACCEPTED,
     });
 
-    return this.invitesService.assignUserToProject(
+    return this.invitesHelperService.assignUserToProject(
       invite.projectId,
       pmUserId,
       ProjectParticipantRole.PM
@@ -169,7 +283,7 @@ export class PmInvitesService {
   }
 
   private async rejectPmInvite(inviteId: number, pmUserId: number) {
-    await this.invitesService.throwIfUserDoesNotExist(pmUserId);
+    await this.invitesHelperService.throwIfUserDoesNotExist(pmUserId);
 
     const invite = await this.getPmInviteById(inviteId);
 
@@ -177,28 +291,30 @@ export class PmInvitesService {
       throw new NotFoundException('Invite not found');
     }
 
-    const isPmInviteActive = this.invitesService.isPmInviteActive(invite);
+    await this.throwIfPmInviteIsNotActive(invite);
 
-    if (!isPmInviteActive) {
-      throw new BadRequestException('Invite is not valid anymore');
-    }
-
-    await this.updatePmInvite(invite, { inviteStatus: InviteStatus.REJECTED });
+    await this.updatePmInvite(invite, {
+      inviteStatus: InviteStatus.REJECTED,
+    });
 
     return {
       success: true,
     };
   }
 
-  private async updatePmInvite(
-    existingInvite: PmInviteEntity,
-    updatedFields: DeepPartial<PmInviteEntity>
-  ) {
-    await this.pmInviteEntityRepositoty.update(
-      {
-        id: existingInvite.id,
-      },
-      updatedFields
+  async throwIfPmInviteIsNotActive(invite: PmInviteEntity) {
+    if (!this.isPmInviteActive(invite)) {
+      this.logAndThrowError(
+        new BadRequestException('Invite is not valid anymore')
+      );
+    }
+  }
+
+  isPmInviteActive(invite: PmInviteEntity) {
+    return (
+      new Date(invite.expiresAt) > new Date() &&
+      invite.pmUserId === invite.pmUserId &&
+      invite.inviteStatus === InviteStatus.PENDING
     );
   }
 
