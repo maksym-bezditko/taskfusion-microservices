@@ -3,7 +3,7 @@ import {
   MessageHandlerErrorBehavior,
   defaultNackErrorHandler,
 } from '@golevelup/nestjs-rabbitmq';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CustomAmqpConnection } from '@taskfusion-microservices/common';
 import {
@@ -29,6 +29,8 @@ import { Repository, In, DeepPartial } from 'typeorm';
 
 @Injectable()
 export class ProjectsService {
+  private readonly logger = new Logger(ProjectsService.name);
+
   constructor(
     @InjectRepository(ProjectEntity)
     private readonly projectRepository: Repository<ProjectEntity>,
@@ -47,12 +49,12 @@ export class ProjectsService {
   async createProjectRpcHandler(
     dto: CreateProjectContract.Dto
   ): Promise<CreateProjectContract.Response> {
-    await this.ensureClientExistsOrThrow(dto.clientId);
+    await this.throwErrorIfClientDoesNotExist(dto.clientId);
 
     const isPmDefined = dto.pmId;
 
     if (isPmDefined) {
-      await this.ensurePmExistsOrThrow(dto.pmId);
+      await this.throwErrorIfPmDoesNotExist(dto.pmId);
     }
 
     const project = await this.createProject(dto);
@@ -60,7 +62,23 @@ export class ProjectsService {
     return { id: project.id };
   }
 
-  private async ensurePmExistsOrThrow(pmId: number) {
+  private async throwErrorIfClientDoesNotExist(clientId: number) {
+    const dto: CheckClientContract.Dto = {
+      clientId,
+    };
+
+    const clientResult =
+      await this.customAmqpConnection.requestOrThrow<CheckClientContract.Response>(
+        CheckClientContract.routingKey,
+        dto
+      );
+
+    if (!clientResult || !clientResult.exists) {
+      throw new NotFoundException('Client not found!');
+    }
+  }
+
+  private async throwErrorIfPmDoesNotExist(pmId: number) {
     const dto = {
       pmId,
     };
@@ -74,6 +92,23 @@ export class ProjectsService {
     if (!pm || !pm.exists) {
       throw new NotFoundException('PM not found!');
     }
+
+    return pm;
+  }
+
+  private logAndThrowError(error: string | Error): never {
+    if (typeof error === 'string') {
+      this.logger.error(error);
+      throw new Error(error);
+    }
+
+    if (error instanceof Error) {
+      this.logger.error(error.message || 'Unknown error', error.stack);
+      throw error;
+    }
+
+    this.logger.error('Unknown error');
+    throw new Error('Unknown error');
   }
 
   private async createProject(project: DeepPartial<ProjectEntity>) {
@@ -96,144 +131,17 @@ export class ProjectsService {
   ): Promise<GetClientProjectsContract.Response> {
     const client = await this.getClientByUserId(dto.clientUserId);
 
-    return this.findProjectsByClientId(client.id);
+    return this.getClientProjectsWithPmAndDeveloperUsers(client.id);
   }
 
-  @RabbitRPC({
-    exchange: GetPmProjectsContract.exchange,
-    routingKey: GetPmProjectsContract.routingKey,
-    queue: GetPmProjectsContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-pm-projects',
-  })
-  async getPmProjectsRpcHandler(
-    dto: GetPmProjectsContract.Dto
-  ): Promise<GetPmProjectsContract.Response> {
-    return this.findProjectsByPmId(dto.pmUserId);
-  }
+  private async getClientProjectsWithPmAndDeveloperUsers(clientId: number) {
+    const projects = await this.getClientProjects(clientId);
 
-  @RabbitRPC({
-    exchange: GetDeveloperProjectsContract.exchange,
-    routingKey: GetDeveloperProjectsContract.routingKey,
-    queue: GetDeveloperProjectsContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-developer-projects',
-  })
-  async getDeveloperProjectsRpcHandler(
-    dto: GetDeveloperProjectsContract.Dto
-  ): Promise<GetDeveloperProjectsContract.Response> {
-    return this.findProjectsByDeveloperId(dto.developerUserId);
-  }
-
-  @RabbitRPC({
-    exchange: GetProjectByIdContract.exchange,
-    routingKey: GetProjectByIdContract.routingKey,
-    queue: GetProjectByIdContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-project-by-id',
-  })
-  async getProjectByIdRpcHandler(
-    dto: GetProjectByIdContract.Dto
-  ): Promise<GetProjectByIdContract.Response> {
-    return this.ensureProjectById(dto.projectId);
-  }
-
-  @RabbitRPC({
-    exchange: CheckProjectContract.exchange,
-    routingKey: CheckProjectContract.routingKey,
-    queue: CheckProjectContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'check-project',
-  })
-  async checkProjectRpcHandler(
-    dto: CheckProjectContract.Dto
-  ): Promise<CheckProjectContract.Response> {
-    const project = await this.projectRepository.findOne({
-      where: { id: dto.projectId },
-    });
-
-    return { exists: Boolean(project) };
-  }
-
-  @RabbitRPC({
-    exchange: GetProjectPmUserContract.exchange,
-    routingKey: GetProjectPmUserContract.routingKey,
-    queue: GetProjectPmUserContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-project-pm-user',
-  })
-  async getProjectPmUserRpcHandler(
-    dto: GetProjectPmUserContract.Dto
-  ): Promise<GetProjectPmUserContract.Response> {
-    return this.findProjectPmUser(dto.projectId);
-  }
-
-  @RabbitRPC({
-    exchange: GetProjectDeveloperUsersContract.exchange,
-    routingKey: GetProjectDeveloperUsersContract.routingKey,
-    queue: GetProjectDeveloperUsersContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-project-developer-users',
-  })
-  async getProjectDeveloperUsersRpcHandler(
-    dto: GetProjectDeveloperUsersContract.Dto
-  ): Promise<GetProjectDeveloperUsersContract.Response> {
-    return this.findProjectDeveloperUsers(dto.projectId);
-  }
-
-  private async ensureClientExistsOrThrow(clientId: number) {
-    const dto: CheckClientContract.Dto = {
-      clientId,
-    };
-
-    const clientResult =
-      await this.customAmqpConnection.requestOrThrow<CheckClientContract.Response>(
-        CheckClientContract.routingKey,
-        dto
-      );
-
-    if (!clientResult || !clientResult.exists) {
-      throw new NotFoundException('Client not found!');
-    }
-  }
-
-  private async getProjectPmId(projectId: number) {
-    const dto: GetProjectPmIdContract.Dto = {
-      projectId,
-    };
-
-    const { pmUserId } =
-      await this.customAmqpConnection.requestOrThrow<GetProjectPmIdContract.Response>(
-        GetProjectPmIdContract.routingKey,
-        dto
-      );
-
-    return pmUserId;
-  }
-
-  private async findProjectsByClientId(clientId: number) {
-    const projects = await this.projectRepository.find({ where: { clientId } });
+    // todo: fix n + 1 query
 
     const projectsWithUsers = projects.map(async (project) => {
-      const developerUsers = await this.getProjectDeveloperUsersRpcHandler({
-        projectId: project.id,
-      });
-
-      const pmUser = await this.getProjectPmUserRpcHandler({
-        projectId: project.id,
-      });
+      const developerUsers = await this.getProjectDeveloperUsers(project.id);
+      const pmUser = await this.getProjectPmUser(project.id);
 
       const users = developerUsers;
 
@@ -250,25 +158,100 @@ export class ProjectsService {
     return Promise.all(projectsWithUsers);
   }
 
-  private async findProjectsByPmId(pmUserId: number) {
-    const dto: GetUserProjectIdsContract.Dto = {
-      userId: pmUserId,
+  private async getProjectPmUser(projectId: number) {
+    await this.getProjectByIdOrThrow(projectId);
+
+    const pmUserId = await this.getProjectPmId(projectId);
+
+    if (!pmUserId) {
+      return null;
+    }
+
+    const user = await this.getUserByIdOrThrow(pmUserId);
+
+    return user;
+  }
+
+  private async getProjectPmId(projectId: number) {
+    const dto: GetProjectPmIdContract.Dto = {
+      projectId,
     };
 
-    const projectIds =
-      await this.customAmqpConnection.requestOrThrow<GetUserProjectIdsContract.Response>(
-        GetUserProjectIdsContract.routingKey,
+    const { pmUserId } =
+      await this.customAmqpConnection.requestOrThrow<GetProjectPmIdContract.Response>(
+        GetProjectPmIdContract.routingKey,
         dto
       );
 
-    const projects = await this.projectRepository.find({
-      where: { id: In(projectIds) },
-    });
+    return pmUserId;
+  }
+
+  private async getClientProjects(clientId: number) {
+    return this.projectRepository.find({ where: { clientId } });
+  }
+
+  private async getClientByUserId(clientUserId: number) {
+    const dto: GetClientByUserIdContract.Dto = {
+      userId: clientUserId,
+    };
+
+    const client =
+      await this.customAmqpConnection.requestOrThrow<GetClientByUserIdContract.Response>(
+        GetClientByUserIdContract.routingKey,
+        dto
+      );
+
+    return client;
+  }
+
+  private async getUserByIdOrThrow(userId: number) {
+    const user = await this.getUserById(userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
+  private async getUserById(userId: number) {
+    const dto: GetUserByIdContract.Dto = {
+      id: userId,
+    };
+
+    const user =
+      await this.customAmqpConnection.requestOrThrow<GetUserByIdContract.Response>(
+        GetUserByIdContract.routingKey,
+        dto
+      );
+
+    return user;
+  }
+
+  @RabbitRPC({
+    exchange: GetPmProjectsContract.exchange,
+    routingKey: GetPmProjectsContract.routingKey,
+    queue: GetPmProjectsContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-pm-projects',
+  })
+  async getPmProjectsRpcHandler(
+    dto: GetPmProjectsContract.Dto
+  ): Promise<GetPmProjectsContract.Response> {
+    return this.getPmProjects(dto.pmUserId);
+  }
+
+  private async getPmProjects(pmUserId: number) {
+    const projectIds = await this.getUserProjectIds(pmUserId);
+
+    const projects = await this.getProjectsByProjectIds(projectIds);
+
+    // todo: fix n + 1 query
 
     const projectsWithDeveloperUsers = projects.map(async (project) => {
-      const developerUsers = await this.getProjectDeveloperUsersRpcHandler({
-        projectId: project.id,
-      });
+      const developerUsers = await this.getProjectDeveloperUsers(project.id);
 
       return {
         ...project,
@@ -279,9 +262,9 @@ export class ProjectsService {
     return Promise.all(projectsWithDeveloperUsers);
   }
 
-  private async findProjectsByDeveloperId(developerUserId: number) {
+  private async getUserProjectIds(userId: number) {
     const dto: GetUserProjectIdsContract.Dto = {
-      userId: developerUserId,
+      userId,
     };
 
     const projectIds =
@@ -290,46 +273,29 @@ export class ProjectsService {
         dto
       );
 
+    return projectIds;
+  }
+
+  private async getProjectsByProjectIds(projectIds: number[]) {
     const projects = await this.projectRepository.find({
       where: { id: In(projectIds) },
     });
 
-    const projectsWithPmUser = projects.map(async (project) => {
-      const pmUser = await this.getProjectPmUserRpcHandler({
-        projectId: project.id,
-      });
-
-      return {
-        ...project,
-        pmUser,
-      };
-    });
-
-    return Promise.all(projectsWithPmUser);
+    return projects;
   }
 
-  private async ensureProjectById(projectId: number) {
-    const project = await this.projectRepository.findOne({
-      where: { id: projectId },
-    });
+  private async getProjectDeveloperUsers(projectId: number) {
+    await this.getProjectByIdOrThrow(projectId);
 
-    if (!project) throw new NotFoundException('Project not found!');
+    const developerUserIds = await this.getProjectDeveloperIds(projectId);
 
-    return project;
-  }
-
-  private async findProjectPmUser(projectId: number) {
-    await this.ensureProjectById(projectId);
-
-    const pmUserId = await this.getProjectPmId(projectId);
-
-    if (!pmUserId) {
-      return null;
+    if (!developerUserIds.length) {
+      return [];
     }
 
-    const user = await this.getUserById(pmUserId);
+    const users = this.getUsersByIds(developerUserIds);
 
-    return user;
+    return users;
   }
 
   private async getProjectDeveloperIds(projectId: number) {
@@ -346,38 +312,6 @@ export class ProjectsService {
     return developerUserIds;
   }
 
-  private async findProjectDeveloperUsers(projectId: number) {
-    await this.ensureProjectById(projectId);
-
-    const developerUserIds = await this.getProjectDeveloperIds(projectId);
-
-    if (!developerUserIds.length) {
-      return [];
-    }
-
-    const users = this.getUsersByIds(developerUserIds);
-
-    return users;
-  }
-
-  private async getUserById(userId: number) {
-    const dto: GetUserByIdContract.Dto = {
-      id: userId,
-    };
-
-    const user =
-      await this.customAmqpConnection.requestOrThrow<GetUserByIdContract.Response>(
-        GetUserByIdContract.routingKey,
-        dto
-      );
-
-    if (!user) {
-      throw new NotFoundException('User not found!');
-    }
-
-    return user;
-  }
-
   private async getUsersByIds(userIds: number[]) {
     const dto: GetUsersByIdsContract.Dto = {
       ids: userIds,
@@ -389,24 +323,120 @@ export class ProjectsService {
         dto
       );
 
-    if (!users) {
-      throw new NotFoundException('Developer users not found');
-    }
-
     return users;
   }
 
-  private async getClientByUserId(clientUserId: number) {
-    const dto: GetClientByUserIdContract.Dto = {
-      userId: clientUserId,
+  @RabbitRPC({
+    exchange: GetDeveloperProjectsContract.exchange,
+    routingKey: GetDeveloperProjectsContract.routingKey,
+    queue: GetDeveloperProjectsContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-developer-projects',
+  })
+  async getDeveloperProjectsRpcHandler(
+    dto: GetDeveloperProjectsContract.Dto
+  ): Promise<GetDeveloperProjectsContract.Response> {
+    return this.getDeveloperProjects(dto.developerUserId);
+  }
+
+  private async getDeveloperProjects(developerUserId: number) {
+    const projectIds = await this.getUserProjectIds(developerUserId);
+
+    const projects = await this.getProjectsByProjectIds(projectIds);
+
+    const projectsWithPmUser = projects.map(async (project) => {
+      const pmUser = await this.getProjectPmUser(project.id);
+
+      return {
+        ...project,
+        pmUser,
+      };
+    });
+
+    return Promise.all(projectsWithPmUser);
+  }
+
+  @RabbitRPC({
+    exchange: GetProjectByIdContract.exchange,
+    routingKey: GetProjectByIdContract.routingKey,
+    queue: GetProjectByIdContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-project-by-id',
+  })
+  async getProjectByIdRpcHandler(
+    dto: GetProjectByIdContract.Dto
+  ): Promise<GetProjectByIdContract.Response> {
+    return this.getProjectByIdOrThrow(dto.projectId);
+  }
+
+  async getProjectByIdOrThrow(projectId: number) {
+    const project = await this.getProjectById(projectId);
+
+    if (!project) {
+      throw new NotFoundException('Project not found!');
+    }
+
+    return project;
+  }
+
+  async getProjectById(projectId: number) {
+    return this.projectRepository.findOne({ where: { id: projectId } });
+  }
+
+  @RabbitRPC({
+    exchange: CheckProjectContract.exchange,
+    routingKey: CheckProjectContract.routingKey,
+    queue: CheckProjectContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'check-project',
+  })
+  async checkProjectRpcHandler(
+    dto: CheckProjectContract.Dto
+  ): Promise<CheckProjectContract.Response> {
+    return this.checkProject(dto.projectId);
+  }
+
+  private async checkProject(projectId: number) {
+    const project = await this.getProjectById(projectId);
+
+    return {
+      exists: Boolean(project),
     };
+  }
 
-    const client =
-      await this.customAmqpConnection.requestOrThrow<GetClientByUserIdContract.Response>(
-        GetClientByUserIdContract.routingKey,
-        dto
-      );
+  @RabbitRPC({
+    exchange: GetProjectPmUserContract.exchange,
+    routingKey: GetProjectPmUserContract.routingKey,
+    queue: GetProjectPmUserContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-project-pm-user',
+  })
+  async getProjectPmUserRpcHandler(
+    dto: GetProjectPmUserContract.Dto
+  ): Promise<GetProjectPmUserContract.Response> {
+    return this.getProjectPmUser(dto.projectId);
+  }
 
-    return client;
+  @RabbitRPC({
+    exchange: GetProjectDeveloperUsersContract.exchange,
+    routingKey: GetProjectDeveloperUsersContract.routingKey,
+    queue: GetProjectDeveloperUsersContract.queue,
+    errorBehavior: MessageHandlerErrorBehavior.NACK,
+    errorHandler: defaultNackErrorHandler,
+    allowNonJsonMessages: true,
+    name: 'get-project-developer-users',
+  })
+  async getProjectDeveloperUsersRpcHandler(
+    dto: GetProjectDeveloperUsersContract.Dto
+  ): Promise<GetProjectDeveloperUsersContract.Response> {
+    return this.getProjectDeveloperUsers(dto.projectId);
   }
 }
