@@ -46,3 +46,6 @@ Thumbs.db
 
 # Env files
 **/.env*
+
+# Notes
+notes.tsx

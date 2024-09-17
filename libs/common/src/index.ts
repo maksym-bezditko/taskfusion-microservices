@@ -14,3 +14,5 @@ export * from './lib/decorators/user-id-from-jwt.decorator';
 export * from './lib/decorators/jwt-token-from-bearer.decorator';
 
 export * from './lib/providers/custom-amqp-connection.provider';
+
+export * from './lib/services/base-service.service';
