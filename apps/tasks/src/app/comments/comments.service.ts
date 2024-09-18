@@ -1,8 +1,4 @@
-import {
-  defaultNackErrorHandler,
-  MessageHandlerErrorBehavior,
-  RabbitRPC,
-} from '@golevelup/nestjs-rabbitmq';
+import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -35,10 +31,6 @@ export class CommentsService extends BaseService {
     exchange: CreateCommentContract.exchange,
     routingKey: CreateCommentContract.routingKey,
     queue: CreateCommentContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'create-comment',
   })
   async createComment(
     dto: CreateCommentContract.Dto
@@ -95,10 +87,6 @@ export class CommentsService extends BaseService {
     exchange: GetCommentsByTaskIdContract.exchange,
     routingKey: GetCommentsByTaskIdContract.routingKey,
     queue: GetCommentsByTaskIdContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-comments-by-task-id',
   })
   async getCommentsByTaskId(
     dto: GetCommentsByTaskIdContract.Dto

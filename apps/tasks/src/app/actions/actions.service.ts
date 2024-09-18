@@ -1,8 +1,4 @@
-import {
-  defaultNackErrorHandler,
-  MessageHandlerErrorBehavior,
-  RabbitRPC,
-} from '@golevelup/nestjs-rabbitmq';
+import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -33,10 +29,6 @@ export class ActionsService extends BaseService {
     exchange: CreateActionContract.exchange,
     routingKey: CreateActionContract.routingKey,
     queue: CreateActionContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'create-action',
   })
   async createAction(dto: CreateActionContract.Dto) {
     const { title, userId, taskId } = dto;
@@ -66,10 +58,6 @@ export class ActionsService extends BaseService {
     exchange: GetActionsByTaskIdContract.exchange,
     routingKey: GetActionsByTaskIdContract.routingKey,
     queue: GetActionsByTaskIdContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-actions-by-task-id',
   })
   async getActionsByTaskId(
     dto: GetActionsByTaskIdContract.Dto

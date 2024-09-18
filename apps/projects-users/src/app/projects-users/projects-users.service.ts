@@ -1,8 +1,4 @@
-import {
-  defaultNackErrorHandler,
-  MessageHandlerErrorBehavior,
-  RabbitRPC,
-} from '@golevelup/nestjs-rabbitmq';
+import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseService } from '@taskfusion-microservices/common';
@@ -32,10 +28,6 @@ export class ProjectsUsersService extends BaseService {
     exchange: GetUserProjectIdsContract.exchange,
     routingKey: GetUserProjectIdsContract.routingKey,
     queue: GetUserProjectIdsContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-user-project-ids',
   })
   async getUserProjectIds(
     dto: GetUserProjectIdsContract.Dto
@@ -57,10 +49,6 @@ export class ProjectsUsersService extends BaseService {
     exchange: GetProjectPmIdContract.exchange,
     routingKey: GetProjectPmIdContract.routingKey,
     queue: GetProjectPmIdContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-project-pm-id',
   })
   async getProjectPmId(
     dto: GetProjectPmIdContract.Dto
@@ -91,10 +79,6 @@ export class ProjectsUsersService extends BaseService {
     exchange: GetProjectDeveloperIdsContract.exchange,
     routingKey: GetProjectDeveloperIdsContract.routingKey,
     queue: GetProjectDeveloperIdsContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-project-developer-ids',
   })
   async getProjectDeveloperIds(
     dto: GetProjectDeveloperIdsContract.Dto
@@ -119,10 +103,6 @@ export class ProjectsUsersService extends BaseService {
     exchange: AssignUserToProjectContract.exchange,
     routingKey: AssignUserToProjectContract.routingKey,
     queue: AssignUserToProjectContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'assign-user-to-project',
   })
   async assignUserToProject(
     dto: AssignUserToProjectContract.Dto
@@ -162,10 +142,6 @@ export class ProjectsUsersService extends BaseService {
     exchange: UnassignUserFromProjectContract.exchange,
     routingKey: UnassignUserFromProjectContract.routingKey,
     queue: UnassignUserFromProjectContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'unassign-user-from-project',
   })
   async unassignUserFromProject(
     dto: UnassignUserFromProjectContract.Dto

@@ -1,8 +1,4 @@
-import {
-  defaultNackErrorHandler,
-  MessageHandlerErrorBehavior,
-  RabbitRPC,
-} from '@golevelup/nestjs-rabbitmq';
+import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -29,10 +25,6 @@ export class ClientsService extends BaseService {
     exchange: CreateClientContract.exchange,
     routingKey: CreateClientContract.routingKey,
     queue: CreateClientContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'create-client',
   })
   async createClient(
     dto: CreateClientContract.Dto
@@ -78,10 +70,6 @@ export class ClientsService extends BaseService {
     exchange: CheckClientContract.exchange,
     routingKey: CheckClientContract.routingKey,
     queue: CheckClientContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'check-client',
   })
   async checkClient(
     dto: CheckClientContract.Dto
@@ -103,10 +91,6 @@ export class ClientsService extends BaseService {
     exchange: GetClientByUserIdContract.exchange,
     routingKey: GetClientByUserIdContract.routingKey,
     queue: GetClientByUserIdContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-client-by-user-id',
   })
   async getClientByUserId(
     dto: GetClientByUserIdContract.Dto

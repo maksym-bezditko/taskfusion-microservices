@@ -1,8 +1,4 @@
-import {
-  RabbitRPC,
-  MessageHandlerErrorBehavior,
-  defaultNackErrorHandler,
-} from '@golevelup/nestjs-rabbitmq';
+import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -45,10 +41,6 @@ export class TasksService extends BaseService {
     exchange: CheckTaskContract.exchange,
     routingKey: CheckTaskContract.routingKey,
     queue: CheckTaskContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'check-task',
   })
   async checkTask(
     dto: CheckTaskContract.Dto
@@ -72,10 +64,6 @@ export class TasksService extends BaseService {
     exchange: GetTasksByStatusContract.exchange,
     routingKey: GetTasksByStatusContract.routingKey,
     queue: GetTasksByStatusContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-tasks-by-status',
   })
   async getTasksByStatus(
     dto: GetTasksByStatusContract.Dto
@@ -117,10 +105,6 @@ export class TasksService extends BaseService {
     exchange: GetTaskByIdContract.exchange,
     routingKey: GetTaskByIdContract.routingKey,
     queue: GetTaskByIdContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-task-by-id',
   })
   async getTaskById(
     dto: GetTaskByIdContract.Dto
@@ -155,10 +139,6 @@ export class TasksService extends BaseService {
     exchange: ChangeTaskStatusContract.exchange,
     routingKey: ChangeTaskStatusContract.routingKey,
     queue: ChangeTaskStatusContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'change-task-status',
   })
   async changeTaskStatus(
     dto: ChangeTaskStatusContract.Dto
@@ -212,10 +192,6 @@ export class TasksService extends BaseService {
     exchange: CreateTaskContract.exchange,
     routingKey: CreateTaskContract.routingKey,
     queue: CreateTaskContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'create-task',
   })
   async createTask(
     dto: CreateTaskContract.Dto
@@ -275,10 +251,6 @@ export class TasksService extends BaseService {
     exchange: GetTaskParticipantsContract.exchange,
     routingKey: GetTaskParticipantsContract.routingKey,
     queue: GetTaskParticipantsContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-task-participants',
   })
   async getTaskParticipants(dto: GetTaskParticipantsContract.Dto) {
     const { taskId } = dto;
@@ -316,10 +288,6 @@ export class TasksService extends BaseService {
     exchange: GetUserTasksByStatusContract.exchange,
     routingKey: GetUserTasksByStatusContract.routingKey,
     queue: GetUserTasksByStatusContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-user-tasks-by-status',
   })
   async getUserTasksByStatus(
     dto: GetUserTasksByStatusContract.Dto
@@ -375,10 +343,6 @@ export class TasksService extends BaseService {
     exchange: AssignTaskToUserContract.exchange,
     routingKey: AssignTaskToUserContract.routingKey,
     queue: AssignTaskToUserContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'assign-task-to-user',
   })
   async assingTaskToUser(
     dto: AssignTaskToUserContract.Dto
@@ -455,10 +419,6 @@ export class TasksService extends BaseService {
     exchange: UnassignTaskFromUserContract.exchange,
     routingKey: UnassignTaskFromUserContract.routingKey,
     queue: UnassignTaskFromUserContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'unassign-task-from-user',
   })
   async unassingTaskFromUser(
     dto: UnassignTaskFromUserContract.Dto

@@ -19,11 +19,7 @@ import {
   LogoutContract,
   RefreshTokensContract,
 } from '@taskfusion-microservices/contracts';
-import {
-  defaultNackErrorHandler,
-  MessageHandlerErrorBehavior,
-  RabbitRPC,
-} from '@golevelup/nestjs-rabbitmq';
+import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { BaseService } from '@taskfusion-microservices/common';
 
 @Injectable()
@@ -41,10 +37,6 @@ export class UsersService extends BaseService {
     exchange: GetUserByIdContract.exchange,
     routingKey: GetUserByIdContract.routingKey,
     queue: GetUserByIdContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-user-by-id',
   })
   async getUserById(
     dto: GetUserByIdContract.Dto
@@ -74,10 +66,6 @@ export class UsersService extends BaseService {
     exchange: GetUserByEmailContract.exchange,
     routingKey: GetUserByEmailContract.routingKey,
     queue: GetUserByEmailContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-user-by-email',
   })
   async getUserByEmail(
     dto: GetUserByEmailContract.Dto
@@ -107,10 +95,6 @@ export class UsersService extends BaseService {
     exchange: GetUsersByIdsContract.exchange,
     routingKey: GetUsersByIdsContract.routingKey,
     queue: GetUsersByIdsContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-users-by-ids',
   })
   async getUsersByIds(
     dto: GetUsersByIdsContract.Dto
@@ -140,10 +124,6 @@ export class UsersService extends BaseService {
     exchange: CheckUserContract.exchange,
     routingKey: CheckUserContract.routingKey,
     queue: CheckUserContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'check-user',
   })
   async checkUser(
     dto: CheckUserContract.Dto
@@ -163,10 +143,6 @@ export class UsersService extends BaseService {
     exchange: RefreshTokensContract.exchange,
     routingKey: RefreshTokensContract.routingKey,
     queue: RefreshTokensContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'refresh-tokens',
   })
   async refreshTokens(
     dto: RefreshTokensContract.Dto
@@ -201,10 +177,6 @@ export class UsersService extends BaseService {
     exchange: LoginContract.exchange,
     routingKey: LoginContract.routingKey,
     queue: LoginContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'login',
   })
   async login(dto: LoginContract.Dto): Promise<LoginContract.Response> {
     const user = await this.userRepository.findOne({
@@ -243,10 +215,6 @@ export class UsersService extends BaseService {
     exchange: LogoutContract.exchange,
     routingKey: LogoutContract.routingKey,
     queue: LogoutContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'logout',
   })
   async logout(dto: LogoutContract.Dto): Promise<LogoutContract.Response> {
     const user = await this.userRepository.findOne({
@@ -272,10 +240,6 @@ export class UsersService extends BaseService {
     exchange: GetProfileContract.exchange,
     routingKey: GetProfileContract.routingKey,
     queue: GetProfileContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-profile',
   })
   async getProfile(
     dto: GetProfileContract.Dto
