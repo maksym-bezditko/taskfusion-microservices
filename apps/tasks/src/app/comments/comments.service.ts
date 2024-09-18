@@ -15,16 +15,21 @@ import {
 import { CommentEntity } from '@taskfusion-microservices/entities';
 import { Repository } from 'typeorm';
 import { TasksService } from '../tasks/tasks.service';
-import { CustomAmqpConnection } from '@taskfusion-microservices/common';
+import {
+  BaseService,
+  CustomAmqpConnection,
+} from '@taskfusion-microservices/common';
 
 @Injectable()
-export class CommentsService {
+export class CommentsService extends BaseService {
   constructor(
     @InjectRepository(CommentEntity)
     private readonly commentRepository: Repository<CommentEntity>,
     private readonly customAmqpConnection: CustomAmqpConnection,
     private readonly tasksService: TasksService
-  ) {}
+  ) {
+    super(CommentsService.name);
+  }
 
   @RabbitRPC({
     exchange: CreateCommentContract.exchange,
@@ -51,7 +56,7 @@ export class CommentsService {
       );
 
     if (!user) {
-      throw new NotFoundException('User not found!');
+      this.logAndThrowError(new NotFoundException('User not found!'));
     }
 
     const task = await this.tasksService.getTaskById({
@@ -59,7 +64,7 @@ export class CommentsService {
     });
 
     if (!task) {
-      throw new NotFoundException('Task not found!');
+      this.logAndThrowError(new NotFoundException('Task not found!'));
     }
 
     const comment = this.commentRepository.create({
@@ -80,6 +85,8 @@ export class CommentsService {
       CreateActionContract.routingKey,
       createActionDto
     );
+
+    this.logger.log(`Comment created: ${comment.id}`);
 
     return { id: comment.id };
   }
@@ -114,6 +121,8 @@ export class CommentsService {
         GetUsersByIdsContract.routingKey,
         getUsersByIdsDto
       );
+
+    this.logger.log('Retrieving comments by task id');
 
     return commentsResult.map((comment) => ({
       ...comment,

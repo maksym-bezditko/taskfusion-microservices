@@ -5,7 +5,10 @@ import {
 } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CustomAmqpConnection } from '@taskfusion-microservices/common';
+import {
+  BaseService,
+  CustomAmqpConnection,
+} from '@taskfusion-microservices/common';
 import {
   CheckTaskContract,
   GetTasksByStatusContract,
@@ -29,12 +32,14 @@ import { TaskEntity } from '@taskfusion-microservices/entities';
 import { In, Repository } from 'typeorm';
 
 @Injectable()
-export class TasksService {
+export class TasksService extends BaseService {
   constructor(
     @InjectRepository(TaskEntity)
     private readonly taskRepository: Repository<TaskEntity>,
     private readonly customAmqpConnection: CustomAmqpConnection
-  ) {}
+  ) {
+    super(TasksService.name);
+  }
 
   @RabbitRPC({
     exchange: CheckTaskContract.exchange,
@@ -55,6 +60,8 @@ export class TasksService {
         id: taskId,
       },
     });
+
+    this.logger.log('Checking if task exists');
 
     return {
       exists: Boolean(task),
@@ -82,6 +89,8 @@ export class TasksService {
       },
     });
 
+    // todo: fix n + 1 query
+
     const tasks = result.map(async (task) => {
       const getTaskParticipantsDto: GetTaskParticipantsContract.Dto = {
         taskId: task.id,
@@ -98,6 +107,8 @@ export class TasksService {
         users,
       };
     });
+
+    this.logger.log('Retrieving tasks by status');
 
     return Promise.all(tasks);
   }
@@ -131,6 +142,8 @@ export class TasksService {
         GetTaskParticipantsContract.routingKey,
         getTaskParticipantsDto
       );
+
+    this.logger.log('Retrieving task by id');
 
     return {
       ...task,
@@ -188,6 +201,8 @@ export class TasksService {
       createActionDto
     );
 
+    this.logger.log(`Task status changed: ${taskId}`);
+
     return {
       success: Boolean(result.affected && result.affected > 0),
     };
@@ -226,7 +241,7 @@ export class TasksService {
       );
 
     if (!projectResult || !projectResult.exists) {
-      throw new NotFoundException('Project not found!');
+      this.logAndThrowError(new NotFoundException('Project not found!'));
     }
 
     const task = this.taskRepository.create({
@@ -250,6 +265,8 @@ export class TasksService {
       CreateActionContract.routingKey,
       createActionDto
     );
+
+    this.logger.log(`Task created: ${task.id}`);
 
     return task;
   }
@@ -290,6 +307,8 @@ export class TasksService {
         getUsersByIdsDto
       );
 
+    this.logger.log(`Retrieving task participants: ${taskId}`);
+
     return users;
   }
 
@@ -328,6 +347,8 @@ export class TasksService {
       },
     });
 
+    // todo: fix n + 1 query
+
     const tasksWithParticipants = tasks.map(async (task) => {
       const getTaskParticipantsDto: GetTaskParticipantsContract.Dto = {
         taskId: task.id,
@@ -344,6 +365,8 @@ export class TasksService {
         users,
       };
     });
+
+    this.logger.log(`Retrieving user tasks by status: ${status}`);
 
     return Promise.all(tasksWithParticipants);
   }
@@ -369,7 +392,7 @@ export class TasksService {
     });
 
     if (!task) {
-      throw new NotFoundException('Task not found!');
+      this.logAndThrowError(new NotFoundException('Task not found!'));
     }
 
     const findTaskUserRelation: FindTaskUserRelation.Dto = {
@@ -384,7 +407,9 @@ export class TasksService {
       );
 
     if (existingTaskUserRelation) {
-      throw new NotFoundException('Task already assigned to user');
+      this.logAndThrowError(
+        new NotFoundException('Task already assigned to user')
+      );
     }
 
     const createTaskUserRelation: CreateTaskUserRelation.Dto = {
@@ -418,6 +443,8 @@ export class TasksService {
       CreateActionContract.routingKey,
       createActionDto
     );
+
+    this.logger.log(`Task ${taskId} assigned to user ${users[0].name}`);
 
     return {
       success: Boolean(taskUserRelation),
@@ -469,6 +496,8 @@ export class TasksService {
       CreateActionContract.routingKey,
       createActionDto
     );
+
+    this.logger.log(`Task ${taskId} unassigned from user ${users[0].name}`);
 
     return {
       success: deleteOperationSuccess,
