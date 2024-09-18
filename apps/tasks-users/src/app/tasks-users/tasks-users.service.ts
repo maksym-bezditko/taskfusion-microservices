@@ -5,6 +5,7 @@ import {
 } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { BaseService } from '@taskfusion-microservices/common';
 import {
   CreateTaskUserRelation,
   DeleteTaskUserRelation,
@@ -16,11 +17,13 @@ import { TasksUsersEntity } from '@taskfusion-microservices/entities';
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class TasksUsersService {
+export class TasksUsersService extends BaseService {
   constructor(
     @InjectRepository(TasksUsersEntity)
     private readonly tasksUsersRepository: Repository<TasksUsersEntity>
-  ) {}
+  ) {
+    super(TasksUsersService.name);
+  }
 
   @RabbitRPC({
     exchange: GetTaskIdsByUserIdContract.exchange,
@@ -41,6 +44,8 @@ export class TasksUsersService {
         userId,
       },
     });
+
+    this.logger.log('Retrieving user task ids');
 
     return {
       taskIds: entries.map((entry) => entry.taskId),
@@ -66,6 +71,8 @@ export class TasksUsersService {
         taskId,
       },
     });
+
+    this.logger.log('Retrieving task user ids');
 
     return {
       userIds: entries.map((entry) => entry.userId),
@@ -93,6 +100,8 @@ export class TasksUsersService {
       },
     });
 
+    this.logger.log('Retrieving task user relation');
+
     return entry;
   }
 
@@ -114,6 +123,8 @@ export class TasksUsersService {
       taskId,
       userId,
     });
+
+    this.logger.log('Deleting task user relation');
 
     return {
       success: Boolean(deleteResult.affected && deleteResult.affected > 0),
@@ -140,6 +151,8 @@ export class TasksUsersService {
     });
 
     await this.tasksUsersRepository.save(entry);
+
+    this.logger.log('Creating task user relation');
 
     return entry;
   }
