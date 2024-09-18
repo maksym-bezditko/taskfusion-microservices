@@ -17,14 +17,17 @@ import {
 import { PmEntity, UserType } from '@taskfusion-microservices/entities';
 import { DeepPartial, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
+import { BaseService } from '@taskfusion-microservices/common';
 
 @Injectable()
-export class PmsService {
+export class PmsService extends BaseService {
   constructor(
     @InjectRepository(PmEntity)
     private readonly pmRepository: Repository<PmEntity>,
     private readonly usersService: UsersService
-  ) {}
+  ) {
+    super(PmsService.name);
+  }
 
   @RabbitRPC({
     exchange: CreatePmContract.exchange,
@@ -67,6 +70,8 @@ export class PmsService {
       refreshToken,
     });
 
+    this.logger.log(`Pm ${pm.id} created`);
+
     return {
       accessToken,
       refreshToken,
@@ -88,6 +93,8 @@ export class PmsService {
         id: dto.pmId,
       },
     });
+
+    this.logger.log(`Checking if pm exists: ${dto.pmId}`);
 
     return {
       exists: Boolean(pm),
@@ -120,6 +127,8 @@ export class PmsService {
       throw new BadRequestException('User is not a project manager');
     }
 
+    this.logger.log(`Checking if pm exists: ${email}`);
+
     return {
       exists: true,
     };
@@ -127,6 +136,8 @@ export class PmsService {
 
   async updatePm(pmId: number, pmParams: DeepPartial<PmEntity>) {
     const pm = await this.pmRepository.update({ id: pmId }, pmParams);
+
+    this.logger.log(`Pm ${pmId} updated`);
 
     return pm;
   }

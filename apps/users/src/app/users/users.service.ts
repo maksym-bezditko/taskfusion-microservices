@@ -24,15 +24,18 @@ import {
   MessageHandlerErrorBehavior,
   RabbitRPC,
 } from '@golevelup/nestjs-rabbitmq';
+import { BaseService } from '@taskfusion-microservices/common';
 
 @Injectable()
-export class UsersService {
+export class UsersService extends BaseService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService
-  ) {}
+  ) {
+    super(UsersService.name);
+  }
 
   @RabbitRPC({
     exchange: GetUserByIdContract.exchange,
@@ -61,6 +64,8 @@ export class UsersService {
         'updatedAt',
       ],
     });
+
+    this.logger.log('Retrieving user by id');
 
     return user;
   }
@@ -93,6 +98,8 @@ export class UsersService {
       ],
     });
 
+    this.logger.log('Retrieving user by email');
+
     return user;
   }
 
@@ -124,6 +131,8 @@ export class UsersService {
       ],
     });
 
+    this.logger.log('Retrieving users by ids');
+
     return users;
   }
 
@@ -142,6 +151,8 @@ export class UsersService {
     const user = await this.userRepository.findOne({
       where: { id: dto.userId },
     });
+
+    this.logger.log('Checking if user exists');
 
     return {
       exists: Boolean(user),
@@ -165,7 +176,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new BadRequestException('Invalid refresh token');
+      this.logAndThrowError(new BadRequestException('Invalid refresh token'));
     }
 
     const { accessToken, refreshToken } = await this.generateTokens({
@@ -177,6 +188,8 @@ export class UsersService {
     await this.updateUser(user.id, {
       refreshToken,
     });
+
+    this.logger.log('Refreshing tokens');
 
     return {
       accessToken,
@@ -199,13 +212,13 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      this.logAndThrowError(new NotFoundException('User not found'));
     }
 
     const isMatch = await bcrypt.compare(dto.password, user.password);
 
     if (!isMatch) {
-      throw new BadRequestException('Invalid credentials');
+      this.logAndThrowError(new BadRequestException('Invalid credentials'));
     }
 
     const { accessToken, refreshToken } = await this.generateTokens({
@@ -217,6 +230,8 @@ export class UsersService {
     await this.updateUser(user.id, {
       refreshToken,
     });
+
+    this.logger.log('User logged in');
 
     return {
       accessToken,
@@ -239,12 +254,14 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new BadRequestException('Invalid refresh token');
+      this.logAndThrowError(new BadRequestException('Invalid refresh token'));
     }
 
     await this.updateUser(user.id, {
       refreshToken: null,
     });
+
+    this.logger.log('User logged out');
 
     return {
       userId: user.id,
@@ -269,8 +286,10 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('Invalid refresh token');
+      this.logAndThrowError(new NotFoundException('Invalid refresh token'));
     }
+
+    this.logger.log('Retrieving user profile');
 
     return {
       id: user.id,
@@ -301,10 +320,14 @@ export class UsersService {
   async updateUser(userId: number, userParams: DeepPartial<UserEntity>) {
     const user = await this.userRepository.update({ id: userId }, userParams);
 
+    this.logger.log(`User ${userId} updated`);
+
     return user;
   }
 
   async signPayload(payload: Buffer | object, options?: JwtSignOptions) {
+    this.logger.log('Signing payload with JWT');
+
     return this.jwtService.signAsync(payload, options);
   }
 
@@ -322,6 +345,8 @@ export class UsersService {
       expiresIn: '7d',
       secret: this.configService.getOrThrow<string>('RT_SECRET'),
     });
+
+    this.logger.log('New tokens generated');
 
     return {
       accessToken,

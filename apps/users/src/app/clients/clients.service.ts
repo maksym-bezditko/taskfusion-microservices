@@ -13,14 +13,17 @@ import {
 import { ClientEntity, UserType } from '@taskfusion-microservices/entities';
 import { DeepPartial, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
+import { BaseService } from '@taskfusion-microservices/common';
 
 @Injectable()
-export class ClientsService {
+export class ClientsService extends BaseService {
   constructor(
     @InjectRepository(ClientEntity)
     private readonly clientRepository: Repository<ClientEntity>,
     private readonly usersService: UsersService
-  ) {}
+  ) {
+    super(ClientsService.name);
+  }
 
   @RabbitRPC({
     exchange: CreateClientContract.exchange,
@@ -63,6 +66,8 @@ export class ClientsService {
       refreshToken,
     });
 
+    this.logger.log(`Client ${client.id} created`);
+
     return {
       accessToken,
       refreshToken,
@@ -86,6 +91,8 @@ export class ClientsService {
         id: dto.clientId,
       },
     });
+
+    this.logger.log(`Checking if client exists: ${dto.clientId}`);
 
     return {
       exists: Boolean(client),
@@ -112,6 +119,8 @@ export class ClientsService {
       },
     });
 
+    this.logger.log(`Client by user id: ${dto.userId}`);
+
     return client;
   }
 
@@ -123,6 +132,8 @@ export class ClientsService {
       { id: clientId },
       clientParams
     );
+
+    this.logger.log(`Updated client: ${clientId}`);
 
     return client;
   }
