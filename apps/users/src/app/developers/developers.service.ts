@@ -17,14 +17,17 @@ import {
 import { DeveloperEntity, UserType } from '@taskfusion-microservices/entities';
 import { DeepPartial, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
+import { BaseService } from '@taskfusion-microservices/common';
 
 @Injectable()
-export class DevelopersService {
+export class DevelopersService extends BaseService {
   constructor(
     @InjectRepository(DeveloperEntity)
     private readonly developerRepository: Repository<DeveloperEntity>,
     private readonly usersService: UsersService
-  ) {}
+  ) {
+    super(DevelopersService.name);
+  }
 
   @RabbitRPC({
     exchange: CreateDeveloperContract.exchange,
@@ -67,6 +70,8 @@ export class DevelopersService {
       refreshToken,
     });
 
+    this.logger.log(`Developer ${developer.id} created`);
+
     return {
       accessToken,
       refreshToken,
@@ -90,6 +95,8 @@ export class DevelopersService {
         id: dto.developerId,
       },
     });
+
+    this.logger.log(`Checking if developer exists: ${dto.developerId}`);
 
     return {
       exists: Boolean(developer),
@@ -122,6 +129,8 @@ export class DevelopersService {
       throw new BadRequestException('User is not a project manager');
     }
 
+    this.logger.log(`Checking if developer email exists: ${email}`);
+
     return {
       exists: true,
     };
@@ -135,6 +144,8 @@ export class DevelopersService {
       { id: developerId },
       developerParams
     );
+
+    this.logger.log(`Developer ${developerId} updated`);
 
     return developer;
   }
