@@ -1,8 +1,4 @@
-import {
-  RabbitRPC,
-  MessageHandlerErrorBehavior,
-  defaultNackErrorHandler,
-} from '@golevelup/nestjs-rabbitmq';
+import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseService } from '@taskfusion-microservices/common';
@@ -29,10 +25,6 @@ export class TasksUsersService extends BaseService {
     exchange: GetTaskIdsByUserIdContract.exchange,
     routingKey: GetTaskIdsByUserIdContract.routingKey,
     queue: GetTaskIdsByUserIdContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-task-ids-by-user-id',
   })
   async getTaskIdsByUserId(
     dto: GetTaskIdsByUserIdContract.Dto
@@ -56,10 +48,6 @@ export class TasksUsersService extends BaseService {
     exchange: GetUserIdsByTaskIdContract.exchange,
     routingKey: GetUserIdsByTaskIdContract.routingKey,
     queue: GetUserIdsByTaskIdContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-user-ids-by-task-id',
   })
   async getUserIdsByTaskId(
     dto: GetUserIdsByTaskIdContract.Dto
@@ -83,10 +71,6 @@ export class TasksUsersService extends BaseService {
     exchange: FindTaskUserRelation.exchange,
     routingKey: FindTaskUserRelation.routingKey,
     queue: FindTaskUserRelation.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'find-task-user-relation',
   })
   async findTaskUserRelation(
     dto: FindTaskUserRelation.Dto
@@ -109,10 +93,6 @@ export class TasksUsersService extends BaseService {
     exchange: DeleteTaskUserRelation.exchange,
     routingKey: DeleteTaskUserRelation.routingKey,
     queue: DeleteTaskUserRelation.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'delete-task-user-relation',
   })
   async deleteTaskUserRelation(
     dto: DeleteTaskUserRelation.Dto
@@ -135,10 +115,6 @@ export class TasksUsersService extends BaseService {
     exchange: CreateTaskUserRelation.exchange,
     routingKey: CreateTaskUserRelation.routingKey,
     queue: CreateTaskUserRelation.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'create-task-user-relation',
   })
   async createTaskUserRelation(
     dto: CreateTaskUserRelation.Dto

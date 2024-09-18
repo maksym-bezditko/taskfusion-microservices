@@ -1,8 +1,4 @@
-import {
-  RabbitRPC,
-  MessageHandlerErrorBehavior,
-  defaultNackErrorHandler,
-} from '@golevelup/nestjs-rabbitmq';
+import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import {
   BadRequestException,
   Injectable,
@@ -33,10 +29,6 @@ export class PmsService extends BaseService {
     exchange: CreatePmContract.exchange,
     routingKey: CreatePmContract.routingKey,
     queue: CreatePmContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'create-pm',
   })
   async createPm(
     dto: CreatePmContract.Dto
@@ -82,10 +74,6 @@ export class PmsService extends BaseService {
     exchange: CheckPmContract.exchange,
     routingKey: CheckPmContract.routingKey,
     queue: CheckPmContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'check-pm',
   })
   async checkPm(dto: CheckPmContract.Dto): Promise<CheckPmContract.Response> {
     const pm = await this.pmRepository.findOne({
@@ -105,10 +93,6 @@ export class PmsService extends BaseService {
     exchange: CheckPmEmailContract.exchange,
     routingKey: CheckPmEmailContract.routingKey,
     queue: CheckPmEmailContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'check-pm-email',
   })
   async checkPmEmail(
     dto: CheckPmEmailContract.Dto

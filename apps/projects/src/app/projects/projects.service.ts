@@ -1,8 +1,4 @@
-import {
-  RabbitRPC,
-  MessageHandlerErrorBehavior,
-  defaultNackErrorHandler,
-} from '@golevelup/nestjs-rabbitmq';
+import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -44,10 +40,6 @@ export class ProjectsService extends BaseService {
     exchange: CreateProjectContract.exchange,
     routingKey: CreateProjectContract.routingKey,
     queue: CreateProjectContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'create-project',
   })
   async createProjectRpcHandler(
     dto: CreateProjectContract.Dto
@@ -111,10 +103,6 @@ export class ProjectsService extends BaseService {
     exchange: GetClientProjectsContract.exchange,
     routingKey: GetClientProjectsContract.routingKey,
     queue: GetClientProjectsContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-client-projects',
   })
   async getClientProjectsRpcHandler(
     dto: GetClientProjectsContract.Dto
@@ -239,10 +227,6 @@ export class ProjectsService extends BaseService {
     exchange: GetPmProjectsContract.exchange,
     routingKey: GetPmProjectsContract.routingKey,
     queue: GetPmProjectsContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-pm-projects',
   })
   async getPmProjectsRpcHandler(
     dto: GetPmProjectsContract.Dto
@@ -339,10 +323,6 @@ export class ProjectsService extends BaseService {
     exchange: GetDeveloperProjectsContract.exchange,
     routingKey: GetDeveloperProjectsContract.routingKey,
     queue: GetDeveloperProjectsContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-developer-projects',
   })
   async getDeveloperProjectsRpcHandler(
     dto: GetDeveloperProjectsContract.Dto
@@ -377,10 +357,6 @@ export class ProjectsService extends BaseService {
     exchange: GetProjectByIdContract.exchange,
     routingKey: GetProjectByIdContract.routingKey,
     queue: GetProjectByIdContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-project-by-id',
   })
   async getProjectByIdRpcHandler(
     dto: GetProjectByIdContract.Dto
@@ -396,10 +372,6 @@ export class ProjectsService extends BaseService {
     exchange: CheckProjectContract.exchange,
     routingKey: CheckProjectContract.routingKey,
     queue: CheckProjectContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'check-project',
   })
   async checkProjectRpcHandler(
     dto: CheckProjectContract.Dto
@@ -423,10 +395,6 @@ export class ProjectsService extends BaseService {
     exchange: GetProjectPmUserContract.exchange,
     routingKey: GetProjectPmUserContract.routingKey,
     queue: GetProjectPmUserContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-project-pm-user',
   })
   async getProjectPmUserRpcHandler(
     dto: GetProjectPmUserContract.Dto
@@ -442,10 +410,6 @@ export class ProjectsService extends BaseService {
     exchange: GetProjectDeveloperUsersContract.exchange,
     routingKey: GetProjectDeveloperUsersContract.routingKey,
     queue: GetProjectDeveloperUsersContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-project-developer-users',
   })
   async getProjectDeveloperUsersRpcHandler(
     dto: GetProjectDeveloperUsersContract.Dto

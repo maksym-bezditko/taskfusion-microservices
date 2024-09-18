@@ -18,8 +18,6 @@ export class EmailService extends BaseService {
     exchange: SendEmailContract.exchange,
     routingKey: SendEmailContract.routingKey,
     queue: SendEmailContract.queue,
-    allowNonJsonMessages: true,
-    name: 'send-email',
   })
   async sendEmail(dto: SendEmailContract.Dto) {
     const { message, recipientEmail, subject } = dto;

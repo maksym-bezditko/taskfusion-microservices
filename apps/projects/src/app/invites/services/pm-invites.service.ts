@@ -1,8 +1,4 @@
-import {
-  RabbitRPC,
-  MessageHandlerErrorBehavior,
-  defaultNackErrorHandler,
-} from '@golevelup/nestjs-rabbitmq';
+import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import {
   BadRequestException,
   Injectable,
@@ -26,7 +22,10 @@ import {
 import { InvitesHelperService } from './invites-helper.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
-import { BaseService, CustomAmqpConnection } from '@taskfusion-microservices/common';
+import {
+  BaseService,
+  CustomAmqpConnection,
+} from '@taskfusion-microservices/common';
 
 @Injectable()
 export class PmInvitesService extends BaseService {
@@ -43,10 +42,6 @@ export class PmInvitesService extends BaseService {
     exchange: InvitePmContract.exchange,
     routingKey: InvitePmContract.routingKey,
     queue: InvitePmContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'invite-pm',
   })
   async invitePmRpcHandler(
     dto: InvitePmContract.Dto
@@ -74,9 +69,7 @@ export class PmInvitesService extends BaseService {
       UserType.PM
     );
 
-    const clientUser = await this.getClientUserByIdOrThrow(
-      clientUserId
-    );
+    const clientUser = await this.getClientUserByIdOrThrow(clientUserId);
 
     await this.invitesHelperService.throwIfUserTypeDoesNotMatch(
       clientUser,
@@ -90,11 +83,7 @@ export class PmInvitesService extends BaseService {
     });
 
     if (existingInvite) {
-      return this.handleExistingPmInvite(
-        existingInvite,
-        pmUser,
-        clientUser
-      );
+      return this.handleExistingPmInvite(existingInvite, pmUser, clientUser);
     }
 
     const invite = await this.createPmInvite(clientUserId, pmUser.id, project);
@@ -134,9 +123,7 @@ export class PmInvitesService extends BaseService {
     const clientUser = await this.getClientUserById(clientUserId);
 
     if (!clientUser) {
-      this.logAndThrowError(
-        new NotFoundException('Client user not found')
-      );
+      this.logAndThrowError(new NotFoundException('Client user not found'));
     }
 
     return clientUser;
@@ -149,14 +136,10 @@ export class PmInvitesService extends BaseService {
   ) {
     switch (existingInvite.inviteStatus) {
       case InviteStatus.ACCEPTED:
-        return this.logAndThrowError(
-          'Invite already accepted'
-        );
+        return this.logAndThrowError('Invite already accepted');
 
       case InviteStatus.REJECTED:
-        return this.logAndThrowError(
-          'Invite already rejected'
-        );
+        return this.logAndThrowError('Invite already rejected');
 
       case InviteStatus.PENDING:
         return this.handlePendingExistingPmInvite(
@@ -166,9 +149,7 @@ export class PmInvitesService extends BaseService {
         );
 
       default:
-        return this.logAndThrowError(
-          'Unhandled invite status'
-        );
+        return this.logAndThrowError('Unhandled invite status');
     }
   }
 
@@ -178,9 +159,7 @@ export class PmInvitesService extends BaseService {
     clientUser: UserEntity
   ) {
     if (this.isPmInviteActive(existingInvite)) {
-      this.logAndThrowError(
-        'Active invite already exists'
-      );
+      this.logAndThrowError('Active invite already exists');
     }
 
     await this.updatePmInvite(existingInvite, {
@@ -231,10 +210,6 @@ export class PmInvitesService extends BaseService {
     exchange: AcceptPmInviteContract.exchange,
     routingKey: AcceptPmInviteContract.routingKey,
     queue: AcceptPmInviteContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'accept-pm-invite',
   })
   async acceptPmInviteRpcHandler(
     dto: AcceptPmInviteContract.Dto
@@ -271,10 +246,6 @@ export class PmInvitesService extends BaseService {
     exchange: RejectPmInviteContract.exchange,
     routingKey: RejectPmInviteContract.routingKey,
     queue: RejectPmInviteContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'reject-pm-invite',
   })
   async rejectPmInviteRpcHandler(
     dto: RejectPmInviteContract.Dto
@@ -322,10 +293,6 @@ export class PmInvitesService extends BaseService {
     exchange: GetPmInviteByIdContract.exchange,
     routingKey: GetPmInviteByIdContract.routingKey,
     queue: GetPmInviteByIdContract.queue,
-    errorBehavior: MessageHandlerErrorBehavior.NACK,
-    errorHandler: defaultNackErrorHandler,
-    allowNonJsonMessages: true,
-    name: 'get-pm-invite-by-id',
   })
   async getPmInviteByIdRpcHandler(
     dto: GetPmInviteByIdContract.Dto
