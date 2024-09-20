@@ -5,10 +5,10 @@ import {
 } from '@taskfusion-microservices/constants';
 import { IsInt } from 'class-validator';
 
-export namespace GetProjectPmIdContract {
+export namespace GetProjectPmUserIdContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
 
-  export const routingKey = `get-project-pm-id`;
+  export const routingKey = `get-project-pm-user-id`;
 
   export const queue = `${PROJECTS_USERS_QUEUE_NAME}.${routingKey}`;
 
