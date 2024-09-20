@@ -1,11 +1,11 @@
 import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseService } from '@taskfusion-microservices/common';
 import {
   AssignUserToProjectContract,
   GetProjectDeveloperIdsContract,
-  GetProjectPmIdContract,
+  GetProjectPmUserIdContract,
   GetUserProjectIdsContract,
   UnassignUserFromProjectContract,
 } from '@taskfusion-microservices/contracts';
@@ -13,7 +13,7 @@ import {
   ProjectParticipantRole,
   ProjectsUsersEntity,
 } from '@taskfusion-microservices/entities';
-import { Repository } from 'typeorm';
+import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
 
 @Injectable()
 export class ProjectsUsersService extends BaseService {
@@ -29,46 +29,48 @@ export class ProjectsUsersService extends BaseService {
     routingKey: GetUserProjectIdsContract.routingKey,
     queue: GetUserProjectIdsContract.queue,
   })
-  async getUserProjectIds(
+  async getUserProjectIdsRpcHandler(
     dto: GetUserProjectIdsContract.Dto
   ): Promise<GetUserProjectIdsContract.Response> {
-    const { userId } = dto;
+    this.logger.log('Retrieving user project ids');
 
+    return this.getUserProjectIds(dto);
+  }
+
+  async getUserProjectIds(dto: GetUserProjectIdsContract.Dto) {
     const entries = await this.projectsUsersRepository.find({
       where: {
-        userId,
+        userId: dto.userId,
       },
     });
-
-    this.logger.log('Retrieving user project ids');
 
     return entries.map((entry) => entry.projectId);
   }
 
   @RabbitRPC({
-    exchange: GetProjectPmIdContract.exchange,
-    routingKey: GetProjectPmIdContract.routingKey,
-    queue: GetProjectPmIdContract.queue,
+    exchange: GetProjectPmUserIdContract.exchange,
+    routingKey: GetProjectPmUserIdContract.routingKey,
+    queue: GetProjectPmUserIdContract.queue,
   })
-  async getProjectPmId(
-    dto: GetProjectPmIdContract.Dto
-  ): Promise<GetProjectPmIdContract.Response> {
-    const { projectId } = dto;
+  async getProjectPmIdRpcHandler(
+    dto: GetProjectPmUserIdContract.Dto
+  ): Promise<GetProjectPmUserIdContract.Response> {
+    this.logger.log('Retrieving project pm id');
 
+    return this.getProjectPmUserId(dto);
+  }
+
+  async getProjectPmUserId(dto: GetProjectPmUserIdContract.Dto) {
     const entry = await this.projectsUsersRepository.findOne({
       where: {
-        projectId,
+        projectId: dto.projectId,
         role: ProjectParticipantRole.PM,
       },
     });
 
     if (!entry) {
-      return {
-        pmUserId: null,
-      };
+      return null;
     }
-
-    this.logger.log('Retrieving project pm id');
 
     return {
       pmUserId: entry.userId,
@@ -80,19 +82,21 @@ export class ProjectsUsersService extends BaseService {
     routingKey: GetProjectDeveloperIdsContract.routingKey,
     queue: GetProjectDeveloperIdsContract.queue,
   })
-  async getProjectDeveloperIds(
+  async getProjectDeveloperIdsRpcHandler(
     dto: GetProjectDeveloperIdsContract.Dto
   ): Promise<GetProjectDeveloperIdsContract.Response> {
-    const { projectId } = dto;
+    this.logger.log('Retrieving project developer ids');
 
+    return this.getProjectDeveloperIds(dto);
+  }
+
+  async getProjectDeveloperIds(dto: GetProjectDeveloperIdsContract.Dto) {
     const entry = await this.projectsUsersRepository.find({
       where: {
-        projectId,
+        projectId: dto.projectId,
         role: ProjectParticipantRole.DEVELOPER,
       },
     });
-
-    this.logger.log('Retrieving project developer ids');
 
     return {
       developerUserIds: entry.map((entry) => entry.userId),
@@ -104,38 +108,60 @@ export class ProjectsUsersService extends BaseService {
     routingKey: AssignUserToProjectContract.routingKey,
     queue: AssignUserToProjectContract.queue,
   })
-  async assignUserToProject(
+  async assignUserToProjectRpcHandler(
     dto: AssignUserToProjectContract.Dto
   ): Promise<AssignUserToProjectContract.Response> {
+    this.logger.log('Assigning user to project');
+
+    return this.assignUserToProject(dto);
+  }
+
+  async assignUserToProject(dto: AssignUserToProjectContract.Dto) {
     const { projectId, userId, role } = dto;
 
-    const entry = await this.projectsUsersRepository.findOne({
-      where: {
-        projectId,
-        userId,
-        role,
-      },
-    });
-
-    if (entry) {
-      return {
-        success: false,
-      };
-    }
-
-    const entity = this.projectsUsersRepository.create({
+    await this.findProjectUserRelationAndThrowIfFound({
       projectId,
       userId,
       role,
     });
 
-    await this.projectsUsersRepository.save(entity);
-
-    this.logger.log('Assigning user to project');
+    await this.createProjectUserRelation({
+      projectId,
+      userId,
+      role,
+    });
 
     return {
       success: true,
     };
+  }
+
+  async findProjectUserRelationAndThrowIfFound(
+    where: FindOptionsWhere<ProjectsUsersEntity>
+  ) {
+    const entry = await this.findProjectUserRelation(where);
+
+    if (entry) {
+      this.logAndThrowError(
+        new BadRequestException('User already assigned to project')
+      );
+    }
+
+    return entry;
+  }
+
+  async findProjectUserRelation(where: FindOptionsWhere<ProjectsUsersEntity>) {
+    return this.projectsUsersRepository.findOne({
+      where,
+    });
+  }
+
+  async createProjectUserRelation(data: DeepPartial<ProjectsUsersEntity>) {
+    const entity = this.projectsUsersRepository.create(data);
+
+    await this.projectsUsersRepository.save(entity);
+
+    return entity;
   }
 
   @RabbitRPC({
@@ -143,35 +169,51 @@ export class ProjectsUsersService extends BaseService {
     routingKey: UnassignUserFromProjectContract.routingKey,
     queue: UnassignUserFromProjectContract.queue,
   })
-  async unassignUserFromProject(
+  async unassignUserFromProjectRpcHandler(
     dto: UnassignUserFromProjectContract.Dto
   ): Promise<UnassignUserFromProjectContract.Response> {
+    this.logger.log('Unassigning user from project');
+
+    return this.unassignUserFromProject(dto);
+  }
+
+  async unassignUserFromProject(dto: UnassignUserFromProjectContract.Dto) {
     const { projectId, userId, role } = dto;
 
-    const entry = await this.projectsUsersRepository.findOne({
-      where: {
-        projectId,
-        userId,
-        role,
-      },
-    });
-
-    if (!entry) {
-      return {
-        success: false,
-      };
-    }
-
-    const result = await this.projectsUsersRepository.delete({
+    await this.findProjectUserRelationAndThrowIfNotFound({
       projectId,
       userId,
       role,
     });
 
-    this.logger.log('Unassigning user from project');
+    const result = await this.deleteProjectUserRelation({
+      projectId,
+      userId,
+      role,
+    });
 
     return {
       success: result.affected > 0,
     };
+  }
+
+  async findProjectUserRelationAndThrowIfNotFound(
+    where: FindOptionsWhere<ProjectsUsersEntity>
+  ) {
+    const entry = await this.findProjectUserRelation(where);
+
+    if (!entry) {
+      this.logAndThrowError(
+        new BadRequestException('User already assigned to project')
+      );
+    }
+
+    return entry;
+  }
+
+  async deleteProjectUserRelation(
+    where: FindOptionsWhere<ProjectsUsersEntity>
+  ) {
+    return this.projectsUsersRepository.delete(where);
   }
 }
