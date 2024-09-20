@@ -10,7 +10,7 @@ import {
   InviteDeveloperContract,
   AcceptDeveloperInviteContract,
   RejectDeveloperInviteContract,
-  GetProjectPmIdContract,
+  GetProjectPmUserIdContract,
 } from '@taskfusion-microservices/contracts';
 import {
   UserType,
@@ -135,13 +135,13 @@ export class DeveloperInvitesService extends BaseService {
   }
 
   async getProjectPmId(projectId: number) {
-    const payload: GetProjectPmIdContract.Dto = {
+    const payload: GetProjectPmUserIdContract.Dto = {
       projectId,
     };
 
     const result =
-      await this.customAmqpConnection.requestOrThrow<GetProjectPmIdContract.Response>(
-        GetProjectPmIdContract.routingKey,
+      await this.customAmqpConnection.requestOrThrow<GetProjectPmUserIdContract.Response>(
+        GetProjectPmUserIdContract.routingKey,
         payload
       );
 

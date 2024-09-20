@@ -16,7 +16,7 @@ import {
   GetProjectDeveloperUsersContract,
   CheckClientContract,
   CheckPmContract,
-  GetProjectPmIdContract,
+  GetProjectPmUserIdContract,
   GetUserProjectIdsContract,
   GetProjectDeveloperIdsContract,
   GetUserByIdContract,
@@ -166,13 +166,13 @@ export class ProjectsService extends BaseService {
   }
 
   private async getProjectPmId(projectId: number) {
-    const dto: GetProjectPmIdContract.Dto = {
+    const dto: GetProjectPmUserIdContract.Dto = {
       projectId,
     };
 
     const { pmUserId } =
-      await this.customAmqpConnection.requestOrThrow<GetProjectPmIdContract.Response>(
-        GetProjectPmIdContract.routingKey,
+      await this.customAmqpConnection.requestOrThrow<GetProjectPmUserIdContract.Response>(
+        GetProjectPmUserIdContract.routingKey,
         dto
       );
 
