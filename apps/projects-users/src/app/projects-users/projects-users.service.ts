@@ -37,7 +37,7 @@ export class ProjectsUsersService extends BaseService {
     return this.getUserProjectIds(dto);
   }
 
-  async getUserProjectIds(dto: GetUserProjectIdsContract.Dto) {
+  private async getUserProjectIds(dto: GetUserProjectIdsContract.Dto) {
     const entries = await this.projectsUsersRepository.find({
       where: {
         userId: dto.userId,
@@ -60,7 +60,7 @@ export class ProjectsUsersService extends BaseService {
     return this.getProjectPmUserId(dto);
   }
 
-  async getProjectPmUserId(dto: GetProjectPmUserIdContract.Dto) {
+  private async getProjectPmUserId(dto: GetProjectPmUserIdContract.Dto) {
     const entry = await this.projectsUsersRepository.findOne({
       where: {
         projectId: dto.projectId,
@@ -69,7 +69,9 @@ export class ProjectsUsersService extends BaseService {
     });
 
     if (!entry) {
-      return null;
+      return {
+        pmUserId: null,
+      };
     }
 
     return {
@@ -90,7 +92,7 @@ export class ProjectsUsersService extends BaseService {
     return this.getProjectDeveloperIds(dto);
   }
 
-  async getProjectDeveloperIds(dto: GetProjectDeveloperIdsContract.Dto) {
+  private async getProjectDeveloperIds(dto: GetProjectDeveloperIdsContract.Dto) {
     const entry = await this.projectsUsersRepository.find({
       where: {
         projectId: dto.projectId,
@@ -116,7 +118,7 @@ export class ProjectsUsersService extends BaseService {
     return this.assignUserToProject(dto);
   }
 
-  async assignUserToProject(dto: AssignUserToProjectContract.Dto) {
+  private async assignUserToProject(dto: AssignUserToProjectContract.Dto) {
     const { projectId, userId, role } = dto;
 
     await this.findProjectUserRelationAndThrowIfFound({
@@ -136,7 +138,7 @@ export class ProjectsUsersService extends BaseService {
     };
   }
 
-  async findProjectUserRelationAndThrowIfFound(
+  private async findProjectUserRelationAndThrowIfFound(
     where: FindOptionsWhere<ProjectsUsersEntity>
   ) {
     const entry = await this.findProjectUserRelation(where);
@@ -150,13 +152,13 @@ export class ProjectsUsersService extends BaseService {
     return entry;
   }
 
-  async findProjectUserRelation(where: FindOptionsWhere<ProjectsUsersEntity>) {
+  private async findProjectUserRelation(where: FindOptionsWhere<ProjectsUsersEntity>) {
     return this.projectsUsersRepository.findOne({
       where,
     });
   }
 
-  async createProjectUserRelation(data: DeepPartial<ProjectsUsersEntity>) {
+  private async createProjectUserRelation(data: DeepPartial<ProjectsUsersEntity>) {
     const entity = this.projectsUsersRepository.create(data);
 
     await this.projectsUsersRepository.save(entity);
@@ -177,7 +179,7 @@ export class ProjectsUsersService extends BaseService {
     return this.unassignUserFromProject(dto);
   }
 
-  async unassignUserFromProject(dto: UnassignUserFromProjectContract.Dto) {
+  private async unassignUserFromProject(dto: UnassignUserFromProjectContract.Dto) {
     const { projectId, userId, role } = dto;
 
     await this.findProjectUserRelationAndThrowIfNotFound({
@@ -197,7 +199,7 @@ export class ProjectsUsersService extends BaseService {
     };
   }
 
-  async findProjectUserRelationAndThrowIfNotFound(
+  private async findProjectUserRelationAndThrowIfNotFound(
     where: FindOptionsWhere<ProjectsUsersEntity>
   ) {
     const entry = await this.findProjectUserRelation(where);
@@ -211,7 +213,7 @@ export class ProjectsUsersService extends BaseService {
     return entry;
   }
 
-  async deleteProjectUserRelation(
+  private async deleteProjectUserRelation(
     where: FindOptionsWhere<ProjectsUsersEntity>
   ) {
     return this.projectsUsersRepository.delete(where);
