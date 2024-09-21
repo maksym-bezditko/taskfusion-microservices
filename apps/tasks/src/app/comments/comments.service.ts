@@ -51,9 +51,7 @@ export class CommentsService extends BaseService {
       this.logAndThrowError(new NotFoundException('User not found!'));
     }
 
-    const task = await this.tasksService.getTaskById({
-      taskId,
-    });
+    const task = await this.tasksService.getTaskByIdOrThrow(taskId);
 
     if (!task) {
       this.logAndThrowError(new NotFoundException('Task not found!'));

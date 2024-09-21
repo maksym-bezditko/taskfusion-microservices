@@ -1,5 +1,5 @@
 import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   CreateActionContract,
@@ -7,7 +7,7 @@ import {
   GetUsersByIdsContract,
 } from '@taskfusion-microservices/contracts';
 import { ActionEntity } from '@taskfusion-microservices/entities';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { TasksService } from '../tasks/tasks.service';
 import {
   BaseService,
@@ -30,16 +30,16 @@ export class ActionsService extends BaseService {
     routingKey: CreateActionContract.routingKey,
     queue: CreateActionContract.queue,
   })
-  async createAction(dto: CreateActionContract.Dto) {
+  async createActionRpcHandler(dto: CreateActionContract.Dto) {
+    this.logger.log(`Action created`);
+
+    return this.createAction(dto);
+  }
+
+  private async createAction(dto: CreateActionContract.Dto) {
     const { title, userId, taskId } = dto;
 
-    const task = await this.tasksService.getTaskById({
-      taskId,
-    });
-
-    if (!task) {
-      this.logAndThrowError(new NotFoundException('Task not found!'));
-    }
+    const task = await this.tasksService.getTaskByIdOrThrow(taskId);
 
     const action = this.actionRepository.create({
       title,
@@ -49,8 +49,6 @@ export class ActionsService extends BaseService {
 
     await this.actionRepository.save(action);
 
-    this.logger.log(`Action created: ${action.id}`);
-
     return action;
   }
 
@@ -59,12 +57,20 @@ export class ActionsService extends BaseService {
     routingKey: GetActionsByTaskIdContract.routingKey,
     queue: GetActionsByTaskIdContract.queue,
   })
-  async getActionsByTaskId(
+  async getActionsByTaskIdRpcHandler(
+    dto: GetActionsByTaskIdContract.Dto
+  ): Promise<GetActionsByTaskIdContract.Response> {
+    this.logger.log('Retrieving actions by task id');
+
+    return this.getActionsWithUsersByTaskId(dto);
+  }
+
+  private async getActionsWithUsersByTaskId(
     dto: GetActionsByTaskIdContract.Dto
   ): Promise<GetActionsByTaskIdContract.Response> {
     const { taskId } = dto;
 
-    const actionsResult = await this.actionRepository.find({
+    const actionsResult = await this.findActions({
       where: {
         taskId,
       },
@@ -72,22 +78,29 @@ export class ActionsService extends BaseService {
     });
 
     const userIds = actionsResult.map((action) => action.userId);
+    const users = await this.getUsersByIds(userIds);
 
-    const getUsersByIdsDto: GetUsersByIdsContract.Dto = {
+    return actionsResult.map((action) => ({
+      ...action,
+      user: users.find((user) => user.id === action.userId),
+    }));
+  }
+
+  private async findActions(options: FindManyOptions<ActionEntity>) {
+    return this.actionRepository.find(options);
+  }
+
+  private async getUsersByIds(userIds: number[]) {
+    const dto: GetUsersByIdsContract.Dto = {
       ids: userIds,
     };
 
     const users =
       await this.customAmqpConnection.requestOrThrow<GetUsersByIdsContract.Response>(
         GetUsersByIdsContract.routingKey,
-        getUsersByIdsDto
+        dto
       );
 
-    this.logger.log('Retrieving actions by task id');
-
-    return actionsResult.map((action) => ({
-      ...action,
-      user: users.find((user) => user.id === action.userId),
-    }));
+    return users;
   }
 }
