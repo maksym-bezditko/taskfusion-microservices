@@ -4,10 +4,10 @@ import { TASKS_USERS_QUEUE_NAME } from '@taskfusion-microservices/constants';
 import { IsInt } from 'class-validator';
 import { TasksUsersEntity } from '@taskfusion-microservices/entities';
 
-export namespace FindTaskUserRelation {
+export namespace GetTaskUserRelation {
   export const exchange = GENERAL_EXCHANGE_NAME;
 
-  export const routingKey = `find-task-user-relation`;
+  export const routingKey = `get-task-user-relation`;
 
   export const queue = `${TASKS_USERS_QUEUE_NAME}.${routingKey}`;
 
