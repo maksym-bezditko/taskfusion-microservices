@@ -134,7 +134,7 @@ export class DeveloperInvitesService extends BaseService {
     return { id: invite.id };
   }
 
-  async getProjectPmId(projectId: number) {
+  private async getProjectPmId(projectId: number) {
     const payload: GetProjectPmUserIdContract.Dto = {
       projectId,
     };
@@ -150,13 +150,13 @@ export class DeveloperInvitesService extends BaseService {
     return projectPmUserId;
   }
 
-  async findDeveloperInvite(where: FindOptionsWhere<DeveloperInviteEntity>) {
+  private async findDeveloperInvite(where: FindOptionsWhere<DeveloperInviteEntity>) {
     return this.developerInviteEntityRepositoty.findOne({
       where,
     });
   }
 
-  async handleExistingDeveloperInvite(
+  private async handleExistingDeveloperInvite(
     existingInvite: DeveloperInviteEntity,
     developerUser: UserEntity,
     pmUser: UserEntity
@@ -209,7 +209,7 @@ export class DeveloperInvitesService extends BaseService {
     return { id: existingInvite.id };
   }
 
-  async updateDeveloperInvite(
+  private async updateDeveloperInvite(
     existingInvite: DeveloperInviteEntity,
     updatedFields: DeepPartial<DeveloperInviteEntity>
   ) {
@@ -221,7 +221,7 @@ export class DeveloperInvitesService extends BaseService {
     );
   }
 
-  async throwIfDeveloperInviteIsNotActive(invite: DeveloperInviteEntity) {
+  private async throwIfDeveloperInviteIsNotActive(invite: DeveloperInviteEntity) {
     if (!this.isDeveloperInviteActive(invite)) {
       this.logAndThrowError(
         new BadRequestException('Invite is not valid anymore')
@@ -229,7 +229,7 @@ export class DeveloperInvitesService extends BaseService {
     }
   }
 
-  isDeveloperInviteActive(invite: DeveloperInviteEntity) {
+  private isDeveloperInviteActive(invite: DeveloperInviteEntity) {
     return (
       new Date(invite.expiresAt) > new Date() &&
       invite.developerUserId === invite.developerUserId &&
@@ -237,7 +237,7 @@ export class DeveloperInvitesService extends BaseService {
     );
   }
 
-  async createDeveloperInvite(
+  private async createDeveloperInvite(
     pmUserId: number,
     developerUserId: number,
     project: ProjectEntity

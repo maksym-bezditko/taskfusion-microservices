@@ -100,13 +100,13 @@ export class PmInvitesService extends BaseService {
     return { id: invite.id };
   }
 
-  async findPmInvite(where: FindOptionsWhere<PmInviteEntity>) {
+  private async findPmInvite(where: FindOptionsWhere<PmInviteEntity>) {
     return this.pmInviteEntityRepositoty.findOne({
       where,
     });
   }
 
-  async getClientUserById(clientUserId: number) {
+  private async getClientUserById(clientUserId: number) {
     const payload: GetUserByIdContract.Dto = {
       id: clientUserId,
     };
@@ -119,7 +119,8 @@ export class PmInvitesService extends BaseService {
 
     return clientUser;
   }
-  async getClientUserByIdOrThrow(clientUserId: number) {
+
+  private async getClientUserByIdOrThrow(clientUserId: number) {
     const clientUser = await this.getClientUserById(clientUserId);
 
     if (!clientUser) {
@@ -129,7 +130,7 @@ export class PmInvitesService extends BaseService {
     return clientUser;
   }
 
-  async handleExistingPmInvite(
+  private async handleExistingPmInvite(
     existingInvite: PmInviteEntity,
     pmUser: UserEntity,
     clientUser: UserEntity
@@ -153,7 +154,7 @@ export class PmInvitesService extends BaseService {
     }
   }
 
-  async handlePendingExistingPmInvite(
+  private async handlePendingExistingPmInvite(
     existingInvite: PmInviteEntity,
     pmUser: UserEntity,
     clientUser: UserEntity
@@ -178,7 +179,7 @@ export class PmInvitesService extends BaseService {
     return { id: existingInvite.id };
   }
 
-  async updatePmInvite(
+  private async updatePmInvite(
     existingInvite: PmInviteEntity,
     updatedFields: DeepPartial<PmInviteEntity>
   ) {
@@ -190,7 +191,7 @@ export class PmInvitesService extends BaseService {
     );
   }
 
-  async createPmInvite(
+  private async createPmInvite(
     clientUserId: number,
     pmUserId: number,
     project: ProjectEntity
@@ -273,7 +274,7 @@ export class PmInvitesService extends BaseService {
     };
   }
 
-  async throwIfPmInviteIsNotActive(invite: PmInviteEntity) {
+  private async throwIfPmInviteIsNotActive(invite: PmInviteEntity) {
     if (!this.isPmInviteActive(invite)) {
       this.logAndThrowError(
         new BadRequestException('Invite is not valid anymore')
@@ -281,7 +282,7 @@ export class PmInvitesService extends BaseService {
     }
   }
 
-  isPmInviteActive(invite: PmInviteEntity) {
+  private isPmInviteActive(invite: PmInviteEntity) {
     return (
       new Date(invite.expiresAt) > new Date() &&
       invite.pmUserId === invite.pmUserId &&

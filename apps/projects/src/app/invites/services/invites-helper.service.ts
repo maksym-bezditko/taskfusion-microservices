@@ -116,20 +116,6 @@ export class InvitesHelperService extends BaseService {
     return this.projectsService.getProjectById(projectId);
   }
 
-  async getUserByEmail(email: string) {
-    const payload: GetUserByEmailContract.Dto = {
-      email,
-    };
-
-    const user =
-      await this.customAmqpConnection.requestOrThrow<GetUserByEmailContract.Response>(
-        GetUserByEmailContract.routingKey,
-        payload
-      );
-
-    return user;
-  }
-
   async getUserByEmailOrThrow(email: string) {
     const user = await this.getUserByEmail(email);
 
@@ -140,14 +126,14 @@ export class InvitesHelperService extends BaseService {
     return user;
   }
 
-  async getUserById(id: number) {
-    const payload: GetUserByIdContract.Dto = {
-      id,
+  async getUserByEmail(email: string) {
+    const payload: GetUserByEmailContract.Dto = {
+      email,
     };
 
     const user =
-      await this.customAmqpConnection.requestOrThrow<GetUserByIdContract.Response>(
-        GetUserByIdContract.routingKey,
+      await this.customAmqpConnection.requestOrThrow<GetUserByEmailContract.Response>(
+        GetUserByEmailContract.routingKey,
         payload
       );
 
@@ -168,6 +154,20 @@ export class InvitesHelperService extends BaseService {
     if (!user) {
       this.logAndThrowError(new NotFoundException('User not found'));
     }
+
+    return user;
+  }
+
+  async getUserById(id: number) {
+    const payload: GetUserByIdContract.Dto = {
+      id,
+    };
+
+    const user =
+      await this.customAmqpConnection.requestOrThrow<GetUserByIdContract.Response>(
+        GetUserByIdContract.routingKey,
+        payload
+      );
 
     return user;
   }
