@@ -11,6 +11,9 @@ importers:
       '@golevelup/nestjs-rabbitmq':
         specifier: ^5.3.0
         version: 5.3.0(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@10.3.10(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/microservices@10.3.10)(@nestjs/platform-express@10.3.10)(reflect-metadata@0.1.14)(rxjs@7.8.1))(reflect-metadata@0.1.14)(rxjs@7.8.1)
+      '@golevelup/nestjs-stripe':
+        specifier: ^0.8.2
+        version: 0.8.2(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@10.3.10(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/microservices@10.3.10)(@nestjs/platform-express@10.3.10)(reflect-metadata@0.1.14)(rxjs@7.8.1))(rxjs@7.8.1)(stripe@16.12.0)
       '@nestjs-modules/mailer':
         specifier: ^2.0.2
         version: 2.0.2(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@10.3.10(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/microservices@10.3.10)(@nestjs/platform-express@10.3.10)(reflect-metadata@0.1.14)(rxjs@7.8.1))(nodemailer@6.9.14)
@@ -41,15 +44,6 @@ importers:
       '@nestjs/typeorm':
         specifier: ^10.0.2
         version: 10.0.2(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@10.3.10(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/microservices@10.3.10)(@nestjs/platform-express@10.3.10)(reflect-metadata@0.1.14)(rxjs@7.8.1))(reflect-metadata@0.1.14)(rxjs@7.8.1)(typeorm@0.3.20(mysql2@3.10.3)(ts-node@10.9.1(@swc/core@1.5.29(@swc/helpers@0.5.12))(@types/node@18.16.20)(typescript@5.4.5)))
-      '@types/bcrypt':
-        specifier: ^5.0.2
-        version: 5.0.2
-      '@types/express':
-        specifier: ^4.17.21
-        version: 4.17.21
-      '@types/passport-jwt':
-        specifier: ^4.0.1
-        version: 4.0.1
       axios:
         specifier: ^1.6.0
         version: 1.7.2
@@ -83,6 +77,9 @@ importers:
       rxjs:
         specifier: ^7.8.0
         version: 7.8.1
+      stripe:
+        specifier: ^16.12.0
+        version: 16.12.0
       tslib:
         specifier: ^2.3.0
         version: 2.6.3
@@ -132,12 +129,21 @@ importers:
       '@swc/helpers':
         specifier: ~0.5.11
         version: 0.5.12
+      '@types/bcrypt':
+        specifier: ^5.0.2
+        version: 5.0.2
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.21
       '@types/jest':
         specifier: ^29.4.0
         version: 29.5.12
       '@types/node':
         specifier: ~18.16.9
         version: 18.16.20
+      '@types/passport-jwt':
+        specifier: ^4.0.1
+        version: 4.0.1
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.3.0
         version: 7.17.0(@typescript-eslint/parser@7.17.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)(typescript@5.4.5)
@@ -950,6 +956,11 @@ packages:
       '@nestjs/core': ^10.x
       reflect-metadata: ^0.1.0 || ^0.2.0
       rxjs: ^7.x
+
+  '@golevelup/nestjs-stripe@0.8.2':
+    resolution: {integrity: sha512-ar9Pmh27oXYcaxt3tYewHbVQpEd19iOpkkcanxrrCNoVOjpzwi1ikJJzaz4RT9KD7Bu2gMO8Q/vWbagbMOdkUA==}
+    peerDependencies:
+      stripe: ^14.19.0
 
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
@@ -5210,6 +5221,10 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
+  stripe@16.12.0:
+    resolution: {integrity: sha512-H7eFVLDxeTNNSn4JTRfL2//LzCbDrMSZ+2q1c7CanVWgK2qIW5TwS+0V7N9KcKZZNpYh/uCqK0PyZh/2UsaAtQ==}
+    engines: {node: '>=12.*'}
+
   strong-log-transformer@2.1.0:
     resolution: {integrity: sha512-B3Hgul+z0L9a236FAUC9iZsL+nVHgoCJnqCbN588DjYxvGXaXaaFbfmQ/JhvKjZwsOukuR72XbHv71Qkug0HxA==}
     engines: {node: '>=4'}
@@ -6782,6 +6797,17 @@ snapshots:
       rxjs: 7.8.1
     transitivePeerDependencies:
       - supports-color
+
+  '@golevelup/nestjs-stripe@0.8.2(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@10.3.10(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/microservices@10.3.10)(@nestjs/platform-express@10.3.10)(reflect-metadata@0.1.14)(rxjs@7.8.1))(rxjs@7.8.1)(stripe@16.12.0)':
+    dependencies:
+      '@golevelup/nestjs-common': 2.0.0(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))
+      '@golevelup/nestjs-discovery': 4.0.1(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@10.3.10(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/microservices@10.3.10)(@nestjs/platform-express@10.3.10)(reflect-metadata@0.1.14)(rxjs@7.8.1))
+      '@golevelup/nestjs-modules': 0.7.1(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(rxjs@7.8.1)
+      stripe: 16.12.0
+    transitivePeerDependencies:
+      - '@nestjs/common'
+      - '@nestjs/core'
+      - rxjs
 
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
@@ -12267,6 +12293,11 @@ snapshots:
     optional: true
 
   strip-json-comments@3.1.1: {}
+
+  stripe@16.12.0:
+    dependencies:
+      '@types/node': 18.16.20
+      qs: 6.12.3
 
   strong-log-transformer@2.1.0:
     dependencies:
