@@ -36,6 +36,8 @@ export * from './contracts/auth/login.contract';
 
 export * from './contracts/profile/get-profile.contract';
 
+export * from './contracts/payments/create-checkout-session.contract';
+
 export * from './contracts/tasks/create-task.contract';
 export * from './contracts/tasks/get-tasks-by-status.contract';
 export * from './contracts/tasks/get-task-by-id.contract';
