@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { TasksModule } from './tasks/tasks.module';
 import { ActionsModule } from './actions/actions.module';
 import { CommentsModule } from './comments/comments.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CommentsModule } from './comments/comments.module';
     TasksModule,
     ActionsModule,
     CommentsModule,
+    PaymentsModule,
   ],
   providers: [AtJwtStrategy, RtJwtStrategy],
 })
