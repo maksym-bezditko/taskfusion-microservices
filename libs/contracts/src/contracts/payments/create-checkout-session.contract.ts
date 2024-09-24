@@ -3,7 +3,7 @@ import {
   GENERAL_EXCHANGE_NAME,
   PAYMENTS_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
-import { IsInt, IsString } from 'class-validator';
+import { IsInt } from 'class-validator';
 
 export namespace CreateCheckoutSessionContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
@@ -18,13 +18,7 @@ export namespace CreateCheckoutSessionContract {
 
   export class Request {
     @IsInt()
-    pmUserId: number;
-
-		@IsInt()
-		clientUserId: number;
-
-		@IsString()
-		comment: string;
+    projectId: number;
 
 		@IsInt()
 		usdAmount: number;
