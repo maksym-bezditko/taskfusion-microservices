@@ -1,4 +1,4 @@
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { InjectStripeClient } from '@golevelup/nestjs-stripe';
 import {
   BadRequestException,
@@ -15,6 +15,8 @@ import {
   CheckUserContract,
   CreateCheckoutSessionContract,
   CreatePaymentRequestContract,
+  GetClientPaymentRequestsContract,
+  GetPaymentRequestByIdContract,
   GetProjectByIdContract,
   RejectPaymentRequestContract,
 } from '@taskfusion-microservices/contracts';
@@ -40,16 +42,21 @@ export class PaymentsService extends BaseService {
     exchange: CreateCheckoutSessionContract.exchange,
     routingKey: CreateCheckoutSessionContract.routingKey,
     queue: CreateCheckoutSessionContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async createCheckoutSessionRpcHandler(
     dto: CreateCheckoutSessionContract.Dto
   ) {
     this.logger.log(`Checkout session created`, dto);
 
-    return this.createCheckoutSession();
+    return this.createCheckoutSession(dto);
   }
 
-  private async createCheckoutSession() {
+  private async createCheckoutSession(dto: CreateCheckoutSessionContract.Dto) {
+    const { projectId, usdAmount } = dto;
+
+    const project = await this.getProjectByIdOrThrow(projectId);
+
     const session = await this.stripeClient.checkout.sessions.create({
       mode: 'payment',
       line_items: [
@@ -58,18 +65,14 @@ export class PaymentsService extends BaseService {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'T-shirt',
-              images: [
-                'https://cdn.militaria.pl/media/catalog/product/cache/e452159aead1684753d5e9341f2edeb6/9/8/98993_t-shirt-helikon-olive-ts-tsh-co-02.jpg',
-              ],
-              description: 'T-Shirt for testing purposes',
+              name: `Payment requested for project "${project.title}"`,
             },
-            unit_amount: 200000,
+            unit_amount: usdAmount * 100,
           },
         },
       ],
-      success_url: 'http://localhost:3000/success',
-      cancel_url: 'http://localhost:3000/cancel',
+      success_url: 'http://localhost:8000/success',
+      cancel_url: 'http://localhost:8000/cancel',
     });
 
     return session;
@@ -79,6 +82,7 @@ export class PaymentsService extends BaseService {
     exchange: CreatePaymentRequestContract.exchange,
     routingKey: CreatePaymentRequestContract.routingKey,
     queue: CreatePaymentRequestContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async createPaymentRequestRpcHandler(dto: CreatePaymentRequestContract.Dto) {
     this.logger.log(`Payment request created`, dto);
@@ -133,6 +137,24 @@ export class PaymentsService extends BaseService {
   }
 
   private async throwIfProjectDoesNotExist(projectId: number) {
+    const project = await this.getProjectById(projectId);
+
+    if (!project || !project.id) {
+      this.logAndThrowError(new NotFoundException('Project not found'));
+    }
+  }
+
+  private async getProjectByIdOrThrow(projectId: number) {
+    const project = await this.getProjectById(projectId);
+
+    if (!project) {
+      this.logAndThrowError(new NotFoundException('Project not found'));
+    }
+
+    return project;
+  }
+
+  private async getProjectById(projectId: number) {
     const payload: GetProjectByIdContract.Dto = {
       projectId,
     };
@@ -143,10 +165,6 @@ export class PaymentsService extends BaseService {
         payload
       );
 
-    if (!project || !project.id) {
-      this.logAndThrowError(new NotFoundException('Project not found'));
-    }
-
     return project;
   }
 
@@ -154,6 +172,7 @@ export class PaymentsService extends BaseService {
     exchange: AcceptPaymentRequestContract.exchange,
     routingKey: AcceptPaymentRequestContract.routingKey,
     queue: AcceptPaymentRequestContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async acceptPaymentRequestRpcHandler(dto: AcceptPaymentRequestContract.Dto) {
     this.logger.log(`Payment request accepted`, dto);
@@ -173,7 +192,7 @@ export class PaymentsService extends BaseService {
     await this.throwIfPaymentRequestIsAcceptedOrRejected(paymentRequestEntity);
 
     const result = await this.updatePaymentRequestById(paymentRequestId, {
-      status: PaymentRequestStatus.APPROVED,
+      status: PaymentRequestStatus.ACCEPTED,
     });
 
     return {
@@ -202,7 +221,7 @@ export class PaymentsService extends BaseService {
   private async throwIfPaymentRequestIsAcceptedOrRejected(
     paymentRequest: PaymentRequestEntity
   ) {
-    if (paymentRequest.status === PaymentRequestStatus.APPROVED) {
+    if (paymentRequest.status === PaymentRequestStatus.ACCEPTED) {
       this.logAndThrowError(
         new BadRequestException('Payment request is already approved')
       );
@@ -226,6 +245,7 @@ export class PaymentsService extends BaseService {
     exchange: RejectPaymentRequestContract.exchange,
     routingKey: RejectPaymentRequestContract.routingKey,
     queue: RejectPaymentRequestContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async rejectPaymentRequestRpcHandler(dto: RejectPaymentRequestContract.Dto) {
     this.logger.log(`Payment request rejected`, dto);
@@ -250,6 +270,77 @@ export class PaymentsService extends BaseService {
 
     return {
       success: result.affected === 1,
+    };
+  }
+
+  @RabbitRPC({
+    exchange: GetClientPaymentRequestsContract.exchange,
+    routingKey: GetClientPaymentRequestsContract.routingKey,
+    queue: GetClientPaymentRequestsContract.queue,
+    errorHandler: defaultNackErrorHandler,
+  })
+  async getPaymentRequestsByClientIdRpcHandler(
+    dto: GetClientPaymentRequestsContract.Dto
+  ): Promise<GetClientPaymentRequestsContract.Response> {
+    this.logger.log(`Payment requests retrieved`, dto);
+
+    return this.getPaymentRequestsByClientIdWithProjects(dto.clientUserId);
+  }
+
+  private async getPaymentRequestsByClientIdWithProjects(clientUserId: number) {
+    const paymentRequests = await this.getPaymentRequestsByClientId(
+      clientUserId
+    );
+
+    // todo: fix n + 1 query
+
+    const requestsWithProjects = paymentRequests.map(async (paymentRequest) => {
+      const project = await this.getProjectById(paymentRequest.projectId);
+
+      return {
+        ...paymentRequest,
+        project,
+      };
+    });
+
+    return Promise.all(requestsWithProjects);
+  }
+
+  private async getPaymentRequestsByClientId(clientUserId: number) {
+    await this.throwIfUserDoesNotExist(clientUserId);
+
+    return this.paymentRequestRepository.find({
+      where: {
+        clientUserId,
+      },
+    });
+  }
+
+  @RabbitRPC({
+    exchange: GetPaymentRequestByIdContract.exchange,
+    routingKey: GetPaymentRequestByIdContract.routingKey,
+    queue: GetPaymentRequestByIdContract.queue,
+    errorHandler: defaultNackErrorHandler,
+  })
+  async getPaymentRequestByIdRpcHandler(
+    dto: GetPaymentRequestByIdContract.Dto
+  ): Promise<GetPaymentRequestByIdContract.Response> {
+    this.logger.log(`Payment request retrieved`, dto);
+
+    return this.getPaymentRequestByIdWithProject(dto.paymentRequestId);
+  }
+
+  private async getPaymentRequestByIdWithProject(
+    paymentRequestId: number
+  ): Promise<GetPaymentRequestByIdContract.Response> {
+    const paymentRequest = await this.getPaymentRequestById(paymentRequestId);
+    const project = await this.getProjectById(paymentRequest.projectId);
+
+    return {
+      paymentRequest: {
+        ...paymentRequest,
+        project,
+      },
     };
   }
 }

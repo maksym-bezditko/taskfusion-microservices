@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import {
   AtJwtGuard,
   ClientGuard,
@@ -9,6 +9,8 @@ import {
   AcceptPaymentRequestContract,
   CreateCheckoutSessionContract,
   CreatePaymentRequestContract,
+  GetClientPaymentRequestsContract,
+  GetPaymentRequestByIdContract,
   RejectPaymentRequestContract,
 } from '@taskfusion-microservices/contracts';
 
@@ -57,6 +59,30 @@ export class PaymentsController {
     return this.customAmqpConnection.requestOrThrow<RejectPaymentRequestContract.Response>(
       RejectPaymentRequestContract.routingKey,
       dto
+    );
+  }
+
+  @UseGuards(AtJwtGuard, ClientGuard)
+  @Get('get-client-payment-requests')
+  async getClientPaymentRequests(
+    @Body() dto: GetClientPaymentRequestsContract.Request
+  ): Promise<GetClientPaymentRequestsContract.Response> {
+    return this.customAmqpConnection.requestOrThrow<GetClientPaymentRequestsContract.Response>(
+      GetClientPaymentRequestsContract.routingKey,
+      dto
+    );
+  }
+
+  @UseGuards(AtJwtGuard, ClientGuard)
+  @Get('get-payment-request-by-id/:paymentRequestId')
+  async getPaymentRequestById(
+    @Param('paymentRequestId') paymentRequestId: number
+  ): Promise<GetPaymentRequestByIdContract.Response> {
+    return this.customAmqpConnection.requestOrThrow<GetPaymentRequestByIdContract.Response>(
+      GetPaymentRequestByIdContract.routingKey,
+      {
+        paymentRequestId,
+      }
     );
   }
 }
