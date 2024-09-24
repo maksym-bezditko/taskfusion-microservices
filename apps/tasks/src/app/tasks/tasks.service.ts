@@ -1,4 +1,4 @@
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -40,6 +40,7 @@ export class TasksService extends BaseService {
     exchange: CheckTaskContract.exchange,
     routingKey: CheckTaskContract.routingKey,
     queue: CheckTaskContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async checkTask(
     dto: CheckTaskContract.Dto
@@ -136,6 +137,7 @@ export class TasksService extends BaseService {
     exchange: GetTaskByIdContract.exchange,
     routingKey: GetTaskByIdContract.routingKey,
     queue: GetTaskByIdContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getTaskByIdRpcHandler(
     dto: GetTaskByIdContract.Dto
@@ -184,6 +186,7 @@ export class TasksService extends BaseService {
     exchange: ChangeTaskStatusContract.exchange,
     routingKey: ChangeTaskStatusContract.routingKey,
     queue: ChangeTaskStatusContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async changeTaskStatus(
     dto: ChangeTaskStatusContract.Dto
@@ -237,6 +240,7 @@ export class TasksService extends BaseService {
     exchange: CreateTaskContract.exchange,
     routingKey: CreateTaskContract.routingKey,
     queue: CreateTaskContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async createTask(
     dto: CreateTaskContract.Dto
@@ -296,6 +300,7 @@ export class TasksService extends BaseService {
     exchange: GetUserTasksByStatusContract.exchange,
     routingKey: GetUserTasksByStatusContract.routingKey,
     queue: GetUserTasksByStatusContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getUserTasksByStatus(
     dto: GetUserTasksByStatusContract.Dto
@@ -343,6 +348,7 @@ export class TasksService extends BaseService {
     exchange: AssignTaskToUserContract.exchange,
     routingKey: AssignTaskToUserContract.routingKey,
     queue: AssignTaskToUserContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async assingTaskToUser(
     dto: AssignTaskToUserContract.Dto
@@ -419,6 +425,7 @@ export class TasksService extends BaseService {
     exchange: UnassignTaskFromUserContract.exchange,
     routingKey: UnassignTaskFromUserContract.routingKey,
     queue: UnassignTaskFromUserContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async unassingTaskFromUser(
     dto: UnassignTaskFromUserContract.Dto

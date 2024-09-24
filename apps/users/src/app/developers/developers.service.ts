@@ -1,4 +1,4 @@
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import {
   BadRequestException,
   Injectable,
@@ -29,6 +29,7 @@ export class DevelopersService extends BaseService {
     exchange: CreateDeveloperContract.exchange,
     routingKey: CreateDeveloperContract.routingKey,
     queue: CreateDeveloperContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async createDeveloper(
     dto: CreateDeveloperContract.Dto
@@ -74,6 +75,7 @@ export class DevelopersService extends BaseService {
     exchange: CheckDeveloperContract.exchange,
     routingKey: CheckDeveloperContract.routingKey,
     queue: CheckDeveloperContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async checkDeveloper(
     dto: CheckDeveloperContract.Dto
@@ -95,6 +97,7 @@ export class DevelopersService extends BaseService {
     exchange: CheckDeveloperEmailContract.exchange,
     routingKey: CheckDeveloperEmailContract.routingKey,
     queue: CheckDeveloperEmailContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async checkDeveloperEmail(
     dto: CheckDeveloperEmailContract.Dto

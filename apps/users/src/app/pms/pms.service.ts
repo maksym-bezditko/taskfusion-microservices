@@ -1,4 +1,4 @@
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import {
   BadRequestException,
   Injectable,
@@ -29,6 +29,7 @@ export class PmsService extends BaseService {
     exchange: CreatePmContract.exchange,
     routingKey: CreatePmContract.routingKey,
     queue: CreatePmContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async createPm(
     dto: CreatePmContract.Dto
@@ -74,6 +75,7 @@ export class PmsService extends BaseService {
     exchange: CheckPmContract.exchange,
     routingKey: CheckPmContract.routingKey,
     queue: CheckPmContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async checkPm(dto: CheckPmContract.Dto): Promise<CheckPmContract.Response> {
     const pm = await this.pmRepository.findOne({
@@ -93,6 +95,7 @@ export class PmsService extends BaseService {
     exchange: CheckPmEmailContract.exchange,
     routingKey: CheckPmEmailContract.routingKey,
     queue: CheckPmEmailContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async checkPmEmail(
     dto: CheckPmEmailContract.Dto

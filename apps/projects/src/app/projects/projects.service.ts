@@ -1,4 +1,4 @@
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -40,6 +40,7 @@ export class ProjectsService extends BaseService {
     exchange: CreateProjectContract.exchange,
     routingKey: CreateProjectContract.routingKey,
     queue: CreateProjectContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async createProjectRpcHandler(
     dto: CreateProjectContract.Dto
@@ -103,6 +104,7 @@ export class ProjectsService extends BaseService {
     exchange: GetClientProjectsContract.exchange,
     routingKey: GetClientProjectsContract.routingKey,
     queue: GetClientProjectsContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getClientProjectsRpcHandler(
     dto: GetClientProjectsContract.Dto
@@ -227,6 +229,7 @@ export class ProjectsService extends BaseService {
     exchange: GetPmProjectsContract.exchange,
     routingKey: GetPmProjectsContract.routingKey,
     queue: GetPmProjectsContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getPmProjectsRpcHandler(
     dto: GetPmProjectsContract.Dto
@@ -323,6 +326,7 @@ export class ProjectsService extends BaseService {
     exchange: GetDeveloperProjectsContract.exchange,
     routingKey: GetDeveloperProjectsContract.routingKey,
     queue: GetDeveloperProjectsContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getDeveloperProjectsRpcHandler(
     dto: GetDeveloperProjectsContract.Dto
@@ -357,6 +361,7 @@ export class ProjectsService extends BaseService {
     exchange: GetProjectByIdContract.exchange,
     routingKey: GetProjectByIdContract.routingKey,
     queue: GetProjectByIdContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getProjectByIdRpcHandler(
     dto: GetProjectByIdContract.Dto
@@ -372,6 +377,7 @@ export class ProjectsService extends BaseService {
     exchange: CheckProjectContract.exchange,
     routingKey: CheckProjectContract.routingKey,
     queue: CheckProjectContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async checkProjectRpcHandler(
     dto: CheckProjectContract.Dto
@@ -395,6 +401,7 @@ export class ProjectsService extends BaseService {
     exchange: GetProjectPmUserContract.exchange,
     routingKey: GetProjectPmUserContract.routingKey,
     queue: GetProjectPmUserContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getProjectPmUserRpcHandler(
     dto: GetProjectPmUserContract.Dto
@@ -410,6 +417,7 @@ export class ProjectsService extends BaseService {
     exchange: GetProjectDeveloperUsersContract.exchange,
     routingKey: GetProjectDeveloperUsersContract.routingKey,
     queue: GetProjectDeveloperUsersContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getProjectDeveloperUsersRpcHandler(
     dto: GetProjectDeveloperUsersContract.Dto

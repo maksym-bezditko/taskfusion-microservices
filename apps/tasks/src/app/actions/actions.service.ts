@@ -1,4 +1,4 @@
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -29,6 +29,7 @@ export class ActionsService extends BaseService {
     exchange: CreateActionContract.exchange,
     routingKey: CreateActionContract.routingKey,
     queue: CreateActionContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async createActionRpcHandler(dto: CreateActionContract.Dto) {
     this.logger.log(`Action created`);
@@ -56,6 +57,7 @@ export class ActionsService extends BaseService {
     exchange: GetActionsByTaskIdContract.exchange,
     routingKey: GetActionsByTaskIdContract.routingKey,
     queue: GetActionsByTaskIdContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getActionsByTaskIdRpcHandler(
     dto: GetActionsByTaskIdContract.Dto

@@ -1,4 +1,4 @@
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import {
   BadRequestException,
   Injectable,
@@ -42,6 +42,7 @@ export class DeveloperInvitesService extends BaseService {
     exchange: GetDeveloperInviteByIdContract.exchange,
     routingKey: GetDeveloperInviteByIdContract.routingKey,
     queue: GetDeveloperInviteByIdContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getDeveloperInviteByIdRpcHandler(
     dto: GetDeveloperInviteByIdContract.Dto
@@ -64,6 +65,7 @@ export class DeveloperInvitesService extends BaseService {
     exchange: InviteDeveloperContract.exchange,
     routingKey: InviteDeveloperContract.routingKey,
     queue: InviteDeveloperContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async inviteDeveloperRpcHandler(
     dto: InviteDeveloperContract.Dto
@@ -150,7 +152,9 @@ export class DeveloperInvitesService extends BaseService {
     return projectPmUserId;
   }
 
-  private async findDeveloperInvite(where: FindOptionsWhere<DeveloperInviteEntity>) {
+  private async findDeveloperInvite(
+    where: FindOptionsWhere<DeveloperInviteEntity>
+  ) {
     return this.developerInviteEntityRepositoty.findOne({
       where,
     });
@@ -221,7 +225,9 @@ export class DeveloperInvitesService extends BaseService {
     );
   }
 
-  private async throwIfDeveloperInviteIsNotActive(invite: DeveloperInviteEntity) {
+  private async throwIfDeveloperInviteIsNotActive(
+    invite: DeveloperInviteEntity
+  ) {
     if (!this.isDeveloperInviteActive(invite)) {
       this.logAndThrowError(
         new BadRequestException('Invite is not valid anymore')
@@ -257,6 +263,7 @@ export class DeveloperInvitesService extends BaseService {
     exchange: AcceptDeveloperInviteContract.exchange,
     routingKey: AcceptDeveloperInviteContract.routingKey,
     queue: AcceptDeveloperInviteContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async acceptDeveloperInviteRpcHandler(
     dto: AcceptDeveloperInviteContract.Dto
@@ -299,6 +306,7 @@ export class DeveloperInvitesService extends BaseService {
     exchange: RejectDeveloperInviteContract.exchange,
     routingKey: RejectDeveloperInviteContract.routingKey,
     queue: RejectDeveloperInviteContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async rejectDeveloperInviteRpcHandler(
     dto: RejectDeveloperInviteContract.Dto

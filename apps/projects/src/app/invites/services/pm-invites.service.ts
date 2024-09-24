@@ -1,4 +1,4 @@
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import {
   BadRequestException,
   Injectable,
@@ -42,6 +42,7 @@ export class PmInvitesService extends BaseService {
     exchange: InvitePmContract.exchange,
     routingKey: InvitePmContract.routingKey,
     queue: InvitePmContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async invitePmRpcHandler(
     dto: InvitePmContract.Dto
@@ -211,6 +212,7 @@ export class PmInvitesService extends BaseService {
     exchange: AcceptPmInviteContract.exchange,
     routingKey: AcceptPmInviteContract.routingKey,
     queue: AcceptPmInviteContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async acceptPmInviteRpcHandler(
     dto: AcceptPmInviteContract.Dto
@@ -247,6 +249,7 @@ export class PmInvitesService extends BaseService {
     exchange: RejectPmInviteContract.exchange,
     routingKey: RejectPmInviteContract.routingKey,
     queue: RejectPmInviteContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async rejectPmInviteRpcHandler(
     dto: RejectPmInviteContract.Dto
@@ -294,6 +297,7 @@ export class PmInvitesService extends BaseService {
     exchange: GetPmInviteByIdContract.exchange,
     routingKey: GetPmInviteByIdContract.routingKey,
     queue: GetPmInviteByIdContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getPmInviteByIdRpcHandler(
     dto: GetPmInviteByIdContract.Dto

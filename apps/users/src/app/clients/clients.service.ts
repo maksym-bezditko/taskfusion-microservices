@@ -1,4 +1,4 @@
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -25,6 +25,7 @@ export class ClientsService extends BaseService {
     exchange: CreateClientContract.exchange,
     routingKey: CreateClientContract.routingKey,
     queue: CreateClientContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async createClient(
     dto: CreateClientContract.Dto
@@ -70,6 +71,7 @@ export class ClientsService extends BaseService {
     exchange: CheckClientContract.exchange,
     routingKey: CheckClientContract.routingKey,
     queue: CheckClientContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async checkClient(
     dto: CheckClientContract.Dto
@@ -91,6 +93,7 @@ export class ClientsService extends BaseService {
     exchange: GetClientByUserIdContract.exchange,
     routingKey: GetClientByUserIdContract.routingKey,
     queue: GetClientByUserIdContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getClientByUserId(
     dto: GetClientByUserIdContract.Dto
