@@ -1,4 +1,4 @@
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseService } from '@taskfusion-microservices/common';
@@ -25,6 +25,7 @@ export class TasksUsersService extends BaseService {
     exchange: GetTaskIdsByUserIdContract.exchange,
     routingKey: GetTaskIdsByUserIdContract.routingKey,
     queue: GetTaskIdsByUserIdContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getTaskIdsByUserIdRpcHandler(
     dto: GetTaskIdsByUserIdContract.Dto
@@ -58,6 +59,7 @@ export class TasksUsersService extends BaseService {
     exchange: GetUserIdsByTaskIdContract.exchange,
     routingKey: GetUserIdsByTaskIdContract.routingKey,
     queue: GetUserIdsByTaskIdContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getUserIdsByTaskIdRpcHandler(
     dto: GetUserIdsByTaskIdContract.Dto
@@ -85,6 +87,7 @@ export class TasksUsersService extends BaseService {
     exchange: GetTaskUserRelation.exchange,
     routingKey: GetTaskUserRelation.routingKey,
     queue: GetTaskUserRelation.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getTaskUserRelationRpcHandler(
     dto: GetTaskUserRelation.Dto
@@ -117,6 +120,7 @@ export class TasksUsersService extends BaseService {
     exchange: DeleteTaskUserRelation.exchange,
     routingKey: DeleteTaskUserRelation.routingKey,
     queue: DeleteTaskUserRelation.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async deleteTaskUserRelationRpcHandler(
     dto: DeleteTaskUserRelation.Dto
@@ -147,6 +151,7 @@ export class TasksUsersService extends BaseService {
     exchange: CreateTaskUserRelation.exchange,
     routingKey: CreateTaskUserRelation.routingKey,
     queue: CreateTaskUserRelation.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async createTaskUserRelationRpcHandler(
     dto: CreateTaskUserRelation.Dto

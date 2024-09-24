@@ -1,4 +1,4 @@
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseService } from '@taskfusion-microservices/common';
@@ -28,6 +28,7 @@ export class ProjectsUsersService extends BaseService {
     exchange: GetUserProjectIdsContract.exchange,
     routingKey: GetUserProjectIdsContract.routingKey,
     queue: GetUserProjectIdsContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getUserProjectIdsRpcHandler(
     dto: GetUserProjectIdsContract.Dto
@@ -51,6 +52,7 @@ export class ProjectsUsersService extends BaseService {
     exchange: GetProjectPmUserIdContract.exchange,
     routingKey: GetProjectPmUserIdContract.routingKey,
     queue: GetProjectPmUserIdContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getProjectPmIdRpcHandler(
     dto: GetProjectPmUserIdContract.Dto
@@ -83,6 +85,7 @@ export class ProjectsUsersService extends BaseService {
     exchange: GetProjectDeveloperIdsContract.exchange,
     routingKey: GetProjectDeveloperIdsContract.routingKey,
     queue: GetProjectDeveloperIdsContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getProjectDeveloperIdsRpcHandler(
     dto: GetProjectDeveloperIdsContract.Dto
@@ -109,6 +112,7 @@ export class ProjectsUsersService extends BaseService {
     exchange: AssignUserToProjectContract.exchange,
     routingKey: AssignUserToProjectContract.routingKey,
     queue: AssignUserToProjectContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async assignUserToProjectRpcHandler(
     dto: AssignUserToProjectContract.Dto
@@ -170,6 +174,7 @@ export class ProjectsUsersService extends BaseService {
     exchange: UnassignUserFromProjectContract.exchange,
     routingKey: UnassignUserFromProjectContract.routingKey,
     queue: UnassignUserFromProjectContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async unassignUserFromProjectRpcHandler(
     dto: UnassignUserFromProjectContract.Dto

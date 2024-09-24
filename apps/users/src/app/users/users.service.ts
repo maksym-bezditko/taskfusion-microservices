@@ -19,7 +19,7 @@ import {
   LogoutContract,
   RefreshTokensContract,
 } from '@taskfusion-microservices/contracts';
-import { RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
 import { BaseService } from '@taskfusion-microservices/common';
 
 @Injectable()
@@ -37,6 +37,7 @@ export class UsersService extends BaseService {
     exchange: GetUserByIdContract.exchange,
     routingKey: GetUserByIdContract.routingKey,
     queue: GetUserByIdContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getUserById(
     dto: GetUserByIdContract.Dto
@@ -66,6 +67,7 @@ export class UsersService extends BaseService {
     exchange: GetUserByEmailContract.exchange,
     routingKey: GetUserByEmailContract.routingKey,
     queue: GetUserByEmailContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getUserByEmail(
     dto: GetUserByEmailContract.Dto
@@ -95,6 +97,7 @@ export class UsersService extends BaseService {
     exchange: GetUsersByIdsContract.exchange,
     routingKey: GetUsersByIdsContract.routingKey,
     queue: GetUsersByIdsContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getUsersByIds(
     dto: GetUsersByIdsContract.Dto
@@ -124,6 +127,7 @@ export class UsersService extends BaseService {
     exchange: CheckUserContract.exchange,
     routingKey: CheckUserContract.routingKey,
     queue: CheckUserContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async checkUser(
     dto: CheckUserContract.Dto
@@ -143,6 +147,7 @@ export class UsersService extends BaseService {
     exchange: RefreshTokensContract.exchange,
     routingKey: RefreshTokensContract.routingKey,
     queue: RefreshTokensContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async refreshTokens(
     dto: RefreshTokensContract.Dto
@@ -177,6 +182,7 @@ export class UsersService extends BaseService {
     exchange: LoginContract.exchange,
     routingKey: LoginContract.routingKey,
     queue: LoginContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async login(dto: LoginContract.Dto): Promise<LoginContract.Response> {
     const user = await this.userRepository.findOne({
@@ -215,6 +221,7 @@ export class UsersService extends BaseService {
     exchange: LogoutContract.exchange,
     routingKey: LogoutContract.routingKey,
     queue: LogoutContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async logout(dto: LogoutContract.Dto): Promise<LogoutContract.Response> {
     const user = await this.userRepository.findOne({
@@ -240,6 +247,7 @@ export class UsersService extends BaseService {
     exchange: GetProfileContract.exchange,
     routingKey: GetProfileContract.routingKey,
     queue: GetProfileContract.queue,
+    errorHandler: defaultNackErrorHandler,
   })
   async getProfile(
     dto: GetProfileContract.Dto
