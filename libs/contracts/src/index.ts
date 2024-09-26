@@ -38,7 +38,6 @@ export * from './contracts/profile/get-profile.contract';
 
 export * from './contracts/payments/create-checkout-session.contract';
 export * from './contracts/payments/create-payment-request.contract';
-export * from './contracts/payments/accept-payment-request.contract';
 export * from './contracts/payments/reject-payment-request.contract';
 export * from './contracts/payments/get-client-payment-requests.contract';
 export * from './contracts/payments/get-payment-request-by-id.contract';

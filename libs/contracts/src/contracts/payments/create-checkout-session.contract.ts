@@ -22,6 +22,9 @@ export namespace CreateCheckoutSessionContract {
 
 		@IsInt()
 		usdAmount: number;
+
+    @IsInt()
+    paymentRequestId: number;
   }
 
   export class Dto extends Request {}

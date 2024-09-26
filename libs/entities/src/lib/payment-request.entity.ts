@@ -19,23 +19,40 @@ export class PaymentRequestEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({
+    name: 'project_id',
+  })
   projectId: number;
 
-  @Column()
+  @Column({
+    name: 'client_user_id',
+  })
   clientUserId: number;
 
   @Column()
   comment: string;
 
-  @Column()
+  @Column({
+    name: 'usd_amount',
+  })
   usdAmount: number;
 
-  @Column()
+  @Column({
+    name: 'payment_period_start_date',
+  })
   paymentPeriodStartDate: Date;
 
-  @Column()
+  @Column({
+    name: 'payment_period_end_date',
+  })
   paymentPeriodEndDate: Date;
+
+  @Column({
+    name: 'checkout_session_id',
+    nullable: true,
+    default: null,
+  })
+  checkoutSessionId: string | null;
 
   @Column({
     type: 'enum',
