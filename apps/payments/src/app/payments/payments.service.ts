@@ -1,5 +1,8 @@
 import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
-import { InjectStripeClient } from '@golevelup/nestjs-stripe';
+import {
+  InjectStripeClient,
+  StripeWebhookHandler,
+} from '@golevelup/nestjs-stripe';
 import {
   BadRequestException,
   Injectable,
@@ -11,7 +14,6 @@ import {
   CustomAmqpConnection,
 } from '@taskfusion-microservices/common';
 import {
-  AcceptPaymentRequestContract,
   CheckUserContract,
   CreateCheckoutSessionContract,
   CreatePaymentRequestContract,
@@ -53,7 +55,7 @@ export class PaymentsService extends BaseService {
   }
 
   private async createCheckoutSession(dto: CreateCheckoutSessionContract.Dto) {
-    const { projectId, usdAmount } = dto;
+    const { projectId, usdAmount, paymentRequestId } = dto;
 
     const project = await this.getProjectByIdOrThrow(projectId);
 
@@ -71,11 +73,43 @@ export class PaymentsService extends BaseService {
           },
         },
       ],
-      success_url: 'http://localhost:8000/success',
-      cancel_url: 'http://localhost:8000/cancel',
+      success_url: 'http://localhost:8000/dashboard',
+      cancel_url: 'http://localhost:8000/dashboard',
     });
 
+    await this.updatePaymentRequestCheckoutSessionId(
+      paymentRequestId,
+      session.id
+    );
+
     return session;
+  }
+
+  private async updatePaymentRequestCheckoutSessionId(
+    paymentRequestId: number,
+    checkoutSessionId: string
+  ) {
+    const result = await this.paymentRequestRepository.update(
+      paymentRequestId,
+      {
+        checkoutSessionId,
+      }
+    );
+
+    return result.affected === 1;
+  }
+
+  private async acceptPaymentRequestByCheckoutSessionId(
+    checkoutSessionId: string
+  ) {
+    const result = await this.updatePaymentRequestByCheckoutSessionId(
+      checkoutSessionId,
+      {
+        status: PaymentRequestStatus.ACCEPTED,
+      }
+    );
+
+    return result.affected === 1;
   }
 
   @RabbitRPC({
@@ -169,19 +203,19 @@ export class PaymentsService extends BaseService {
   }
 
   @RabbitRPC({
-    exchange: AcceptPaymentRequestContract.exchange,
-    routingKey: AcceptPaymentRequestContract.routingKey,
-    queue: AcceptPaymentRequestContract.queue,
+    exchange: RejectPaymentRequestContract.exchange,
+    routingKey: RejectPaymentRequestContract.routingKey,
+    queue: RejectPaymentRequestContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async acceptPaymentRequestRpcHandler(dto: AcceptPaymentRequestContract.Dto) {
-    this.logger.log(`Payment request accepted`, dto);
+  async rejectPaymentRequestRpcHandler(dto: RejectPaymentRequestContract.Dto) {
+    this.logger.log(`Payment request rejected`, dto);
 
-    return this.approvePaymentRequest(dto);
+    return this.rejectPaymentRequest(dto);
   }
 
-  private async approvePaymentRequest(
-    paymentRequest: AcceptPaymentRequestContract.Dto
+  private async rejectPaymentRequest(
+    paymentRequest: RejectPaymentRequestContract.Dto
   ) {
     const { paymentRequestId } = paymentRequest;
 
@@ -192,7 +226,7 @@ export class PaymentsService extends BaseService {
     await this.throwIfPaymentRequestIsAcceptedOrRejected(paymentRequestEntity);
 
     const result = await this.updatePaymentRequestById(paymentRequestId, {
-      status: PaymentRequestStatus.ACCEPTED,
+      status: PaymentRequestStatus.REJECTED,
     });
 
     return {
@@ -241,36 +275,14 @@ export class PaymentsService extends BaseService {
     return this.paymentRequestRepository.update({ id }, updatedFields);
   }
 
-  @RabbitRPC({
-    exchange: RejectPaymentRequestContract.exchange,
-    routingKey: RejectPaymentRequestContract.routingKey,
-    queue: RejectPaymentRequestContract.queue,
-    errorHandler: defaultNackErrorHandler,
-  })
-  async rejectPaymentRequestRpcHandler(dto: RejectPaymentRequestContract.Dto) {
-    this.logger.log(`Payment request rejected`, dto);
-
-    return this.rejectPaymentRequest(dto);
-  }
-
-  private async rejectPaymentRequest(
-    paymentRequest: RejectPaymentRequestContract.Dto
+  private updatePaymentRequestByCheckoutSessionId(
+    checkoutSessionId: string,
+    updatedFields: DeepPartial<PaymentRequestEntity>
   ) {
-    const { paymentRequestId } = paymentRequest;
-
-    const paymentRequestEntity = await this.getPaymentRequestByIdOrThrow(
-      paymentRequestId
+    return this.paymentRequestRepository.update(
+      { checkoutSessionId },
+      updatedFields
     );
-
-    await this.throwIfPaymentRequestIsAcceptedOrRejected(paymentRequestEntity);
-
-    const result = await this.updatePaymentRequestById(paymentRequestId, {
-      status: PaymentRequestStatus.REJECTED,
-    });
-
-    return {
-      success: result.affected === 1,
-    };
   }
 
   @RabbitRPC({
@@ -342,5 +354,16 @@ export class PaymentsService extends BaseService {
         project,
       },
     };
+  }
+
+  @StripeWebhookHandler('checkout.session.completed')
+  async handlePaymentIntentSucceeded(
+    evt: Stripe.CheckoutSessionCompletedEvent
+  ) {
+    const checkoutSessionId = evt.data.object.id;
+
+    console.log(checkoutSessionId);
+
+    await this.acceptPaymentRequestByCheckoutSessionId(checkoutSessionId);
   }
 }
