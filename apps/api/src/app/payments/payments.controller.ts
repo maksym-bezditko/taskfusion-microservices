@@ -6,7 +6,6 @@ import {
   PmGuard,
 } from '@taskfusion-microservices/common';
 import {
-  AcceptPaymentRequestContract,
   CreateCheckoutSessionContract,
   CreatePaymentRequestContract,
   GetClientPaymentRequestsContract,
@@ -36,17 +35,6 @@ export class PaymentsController {
   ): Promise<CreatePaymentRequestContract.Response> {
     return this.customAmqpConnection.requestOrThrow<CreatePaymentRequestContract.Response>(
       CreatePaymentRequestContract.routingKey,
-      dto
-    );
-  }
-
-  @UseGuards(AtJwtGuard, ClientGuard)
-  @Post('accept-payment-request')
-  async acceptPaymentRequest(
-    @Body() dto: AcceptPaymentRequestContract.Request
-  ): Promise<AcceptPaymentRequestContract.Response> {
-    return this.customAmqpConnection.requestOrThrow<AcceptPaymentRequestContract.Response>(
-      AcceptPaymentRequestContract.routingKey,
       dto
     );
   }
