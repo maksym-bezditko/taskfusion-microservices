@@ -1,0 +1,13 @@
+services:
+  payments-db:
+    image: mysql:8.0
+    container_name: notifications-db
+    environment:
+      MYSQL_DATABASE: notifications_db
+      MYSQL_USER: user
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_PASSWORD: password
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./[payments-db]-mysql-data:/var/lib/mysql
