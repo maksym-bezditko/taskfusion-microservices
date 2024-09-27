@@ -29,6 +29,11 @@ services:
       file: ./apps/projects-users/docker-compose.yml
       service: projects-users-db
 
+  notifications-db:
+    extends:
+      file: ./apps/notifications/docker-compose.yml
+      service: notifications-db
+
   rabbit:
     image: 'rabbitmq:3-management'
     container_name: 'rabbitmq'
