@@ -11,3 +11,4 @@ export * from './lib/action.entity';
 export * from './lib/projectsUsers.entity';
 export * from './lib/pm-invite.entity';
 export * from './lib/developer-invite.entity';
+export * from './lib/notification.entity';
