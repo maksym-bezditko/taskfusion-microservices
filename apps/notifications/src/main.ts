@@ -11,7 +11,7 @@ import { RpcExceptionsFilter } from '@taskfusion-microservices/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalFilters(new RpcExceptionsFilter('emails'));
+  app.useGlobalFilters(new RpcExceptionsFilter('notifications'));
 
   app.init();
 }
