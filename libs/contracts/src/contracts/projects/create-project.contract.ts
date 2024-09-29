@@ -3,7 +3,7 @@ import {
   GENERAL_EXCHANGE_NAME,
   PROJECTS_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
-import { IsDateString, IsInt, IsString, ValidateIf } from 'class-validator';
+import { IsDateString, IsInt, IsString } from 'class-validator';
 
 export namespace CreateProjectContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
@@ -24,11 +24,7 @@ export namespace CreateProjectContract {
     description: string;
 
     @IsInt()
-    @ValidateIf((object) => object.pmId !== null)
-    pmId: number | null;
-
-    @IsInt()
-    clientId: number;
+    clientUserId: number;
 
     @IsDateString()
     deadline: string;

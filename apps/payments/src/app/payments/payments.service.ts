@@ -16,10 +16,13 @@ import {
 import {
   CheckUserContract,
   CreateCheckoutSessionContract,
+  CreateNotificationContract,
   CreatePaymentRequestContract,
   GetClientPaymentRequestsContract,
   GetPaymentRequestByIdContract,
   GetProjectByIdContract,
+  GetProjectPmUserIdContract,
+  GetUserByIdContract,
   RejectPaymentRequestContract,
 } from '@taskfusion-microservices/contracts';
 import {
@@ -109,7 +112,92 @@ export class PaymentsService extends BaseService {
       }
     );
 
+    const paymentRequestEntity = await this.findPaymentByCheckoutSessionId(
+      checkoutSessionId
+    );
+
+    await this.sendPaymentRequestNotification(
+      'Payment request was approved',
+      paymentRequestEntity
+    );
+
     return result.affected === 1;
+  }
+
+  private async sendPaymentRequestNotification(
+    message: string,
+    paymentRequest: PaymentRequestEntity,
+    notifyPm = true
+  ) {
+    const project = await this.getProjectByIdOrThrow(paymentRequest.projectId);
+
+    const pmUser = await this.getProjectPmUser(project.id);
+
+    await this.sendInAppNotification(
+      message,
+      `/projects/${paymentRequest.projectId}/payment-request/${paymentRequest.id}`,
+      notifyPm ? pmUser.id : paymentRequest.clientUserId
+    );
+  }
+
+  private async getProjectPmUser(projectId: number) {
+    await this.getProjectByIdOrThrow(projectId);
+
+    const pmUserId = await this.getProjectPmId(projectId);
+
+    if (!pmUserId) {
+      return null;
+    }
+
+    const user = await this.getUserByIdOrThrow(pmUserId);
+
+    return user;
+  }
+
+  private async getUserByIdOrThrow(userId: number) {
+    const user = await this.getUserById(userId);
+
+    if (!user) {
+      this.logAndThrowError(new NotFoundException('User not found'));
+    }
+
+    return user;
+  }
+
+  private async getUserById(userId: number) {
+    const dto: GetUserByIdContract.Dto = {
+      id: userId,
+    };
+
+    const user =
+      await this.customAmqpConnection.requestOrThrow<GetUserByIdContract.Response>(
+        GetUserByIdContract.routingKey,
+        dto
+      );
+
+    return user;
+  }
+
+  private async getProjectPmId(projectId: number) {
+    const dto: GetProjectPmUserIdContract.Dto = {
+      projectId,
+    };
+
+    const { pmUserId } =
+      await this.customAmqpConnection.requestOrThrow<GetProjectPmUserIdContract.Response>(
+        GetProjectPmUserIdContract.routingKey,
+        dto
+      );
+
+    return pmUserId;
+  }
+
+  private async findPaymentByCheckoutSessionId(checkoutSessionId: string) {
+    return this.paymentRequestRepository.findOne({
+      where: {
+        checkoutSessionId,
+      },
+    });
   }
 
   @RabbitRPC({
@@ -149,7 +237,28 @@ export class PaymentsService extends BaseService {
 
     await this.paymentRequestRepository.save(paymentRequest);
 
+    await this.sendPaymentRequestNotification(
+      'Payment request was created',
+      paymentRequest,
+      false
+    );
+
     return paymentRequest;
+  }
+
+  private async sendInAppNotification(
+    title: string,
+    redirectUrl: string,
+    userId: number
+  ) {
+    await this.customAmqpConnection.publishOrThrow(
+      CreateNotificationContract.routingKey,
+      {
+        title,
+        redirectUrl,
+        userId,
+      }
+    );
   }
 
   private async throwIfUserDoesNotExist(userId: number) {
@@ -228,6 +337,11 @@ export class PaymentsService extends BaseService {
     const result = await this.updatePaymentRequestById(paymentRequestId, {
       status: PaymentRequestStatus.REJECTED,
     });
+
+    await this.sendPaymentRequestNotification(
+      'Payment request was rejected',
+      paymentRequestEntity
+    );
 
     return {
       success: result.affected === 1,
@@ -361,8 +475,6 @@ export class PaymentsService extends BaseService {
     evt: Stripe.CheckoutSessionCompletedEvent
   ) {
     const checkoutSessionId = evt.data.object.id;
-
-    console.log(checkoutSessionId);
 
     await this.acceptPaymentRequestByCheckoutSessionId(checkoutSessionId);
   }

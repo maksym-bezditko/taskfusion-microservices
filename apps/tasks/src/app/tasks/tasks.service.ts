@@ -22,6 +22,7 @@ import {
   DeleteTaskUserRelation,
   GetTaskUserRelation,
   CreateTaskUserRelation,
+  CreateNotificationContract,
 } from '@taskfusion-microservices/contracts';
 import { TaskEntity } from '@taskfusion-microservices/entities';
 import { FindOptionsWhere, In, Repository } from 'typeorm';
@@ -416,9 +417,26 @@ export class TasksService extends BaseService {
 
     this.logger.log(`Task ${taskId} assigned to user ${users[0].name}`);
 
+    // notification: if assigner is not the same as assigned user, notify
+
     return {
       success: Boolean(taskUserRelation),
     };
+  }
+
+  private async sendInAppNotification(
+    title: string,
+    redirectUrl: string,
+    userId: number
+  ) {
+    await this.customAmqpConnection.publishOrThrow(
+      CreateNotificationContract.routingKey,
+      {
+        title,
+        redirectUrl,
+        userId,
+      }
+    );
   }
 
   @RabbitRPC({
@@ -465,6 +483,8 @@ export class TasksService extends BaseService {
     );
 
     this.logger.log(`Task ${taskId} unassigned from user ${users[0].name}`);
+
+    // notification: if assigner is not the same as assigned user, notify
 
     return {
       success: deleteOperationSuccess,

@@ -11,7 +11,8 @@
         "nx run users:serve",
         "nx run tasks-users:serve",
         "nx run projects-users:serve",
-        "nx run email:serve"
+        "nx run notifications:serve",
+        "stripe listen --forward-to localhost:4242/stripe/webhook"
       ],
       "problemMatcher": [],
       "presentation": {
@@ -169,9 +170,30 @@
       }
     },
     {
-      "label": "nx run email:serve",
+      "label": "nx run notifications:serve",
       "type": "shell",
-      "command": "nx run email:serve",
+      "command": "nx run notifications:serve",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "options": {
+        "statusbar": {
+          "hide": true
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": false
+      }
+    },
+    {
+      "label": "stripe listen --forward-to localhost:4242/stripe/webhook",
+      "type": "shell",
+      "command": "stripe listen --forward-to localhost:4242/stripe/webhook",
       "problemMatcher": [],
       "group": {
         "kind": "build",
