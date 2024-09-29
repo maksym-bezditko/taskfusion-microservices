@@ -9,6 +9,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { ActionsModule } from './actions/actions.module';
 import { CommentsModule } from './comments/comments.module';
 import { PaymentsModule } from './payments/payments.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { PaymentsModule } from './payments/payments.module';
     ActionsModule,
     CommentsModule,
     PaymentsModule,
+    NotificationsModule,
   ],
   providers: [AtJwtStrategy, RtJwtStrategy],
 })
