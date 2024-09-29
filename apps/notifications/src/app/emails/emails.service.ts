@@ -6,12 +6,12 @@ import { BaseService } from '@taskfusion-microservices/common';
 import { SendEmailContract } from '@taskfusion-microservices/contracts';
 
 @Injectable()
-export class EmailService extends BaseService {
+export class EmailsService extends BaseService {
   constructor(
     private readonly mailService: MailerService,
     private readonly configService: ConfigService
   ) {
-    super(EmailService.name);
+    super(EmailsService.name);
   }
 
   @RabbitSubscribe({
