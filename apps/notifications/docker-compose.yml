@@ -1,5 +1,5 @@
 services:
-  payments-db:
+  notifications-db:
     image: mysql:8.0
     container_name: notifications-db
     environment:
@@ -10,4 +10,4 @@ services:
     ports:
       - '3306:3306'
     volumes:
-      - ./[payments-db]-mysql-data:/var/lib/mysql
+      - ./[notifications-db]-mysql-data:/var/lib/mysql
