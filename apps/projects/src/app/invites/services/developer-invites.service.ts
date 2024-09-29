@@ -11,6 +11,7 @@ import {
   AcceptDeveloperInviteContract,
   RejectDeveloperInviteContract,
   GetProjectPmUserIdContract,
+  CreateNotificationContract,
 } from '@taskfusion-microservices/contracts';
 import {
   UserType,
@@ -133,6 +134,12 @@ export class DeveloperInvitesService extends BaseService {
       invitedUserType: UserType.DEVELOPER,
     });
 
+    await this.sendInAppNotification(
+      'Project Invitation',
+      `/developer/project-invitation/${invite.id}`,
+      developerUser.id
+    );
+
     return { id: invite.id };
   }
 
@@ -210,6 +217,12 @@ export class DeveloperInvitesService extends BaseService {
       invitedUserType: UserType.DEVELOPER,
     });
 
+    await this.sendInAppNotification(
+      'Project Invitation was updated',
+      `/developer/project-invitation/${existingInvite.id}`,
+      developerUser.id
+    );
+
     return { id: existingInvite.id };
   }
 
@@ -259,6 +272,21 @@ export class DeveloperInvitesService extends BaseService {
     });
   }
 
+  private async sendInAppNotification(
+    title: string,
+    redirectUrl: string,
+    userId: number
+  ) {
+    await this.customAmqpConnection.publishOrThrow(
+      CreateNotificationContract.routingKey,
+      {
+        title,
+        redirectUrl,
+        userId,
+      }
+    );
+  }
+
   @RabbitRPC({
     exchange: AcceptDeveloperInviteContract.exchange,
     routingKey: AcceptDeveloperInviteContract.routingKey,
@@ -284,6 +312,12 @@ export class DeveloperInvitesService extends BaseService {
     await this.updateDeveloperInvite(invite, {
       inviteStatus: InviteStatus.ACCEPTED,
     });
+
+    await this.sendInAppNotification(
+      'Project Invitation was accepted',
+      `/developer/project-invitation/${inviteId}`,
+      invite.pmUserId
+    );
 
     return this.invitesHelperService.assignUserToProject(
       invite.projectId,
@@ -327,6 +361,12 @@ export class DeveloperInvitesService extends BaseService {
     await this.updateDeveloperInvite(invite, {
       inviteStatus: InviteStatus.REJECTED,
     });
+
+    await this.sendInAppNotification(
+      'Project Invitation was rejected',
+      `/developer/project-invitation/${inviteId}`,
+      invite.pmUserId
+    );
 
     return {
       success: true,

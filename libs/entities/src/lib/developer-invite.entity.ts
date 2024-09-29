@@ -19,13 +19,19 @@ export class DeveloperInviteEntity {
   @Column()
   projectId: number;
 
-  @Column()
+  @Column({
+    name: 'pm_user_id',
+  })
   pmUserId: number;
 
-  @Column()
+  @Column({
+    name: 'developer_user_id',
+  })
   developerUserId: number;
 
-  @Column()
+  @Column({
+    name: 'expires_at'
+  })
   expiresAt: Date;
 
   @Column({
