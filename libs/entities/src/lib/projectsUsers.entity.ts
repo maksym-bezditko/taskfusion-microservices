@@ -28,7 +28,6 @@ export class ProjectsUsersEntity {
   @Column({
     type: 'enum',
     enum: ProjectParticipantRole,
-    name: 'role',
   })
   role: ProjectParticipantRole;
 

@@ -75,3 +75,4 @@ export * from './contracts/invites/reject-developer-invite.contract';
 export * from './contracts/email/send-email.contract';
 
 export * from './contracts/notifications/create-notification.contract';
+export * from './contracts/notifications/get-user-notifications.contract';
