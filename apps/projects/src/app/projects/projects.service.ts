@@ -14,14 +14,13 @@ import {
   CheckProjectContract,
   GetProjectPmUserContract,
   GetProjectDeveloperUsersContract,
-  CheckClientContract,
-  CheckPmContract,
   GetProjectPmUserIdContract,
   GetUserProjectIdsContract,
   GetProjectDeveloperIdsContract,
   GetUserByIdContract,
   GetUsersByIdsContract,
   GetClientByUserIdContract,
+  CheckUserContract,
 } from '@taskfusion-microservices/contracts';
 import { ProjectEntity } from '@taskfusion-microservices/entities';
 import { Repository, In, DeepPartial } from 'typeorm';
@@ -45,13 +44,7 @@ export class ProjectsService extends BaseService {
   async createProjectRpcHandler(
     dto: CreateProjectContract.Dto
   ): Promise<CreateProjectContract.Response> {
-    await this.throwErrorIfClientDoesNotExist(dto.clientId);
-
-    const isPmDefined = dto.pmId;
-
-    if (isPmDefined) {
-      await this.throwErrorIfPmDoesNotExist(dto.pmId);
-    }
+    await this.throwErrorIfUserDoesNotExist(dto.clientUserId);
 
     const project = await this.createProject(dto);
 
@@ -60,38 +53,20 @@ export class ProjectsService extends BaseService {
     return { id: project.id };
   }
 
-  private async throwErrorIfClientDoesNotExist(clientId: number) {
-    const dto: CheckClientContract.Dto = {
-      clientId,
+  private async throwErrorIfUserDoesNotExist(userId: number) {
+    const dto: CheckUserContract.Dto = {
+      userId,
     };
 
-    const clientResult =
-      await this.customAmqpConnection.requestOrThrow<CheckClientContract.Response>(
-        CheckClientContract.routingKey,
+    const userResult =
+      await this.customAmqpConnection.requestOrThrow<CheckUserContract.Response>(
+        CheckUserContract.routingKey,
         dto
       );
 
-    if (!clientResult || !clientResult.exists) {
-      throw new NotFoundException('Client not found!');
+    if (!userResult || !userResult.exists) {
+      throw new NotFoundException('User not found!');
     }
-  }
-
-  private async throwErrorIfPmDoesNotExist(pmId: number) {
-    const dto = {
-      pmId,
-    };
-
-    const pm =
-      await this.customAmqpConnection.requestOrThrow<CheckPmContract.Response>(
-        CheckPmContract.routingKey,
-        dto
-      );
-
-    if (!pm || !pm.exists) {
-      throw new NotFoundException('PM not found!');
-    }
-
-    return pm;
   }
 
   private async createProject(project: DeepPartial<ProjectEntity>) {
@@ -116,8 +91,8 @@ export class ProjectsService extends BaseService {
     return this.getClientProjectsWithPmAndDeveloperUsers(client.id);
   }
 
-  private async getClientProjectsWithPmAndDeveloperUsers(clientId: number) {
-    const projects = await this.getClientProjects(clientId);
+  private async getClientProjectsWithPmAndDeveloperUsers(clientUserId: number) {
+    const projects = await this.getClientProjects(clientUserId);
 
     // todo: fix n + 1 query
     const projectsWithUsers = projects.map(async (project) => {
@@ -181,8 +156,10 @@ export class ProjectsService extends BaseService {
     return pmUserId;
   }
 
-  private async getClientProjects(clientId: number) {
-    const projects = await this.projectRepository.find({ where: { clientId } });
+  private async getClientProjects(clientUserId: number) {
+    const projects = await this.projectRepository.find({
+      where: { clientUserId },
+    });
 
     return projects;
   }

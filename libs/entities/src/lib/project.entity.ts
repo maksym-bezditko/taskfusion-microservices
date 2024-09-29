@@ -26,16 +26,9 @@ export class ProjectEntity {
   deadline: Date;
 
   @Column({
-    name: 'pm_id',
-    default: null,
-    nullable: true,
+    name: 'client_user_id',
   })
-  pmId: number | null;
-
-  @Column({
-    name: 'client_id',
-  })
-  clientId: number;
+  clientUserId: number;
 
   @CreateDateColumn({
     name: 'created_at',

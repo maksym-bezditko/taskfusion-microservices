@@ -10,6 +10,7 @@ import {
   RejectPmInviteContract,
   GetPmInviteByIdContract,
   GetUserByIdContract,
+  CreateNotificationContract,
 } from '@taskfusion-microservices/contracts';
 import {
   UserType,
@@ -59,7 +60,7 @@ export class PmInvitesService extends BaseService {
       projectId
     );
 
-    if (project.clientId !== clientUserId) {
+    if (project.clientUserId !== clientUserId) {
       throw new BadRequestException('Project does not belong to client');
     }
 
@@ -97,6 +98,12 @@ export class PmInvitesService extends BaseService {
       inviteId: invite.id,
       invitedUserType: UserType.PM,
     });
+
+    await this.sendInAppNotification(
+      'Project Invitation',
+      `/pm/project-invitation/${invite.id}`,
+      pmUser.id
+    );
 
     return { id: invite.id };
   }
@@ -177,6 +184,12 @@ export class PmInvitesService extends BaseService {
       invitedUserType: UserType.PM,
     });
 
+    await this.sendInAppNotification(
+      'Project Invitation was updated',
+      `/pm/project-invitation/${existingInvite.id}`,
+      pmUser.id
+    );
+
     return { id: existingInvite.id };
   }
 
@@ -206,6 +219,21 @@ export class PmInvitesService extends BaseService {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+  }
+
+  private async sendInAppNotification(
+    title: string,
+    redirectUrl: string,
+    userId: number
+  ) {
+    await this.customAmqpConnection.publishOrThrow(
+      CreateNotificationContract.routingKey,
+      {
+        title,
+        redirectUrl,
+        userId,
+      }
+    );
   }
 
   @RabbitRPC({
@@ -238,11 +266,19 @@ export class PmInvitesService extends BaseService {
       inviteStatus: InviteStatus.ACCEPTED,
     });
 
-    return this.invitesHelperService.assignUserToProject(
+    const response = await this.invitesHelperService.assignUserToProject(
       invite.projectId,
       pmUserId,
       ProjectParticipantRole.PM
     );
+
+    await this.sendInAppNotification(
+      'Project Invitation was accepted',
+      `/pm/project-invitation/${inviteId}`,
+      invite.clientUserId
+    );
+
+    return response;
   };
 
   @RabbitRPC({
@@ -271,6 +307,12 @@ export class PmInvitesService extends BaseService {
     await this.updatePmInvite(invite, {
       inviteStatus: InviteStatus.REJECTED,
     });
+
+    await this.sendInAppNotification(
+      'Project Invitation was rejected',
+      `/pm/project-invitation/${inviteId}`,
+      invite.clientUserId
+    );
 
     return {
       success: true,

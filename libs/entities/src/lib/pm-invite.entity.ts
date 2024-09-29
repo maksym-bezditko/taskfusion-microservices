@@ -24,13 +24,19 @@ export class PmInviteEntity {
   @Column()
   projectId: number;
 
-  @Column()
+  @Column({
+    name: 'client_user_id',
+  })
   clientUserId: number;
 
-  @Column()
+  @Column({
+    name: 'pm_user_id',
+  })
   pmUserId: number;
 
-  @Column()
+  @Column({
+    name: 'expires_at',
+  })
   expiresAt: Date;
 
   @Column({
