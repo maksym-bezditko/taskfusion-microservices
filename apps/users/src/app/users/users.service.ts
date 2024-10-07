@@ -39,13 +39,17 @@ export class UsersService extends BaseService {
     queue: GetUserByIdContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async getUserById(
+  async getUserByIdRpcHandler(
     dto: GetUserByIdContract.Dto
   ): Promise<GetUserByIdContract.Response> {
-    const { id } = dto;
+    this.logger.log('Retrieving user by id');
 
-    const user = await this.userRepository.findOne({
-      where: { id },
+    return this.getUserById(dto.id);
+  }
+
+  private async getUserById(userId: number) {
+    return this.userRepository.findOne({
+      where: { id: userId },
       select: [
         'id',
         'name',
@@ -57,10 +61,6 @@ export class UsersService extends BaseService {
         'updatedAt',
       ],
     });
-
-    this.logger.log('Retrieving user by id');
-
-    return user;
   }
 
   @RabbitRPC({
@@ -69,12 +69,16 @@ export class UsersService extends BaseService {
     queue: GetUserByEmailContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async getUserByEmail(
+  async getUserByEmailRpcHandler(
     dto: GetUserByEmailContract.Dto
   ): Promise<GetUserByEmailContract.Response> {
-    const { email } = dto;
+    this.logger.log('Retrieving user by email');
 
-    const user = await this.userRepository.findOne({
+    return this.getUserByEmail(dto.email);
+  }
+
+  async getUserByEmail(email: string) {
+    return this.userRepository.findOne({
       where: { email },
       select: [
         'id',
@@ -87,10 +91,6 @@ export class UsersService extends BaseService {
         'updatedAt',
       ],
     });
-
-    this.logger.log('Retrieving user by email');
-
-    return user;
   }
 
   @RabbitRPC({
@@ -99,12 +99,16 @@ export class UsersService extends BaseService {
     queue: GetUsersByIdsContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async getUsersByIds(
+  async getUsersByIdsRpcHandler(
     dto: GetUsersByIdsContract.Dto
   ): Promise<GetUsersByIdsContract.Response> {
-    const { ids } = dto;
+    this.logger.log('Retrieving users by ids');
 
-    const users = await this.userRepository.find({
+    return this.getUsersByIds(dto.ids);
+  }
+
+  private async getUsersByIds(ids: number[]) {
+    return this.userRepository.find({
       where: { id: In(ids) },
       select: [
         'id',
@@ -117,10 +121,6 @@ export class UsersService extends BaseService {
         'updatedAt',
       ],
     });
-
-    this.logger.log('Retrieving users by ids');
-
-    return users;
   }
 
   @RabbitRPC({
@@ -129,14 +129,18 @@ export class UsersService extends BaseService {
     queue: CheckUserContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async checkUser(
+  async checkUserRpcHandler(
     dto: CheckUserContract.Dto
   ): Promise<CheckUserContract.Response> {
-    const user = await this.userRepository.findOne({
-      where: { id: dto.userId },
-    });
-
     this.logger.log('Checking if user exists');
+
+    return this.checkUser(dto.userId);
+  }
+
+  private async checkUser(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
 
     return {
       exists: Boolean(user),
@@ -149,16 +153,16 @@ export class UsersService extends BaseService {
     queue: RefreshTokensContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async refreshTokens(
+  async refreshTokensRpcHandler(
     dto: RefreshTokensContract.Dto
   ): Promise<RefreshTokensContract.Response> {
-    const user = await this.userRepository.findOne({
-      where: { id: dto.userId },
-    });
+    this.logger.log('Refreshing tokens');
 
-    if (!user) {
-      this.logAndThrowError(new BadRequestException('Invalid refresh token'));
-    }
+    return this.refreshTokens(dto.userId);
+  }
+
+  private async refreshTokens(userId: number) {
+    const user = await this.getUserByIdOrThrow(userId);
 
     const { accessToken, refreshToken } = await this.generateTokens({
       id: user.id,
@@ -170,12 +174,20 @@ export class UsersService extends BaseService {
       refreshToken,
     });
 
-    this.logger.log('Refreshing tokens');
-
     return {
       accessToken,
       refreshToken,
     };
+  }
+
+  private async getUserByIdOrThrow(id: number) {
+    const user = await this.getUserById(id);
+
+    if (!user) {
+      this.logAndThrowError(new BadRequestException('Invalid refresh token'));
+    }
+
+    return user;
   }
 
   @RabbitRPC({
@@ -184,20 +196,18 @@ export class UsersService extends BaseService {
     queue: LoginContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async login(dto: LoginContract.Dto): Promise<LoginContract.Response> {
-    const user = await this.userRepository.findOne({
-      where: { email: dto.email },
-    });
+  async loginRpcHandler(
+    dto: LoginContract.Dto
+  ): Promise<LoginContract.Response> {
+    this.logger.log('User logging in');
 
-    if (!user) {
-      this.logAndThrowError(new NotFoundException('User not found'));
-    }
+    return this.login(dto.email, dto.password);
+  }
 
-    const isMatch = await bcrypt.compare(dto.password, user.password);
+  private async login(email: string, password: string) {
+    const user = await this.getUserByEmailOrThrow(email);
 
-    if (!isMatch) {
-      this.logAndThrowError(new BadRequestException('Invalid credentials'));
-    }
+    await this.throwIfPasswordsDontMatch(password, user.password);
 
     const { accessToken, refreshToken } = await this.generateTokens({
       id: user.id,
@@ -209,12 +219,31 @@ export class UsersService extends BaseService {
       refreshToken,
     });
 
-    this.logger.log('User logged in');
-
     return {
       accessToken,
       refreshToken,
     };
+  }
+
+  private async getUserByEmailOrThrow(email: string) {
+    const user = await this.getUserByEmail(email);
+
+    if (!user) {
+      this.logAndThrowError(new BadRequestException('Invalid credentials'));
+    }
+
+    return user;
+  }
+
+  private async throwIfPasswordsDontMatch(
+    password: string,
+    hashedPassword: string
+  ) {
+    const isMatch = await bcrypt.compare(password, hashedPassword);
+
+    if (!isMatch) {
+      this.logAndThrowError(new BadRequestException('Invalid credentials'));
+    }
   }
 
   @RabbitRPC({
@@ -223,20 +252,20 @@ export class UsersService extends BaseService {
     queue: LogoutContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async logout(dto: LogoutContract.Dto): Promise<LogoutContract.Response> {
-    const user = await this.userRepository.findOne({
-      where: { id: dto.userId },
-    });
+  async logoutRpcHandler(
+    dto: LogoutContract.Dto
+  ): Promise<LogoutContract.Response> {
+    this.logger.log('User logged out');
 
-    if (!user) {
-      this.logAndThrowError(new BadRequestException('Invalid refresh token'));
-    }
+    return this.logout(dto.userId);
+  }
+
+  private async logout(userId: number) {
+    const user = await this.getUserByIdOrThrow(userId);
 
     await this.updateUser(user.id, {
       refreshToken: null,
     });
-
-    this.logger.log('User logged out');
 
     return {
       userId: user.id,
@@ -249,39 +278,43 @@ export class UsersService extends BaseService {
     queue: GetProfileContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async getProfile(
+  async getProfileRpcHandler(
     dto: GetProfileContract.Dto
   ): Promise<GetProfileContract.Response> {
-    const user = await this.userRepository.findOne({
-      where: { id: dto.userId },
-      relations: ['client', 'pm', 'developer'],
-    });
-
-    if (!user) {
-      this.logAndThrowError(new NotFoundException('Invalid refresh token'));
-    }
-
     this.logger.log('Retrieving user profile');
 
-    return {
-      id: user.id,
-      email: user.email,
-      userType: user.userType,
-      description: user.description,
-      telegramId: user.telegramId,
-      name: user.name,
-      client: user.client,
-      pm: user.pm,
-      developer: user.developer,
-    };
+    return this.getProfile(dto.userId);
+  }
+
+  private async getProfile(userId: number) {
+    return this.getUserByIdWithUserTypeRelationsOrThrow(userId);
+  }
+
+  private async getUserByIdWithUserTypeRelationsOrThrow(id: number) {
+    const user = await this.getUserByIdWithUserTypeRelations(id);
+
+    if (!user) {
+      this.logAndThrowError(new NotFoundException('User not found'));
+    }
+
+    return user;
+  }
+
+  private async getUserByIdWithUserTypeRelations(id: number) {
+    return this.userRepository.findOne({
+      where: { id },
+      relations: ['client', 'pm', 'developer'],
+    });
   }
 
   async createUser(userParams: DeepPartial<UserEntity>) {
     const { password, ...rest } = userParams;
 
+    const passwordHash = await this.hashPassword(password);
+
     const user = this.userRepository.create({
       ...rest,
-      password: await this.hashPassword(password),
+      password: passwordHash,
     });
 
     await this.userRepository.save(user);
@@ -297,7 +330,7 @@ export class UsersService extends BaseService {
     return user;
   }
 
-  async signPayload(payload: Buffer | object, options?: JwtSignOptions) {
+  private async signPayload(payload: Buffer | object, options?: JwtSignOptions) {
     this.logger.log('Signing payload with JWT');
 
     return this.jwtService.signAsync(payload, options);
@@ -326,7 +359,7 @@ export class UsersService extends BaseService {
     };
   }
 
-  async hashPassword(password: string) {
+  private async hashPassword(password: string) {
     return bcrypt.hash(password, 10);
   }
 }
