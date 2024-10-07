@@ -27,26 +27,16 @@ export class ClientsService extends BaseService {
     queue: CreateClientContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async createClient(
+  async createClientRpcHandler(
     dto: CreateClientContract.Dto
   ): Promise<CreateClientContract.Response> {
-    const client = this.clientRepository.create();
+    this.logger.log('Creating client');
 
-    await this.clientRepository.save(client);
+    return this.createClient(dto);
+  }
 
-    const user = await this.usersService.createUser({
-      email: dto.email,
-      password: dto.password,
-      userType: UserType.CLIENT,
-      telegramId: dto.telegramId,
-      description: dto.description,
-      name: dto.name,
-      client,
-    });
-
-    await this.updateClients(client.id, {
-      user,
-    });
+  private async createClient(dto: CreateClientContract.Dto) {
+    const user = await this.createClientUserWithRelation(dto);
 
     const { accessToken, refreshToken } =
       await this.usersService.generateTokens({
@@ -59,12 +49,38 @@ export class ClientsService extends BaseService {
       refreshToken,
     });
 
-    this.logger.log(`Client ${client.id} created`);
-
     return {
       accessToken,
       refreshToken,
     };
+  }
+
+  private async createClientUserWithRelation(dto: CreateClientContract.Dto) {
+    const client = await this.createClientEntity();
+
+    const user = await this.usersService.createUser({
+      email: dto.email,
+      password: dto.password,
+      userType: UserType.CLIENT,
+      telegramId: dto.telegramId,
+      description: dto.description,
+      name: dto.name,
+      client,
+    });
+
+    await this.updateClient(client.id, {
+      user,
+    });
+
+    return user;
+  }
+
+  private async createClientEntity() {
+    const client = this.clientRepository.create();
+
+    await this.clientRepository.save(client);
+
+    return client;
   }
 
   @RabbitRPC({
@@ -73,16 +89,20 @@ export class ClientsService extends BaseService {
     queue: CheckClientContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async checkClient(
+  async checkClientRpcHandler(
     dto: CheckClientContract.Dto
   ): Promise<CheckClientContract.Response> {
+    this.logger.log(`Checking if client exists: ${dto.clientId}`);
+
+    return this.checkClient(dto.clientId);
+  }
+
+  private async checkClient(clientId: number) {
     const client = await this.clientRepository.findOne({
       where: {
-        id: dto.clientId,
+        id: clientId,
       },
     });
-
-    this.logger.log(`Checking if client exists: ${dto.clientId}`);
 
     return {
       exists: Boolean(client),
@@ -95,23 +115,25 @@ export class ClientsService extends BaseService {
     queue: GetClientByUserIdContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async getClientByUserId(
+  async getClientByUserIdRpcHandler(
     dto: GetClientByUserIdContract.Dto
   ): Promise<GetClientByUserIdContract.Response> {
-    const client = await this.clientRepository.findOne({
+    this.logger.log(`Client by user id: ${dto.userId}`);
+
+    return this.getClientByUserId(dto.userId);
+  }
+
+  private async getClientByUserId(clientUserId: number) {
+    return this.clientRepository.findOne({
       where: {
         user: {
-          id: dto.userId,
+          id: clientUserId,
         },
       },
     });
-
-    this.logger.log(`Client by user id: ${dto.userId}`);
-
-    return client;
   }
 
-  async updateClients(
+  async updateClient(
     clientId: number,
     clientParams: DeepPartial<ClientEntity>
   ) {
@@ -119,8 +141,6 @@ export class ClientsService extends BaseService {
       { id: clientId },
       clientParams
     );
-
-    this.logger.log(`Updated client: ${clientId}`);
 
     return client;
   }
