@@ -65,7 +65,7 @@ export class ProjectsService extends BaseService {
       );
 
     if (!userResult || !userResult.exists) {
-      throw new NotFoundException('User not found!');
+      this.logAndThrowError(new NotFoundException('User not found!'));
     }
   }
 
@@ -132,7 +132,7 @@ export class ProjectsService extends BaseService {
     const project = await this.getProjectById(projectId);
 
     if (!project) {
-      throw new NotFoundException('Project not found!');
+      this.logAndThrowError(new NotFoundException('Project not found!'));
     }
 
     return project;
@@ -182,7 +182,7 @@ export class ProjectsService extends BaseService {
     const user = await this.getUserById(userId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      this.logAndThrowError(new NotFoundException('User not found'));
     }
 
     return user;

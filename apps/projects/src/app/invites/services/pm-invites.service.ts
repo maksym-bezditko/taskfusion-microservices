@@ -61,7 +61,9 @@ export class PmInvitesService extends BaseService {
     );
 
     if (project.clientUserId !== clientUserId) {
-      throw new BadRequestException('Project does not belong to client');
+      this.logAndThrowError(
+        new BadRequestException('Project does not belong to client')
+      );
     }
 
     const pmUser = await this.invitesHelperService.getUserByEmailOrThrow(email);
@@ -257,7 +259,7 @@ export class PmInvitesService extends BaseService {
     const invite = await this.getPmInviteById(inviteId);
 
     if (!invite) {
-      throw new NotFoundException('Invite not found');
+      this.logAndThrowError(new NotFoundException('Invite not found'));
     }
 
     this.throwIfPmInviteIsNotActive(invite);
@@ -299,7 +301,7 @@ export class PmInvitesService extends BaseService {
     const invite = await this.getPmInviteById(inviteId);
 
     if (!invite) {
-      throw new NotFoundException('Invite not found');
+      this.logAndThrowError(new NotFoundException('Invite not found'));
     }
 
     await this.throwIfPmInviteIsNotActive(invite);
