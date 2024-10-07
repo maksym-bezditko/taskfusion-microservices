@@ -86,7 +86,7 @@ export class DeveloperInvitesService extends BaseService {
     const projectPmId = await this.getProjectPmId(project.id);
 
     if (projectPmId !== pmUserId) {
-      throw new BadRequestException('Project not found');
+      this.logAndThrowError(new BadRequestException('Project not found'));
     }
 
     const developerUser = await this.invitesHelperService.getUserByEmailOrThrow(
@@ -330,7 +330,7 @@ export class DeveloperInvitesService extends BaseService {
     const invite = await this.getDeveloperInviteById(id);
 
     if (!invite) {
-      throw new NotFoundException('Invite not found');
+      this.logAndThrowError(new NotFoundException('Invite not found'));
     }
 
     return invite;
