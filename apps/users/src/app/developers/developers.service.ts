@@ -104,9 +104,7 @@ export class DevelopersService extends BaseService {
   ): Promise<CheckDeveloperEmailContract.Response> {
     const { email } = dto;
 
-    const developerUser = await this.usersService.getUserByEmail({
-      email,
-    });
+    const developerUser = await this.usersService.getUserByEmail(email);
 
     if (!developerUser) {
       throw new NotFoundException('User not found');
