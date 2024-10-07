@@ -1,9 +1,5 @@
 import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   CheckPmContract,
@@ -102,11 +98,7 @@ export class PmsService extends BaseService {
   ): Promise<CheckPmEmailContract.Response> {
     const { email } = dto;
 
-    const pmUser = await this.usersService.getUserByEmail(email);
-
-    if (!pmUser) {
-      throw new NotFoundException('User not found');
-    }
+    const pmUser = await this.usersService.getUserByEmailOrThrow(email);
 
     if (pmUser.userType !== UserType.PM) {
       throw new BadRequestException('User is not a project manager');

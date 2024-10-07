@@ -1,9 +1,5 @@
 import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   CheckDeveloperContract,
@@ -31,12 +27,38 @@ export class DevelopersService extends BaseService {
     queue: CreateDeveloperContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async createDeveloper(
+  async createDeveloperRpcHandler(
     dto: CreateDeveloperContract.Dto
   ): Promise<CreateDeveloperContract.Response> {
-    const developer = this.developerRepository.create();
+    this.logger.log(`Developer created`);
 
-    await this.developerRepository.save(developer);
+    return this.createDeveloper(dto);
+  }
+
+  private async createDeveloper(dto: CreateDeveloperContract.Dto) {
+    const user = await this.createDeveloperUserWithRelation(dto);
+
+    const { accessToken, refreshToken } =
+      await this.usersService.generateTokens({
+        id: user.id,
+        email: user.email,
+        userType: user.userType,
+      });
+
+    await this.usersService.updateUser(user.id, {
+      refreshToken,
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  private async createDeveloperUserWithRelation(
+    dto: CreateDeveloperContract.Dto
+  ) {
+    const developer = await this.createDeveloperEntity();
 
     const user = await this.usersService.createUser({
       email: dto.email,
@@ -52,23 +74,15 @@ export class DevelopersService extends BaseService {
       user,
     });
 
-    const { accessToken, refreshToken } =
-      await this.usersService.generateTokens({
-        id: user.id,
-        email: user.email,
-        userType: user.userType,
-      });
+    return user;
+  }
 
-    await this.usersService.updateUser(user.id, {
-      refreshToken,
-    });
+  private async createDeveloperEntity() {
+    const developer = this.developerRepository.create();
 
-    this.logger.log(`Developer ${developer.id} created`);
+    await this.developerRepository.save(developer);
 
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return developer;
   }
 
   @RabbitRPC({
@@ -77,16 +91,20 @@ export class DevelopersService extends BaseService {
     queue: CheckDeveloperContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async checkDeveloper(
+  async checkDeveloperRpcHandler(
     dto: CheckDeveloperContract.Dto
   ): Promise<CheckDeveloperContract.Response> {
+    this.logger.log(`Checking if developer exists: ${dto.developerId}`);
+
+    return this.checkDeveloper(dto.developerId);
+  }
+
+  private async checkDeveloper(developerId: number) {
     const developer = await this.developerRepository.findOne({
       where: {
-        id: dto.developerId,
+        id: developerId,
       },
     });
-
-    this.logger.log(`Checking if developer exists: ${dto.developerId}`);
 
     return {
       exists: Boolean(developer),
@@ -99,29 +117,30 @@ export class DevelopersService extends BaseService {
     queue: CheckDeveloperEmailContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async checkDeveloperEmail(
+  async checkDeveloperEmailRpcHandler(
     dto: CheckDeveloperEmailContract.Dto
   ): Promise<CheckDeveloperEmailContract.Response> {
-    const { email } = dto;
+    this.logger.log(`Checking if developer email exists`);
 
-    const developerUser = await this.usersService.getUserByEmail(email);
+    return this.checkDeveloperEmail(dto.email);
+  }
 
-    if (!developerUser) {
-      throw new NotFoundException('User not found');
-    }
+  private async checkDeveloperEmail(
+    email: string
+  ): Promise<CheckDeveloperEmailContract.Response> {
+    const developerUser = await this.usersService.getUserByEmailOrThrow(email);
 
-    if (developerUser.userType !== UserType.DEVELOPER) {
-      throw new BadRequestException('User is not a project manager');
-    }
-
-    this.logger.log(`Checking if developer email exists: ${email}`);
+    await this.usersService.throwIfUserTypeDoesNotMatch(
+      developerUser,
+      UserType.DEVELOPER
+    );
 
     return {
       exists: true,
     };
   }
 
-  async updateDeveloper(
+  private async updateDeveloper(
     developerId: number,
     developerParams: DeepPartial<DeveloperEntity>
   ) {
@@ -129,8 +148,6 @@ export class DevelopersService extends BaseService {
       { id: developerId },
       developerParams
     );
-
-    this.logger.log(`Developer ${developerId} updated`);
 
     return developer;
   }

@@ -77,7 +77,7 @@ export class UsersService extends BaseService {
     return this.getUserByEmail(dto.email);
   }
 
-  async getUserByEmail(email: string) {
+  private async getUserByEmail(email: string) {
     return this.userRepository.findOne({
       where: { email },
       select: [
@@ -225,7 +225,7 @@ export class UsersService extends BaseService {
     };
   }
 
-  private async getUserByEmailOrThrow(email: string) {
+  async getUserByEmailOrThrow(email: string) {
     const user = await this.getUserByEmail(email);
 
     if (!user) {
@@ -330,7 +330,10 @@ export class UsersService extends BaseService {
     return user;
   }
 
-  private async signPayload(payload: Buffer | object, options?: JwtSignOptions) {
+  private async signPayload(
+    payload: Buffer | object,
+    options?: JwtSignOptions
+  ) {
     this.logger.log('Signing payload with JWT');
 
     return this.jwtService.signAsync(payload, options);
@@ -361,5 +364,16 @@ export class UsersService extends BaseService {
 
   private async hashPassword(password: string) {
     return bcrypt.hash(password, 10);
+  }
+
+  async throwIfUserTypeDoesNotMatch(
+    user: UserEntity,
+    expectedUserType: UserType
+  ) {
+    if (!user || user.userType !== expectedUserType) {
+      this.logAndThrowError(
+        new BadRequestException(`${expectedUserType} user not found`)
+      );
+    }
   }
 }
