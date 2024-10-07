@@ -1,5 +1,5 @@
 import { defaultNackErrorHandler, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   CheckPmContract,
@@ -27,12 +27,36 @@ export class PmsService extends BaseService {
     queue: CreatePmContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async createPm(
+  async createPmRpcHandler(
     dto: CreatePmContract.Dto
   ): Promise<CreatePmContract.Response> {
-    const pm = this.pmRepository.create();
+    this.logger.log('Creating pm');
 
-    await this.pmRepository.save(pm);
+    return this.createPm(dto);
+  }
+
+  private async createPm(dto: CreatePmContract.Dto) {
+    const user = await this.createPmUserWithRelation(dto);
+
+    const { accessToken, refreshToken } =
+      await this.usersService.generateTokens({
+        id: user.id,
+        email: user.email,
+        userType: user.userType,
+      });
+
+    await this.usersService.updateUser(user.id, {
+      refreshToken,
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  private async createPmUserWithRelation(dto: CreatePmContract.Dto) {
+    const pm = await this.createPmEntity();
 
     const user = await this.usersService.createUser({
       email: dto.email,
@@ -48,23 +72,15 @@ export class PmsService extends BaseService {
       user,
     });
 
-    const { accessToken, refreshToken } =
-      await this.usersService.generateTokens({
-        id: user.id,
-        email: user.email,
-        userType: user.userType,
-      });
+    return user;
+  }
 
-    await this.usersService.updateUser(user.id, {
-      refreshToken,
-    });
+  private async createPmEntity() {
+    const pm = this.pmRepository.create();
 
-    this.logger.log(`Pm ${pm.id} created`);
+    await this.pmRepository.save(pm);
 
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return pm;
   }
 
   @RabbitRPC({
@@ -73,14 +89,20 @@ export class PmsService extends BaseService {
     queue: CheckPmContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async checkPm(dto: CheckPmContract.Dto): Promise<CheckPmContract.Response> {
+  async checkPmRpcHandler(
+    dto: CheckPmContract.Dto
+  ): Promise<CheckPmContract.Response> {
+    this.logger.log(`Checking if pm exists: ${dto.pmId}`);
+
+    return this.checkPm(dto.pmId);
+  }
+
+  private async checkPm(pmId: number) {
     const pm = await this.pmRepository.findOne({
       where: {
-        id: dto.pmId,
+        id: pmId,
       },
     });
-
-    this.logger.log(`Checking if pm exists: ${dto.pmId}`);
 
     return {
       exists: Boolean(pm),
@@ -93,18 +115,20 @@ export class PmsService extends BaseService {
     queue: CheckPmEmailContract.queue,
     errorHandler: defaultNackErrorHandler,
   })
-  async checkPmEmail(
+  async checkPmEmailRpcHandler(
     dto: CheckPmEmailContract.Dto
   ): Promise<CheckPmEmailContract.Response> {
-    const { email } = dto;
+    this.logger.log(`Checking if pm exists: ${dto.email}`);
 
+    return this.checkPmEmail(dto.email);
+  }
+
+  private async checkPmEmail(
+    email: string
+  ): Promise<CheckPmEmailContract.Response> {
     const pmUser = await this.usersService.getUserByEmailOrThrow(email);
 
-    if (pmUser.userType !== UserType.PM) {
-      throw new BadRequestException('User is not a project manager');
-    }
-
-    this.logger.log(`Checking if pm exists: ${email}`);
+    await this.usersService.throwIfUserTypeDoesNotMatch(pmUser, UserType.PM);
 
     return {
       exists: true,
@@ -112,10 +136,6 @@ export class PmsService extends BaseService {
   }
 
   async updatePm(pmId: number, pmParams: DeepPartial<PmEntity>) {
-    const pm = await this.pmRepository.update({ id: pmId }, pmParams);
-
-    this.logger.log(`Pm ${pmId} updated`);
-
-    return pm;
+    return this.pmRepository.update({ id: pmId }, pmParams);
   }
 }
