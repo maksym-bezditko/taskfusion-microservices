@@ -137,11 +137,9 @@ export class ClientsService extends BaseService {
     clientId: number,
     clientParams: DeepPartial<ClientEntity>
   ) {
-    const client = await this.clientRepository.update(
+    return this.clientRepository.update(
       { id: clientId },
       clientParams
     );
-
-    return client;
   }
 }

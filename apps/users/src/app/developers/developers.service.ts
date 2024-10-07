@@ -144,11 +144,9 @@ export class DevelopersService extends BaseService {
     developerId: number,
     developerParams: DeepPartial<DeveloperEntity>
   ) {
-    const developer = await this.developerRepository.update(
+    return this.developerRepository.update(
       { id: developerId },
       developerParams
     );
-
-    return developer;
   }
 }
