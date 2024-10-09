@@ -1,0 +1,75 @@
+{{- range .Values.databases }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .name | lower }}-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .storage }}
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .name | lower }}-db
+spec:
+  serviceName: {{ .name | lower }}-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .name | lower }}-db
+  template:
+    metadata:
+      labels:
+        app: {{ .name | lower }}-db
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: {{ .rootPassword | quote }}
+            - name: MYSQL_DATABASE
+              value: {{ .name | lower }}_db
+            - name: MYSQL_USER
+              value: {{ .user | quote }}
+            - name: MYSQL_PASSWORD
+              value: {{ .password | quote }}
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -h localhost
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: {{ .name | lower }}-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name | lower }}-service
+  labels:
+    app: {{ .name | lower }}-db
+spec:
+  type: NodePort
+  ports:
+    - port: 3306
+      targetPort: 3306
+      name: mysql
+      nodePort: {{ .nodePort }}
+  selector:
+    app: {{ .name | lower }}-db
+{{- end }}
