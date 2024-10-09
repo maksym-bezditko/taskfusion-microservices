@@ -1,0 +1,56 @@
+databases:
+  - name: notifications
+    storage: 1Gi
+    rootPassword: rootpassword
+    user: user
+    password: password
+    nodePort: 30000
+    port: 3300
+
+  - name: payments
+    storage: 1Gi
+    rootPassword: rootpassword
+    user: user
+    password: password
+    nodePort: 30001
+    port: 3301
+
+  - name: projects
+    storage: 1Gi
+    rootPassword: rootpassword
+    user: user
+    password: password
+    nodePort: 30002
+    port: 3302
+
+  - name: projects-users
+    storage: 1Gi
+    rootPassword: rootpassword
+    user: user
+    password: password
+    nodePort: 30003
+    port: 3303
+
+  - name: tasks
+    storage: 1Gi
+    rootPassword: rootpassword
+    user: user
+    password: password
+    nodePort: 30004
+    port: 3304
+
+  - name: tasks-users
+    storage: 1Gi
+    rootPassword: rootpassword
+    user: user
+    password: password
+    nodePort: 30005
+    port: 3305
+
+  - name: users
+    storage: 1Gi
+    rootPassword: rootpassword
+    user: user
+    password: password
+    nodePort: 30006
+    port: 3306
