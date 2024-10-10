@@ -1,22 +1,12 @@
 {{- range .Values.databases }}
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ .name | lower }}-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: {{ .storage }}
-
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ .name | lower }}-db
+  labels:
+    app: {{ .name | lower }}-db
 spec:
-  serviceName: {{ .name | lower }}-service
+  serviceName: "{{ .name | lower }}-db"
   replicas: 1
   selector:
     matchLabels:
@@ -41,35 +31,28 @@ spec:
           ports:
             - containerPort: 3306
           volumeMounts:
-            - name: mysql-storage
+            - name: mysql-data
               mountPath: /var/lib/mysql
-          readinessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - mysqladmin ping -h localhost
-            initialDelaySeconds: 10
-            periodSeconds: 5
-      volumes:
-        - name: mysql-storage
-          persistentVolumeClaim:
-            claimName: {{ .name | lower }}-pvc
-
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .storage }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ .name | lower }}-service
-  labels:
-    app: {{ .name | lower }}-db
 spec:
   type: NodePort
   ports:
     - port: 3306
       targetPort: 3306
-      name: mysql
       nodePort: {{ .nodePort }}
+      name: {{ .name }}-mysql
   selector:
     app: {{ .name | lower }}-db
 {{- end }}
