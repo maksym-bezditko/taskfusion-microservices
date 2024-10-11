@@ -7,7 +7,7 @@ export const getTypeOrmConfig = (
 ): Promise<TypeOrmModuleOptions> | TypeOrmModuleOptions => {
   return {
     type: 'mysql',
-    host: 'localhost',
+    host: configService.getOrThrow('DB_HOST'),
     port: configService.getOrThrow('DB_PORT'),
     username: configService.getOrThrow('DB_USER'),
     password: configService.getOrThrow('DB_PASSWORD'),

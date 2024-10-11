@@ -11,7 +11,7 @@ export class RmqDynamicModule {
       module: RmqDynamicModule,
       imports: [
         RabbitMQModule.forRoot(RabbitMQModule, {
-          uri: 'amqp://admin:admin@localhost:31672',
+          uri: 'amqp://admin:admin@192.168.105.3:30007',
           exchanges: [
             {
               name: GENERAL_EXCHANGE_NAME,
