@@ -1,58 +1,62 @@
 {{- range .Values.databases }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}-db-service
+spec:
+  type: NodePort
+  ports:
+    - port: {{ .port }}
+      targetPort: 3306
+      nodePort: {{ .nodePort }}
+  selector:
+    app: {{ .name }}-db
+
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .name | lower }}-db
+  name: {{ .name }}-db
   labels:
-    app: {{ .name | lower }}-db
+    app: {{ .name }}-db
 spec:
-  serviceName: "{{ .name | lower }}-db"
+  serviceName: "{{ .name }}-db"
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .name | lower }}-db
+      app: {{ .name }}-db
   template:
     metadata:
       labels:
-        app: {{ .name | lower }}-db
+        app: {{ .name }}-db
     spec:
       containers:
         - name: mysql
           image: mysql:8.0
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: {{ .rootPassword | quote }}
+              value: rootpassword
             - name: MYSQL_DATABASE
-              value: {{ .name | lower }}_db
+              value: {{ .name }}-db
             - name: MYSQL_USER
-              value: {{ .user | quote }}
+              value: user
             - name: MYSQL_PASSWORD
-              value: {{ .password | quote }}
+              value: password
           ports:
             - containerPort: 3306
           volumeMounts:
-            - name: mysql-data
+            - name: {{ .name }}-db-storage
               mountPath: /var/lib/mysql
   volumeClaimTemplates:
     - metadata:
-        name: mysql-data
+        name: {{ .name }}-db-storage
       spec:
-        accessModes: ["ReadWriteOnce"]
+        accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            storage: {{ .storage }}
+            storage: 1Gi
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .name | lower }}-service
-spec:
-  type: NodePort
-  ports:
-    - port: 3306
-      targetPort: 3306
-      nodePort: {{ .nodePort }}
-      name: {{ .name }}-mysql
-  selector:
-    app: {{ .name | lower }}-db
+
 {{- end }}
