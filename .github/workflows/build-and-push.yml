@@ -32,58 +32,58 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/api:latest
 
-      - name: Build Notifications Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/notifications:latest -f apps/notifications/Dockerfile .
+      # - name: Build Notifications Docker image
+      #   run: |
+      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/notifications:latest -f apps/notifications/Dockerfile .
 
-      - name: Push Notifications Docker image
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/notifications:latest
+      # - name: Push Notifications Docker image
+      #   run: |
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/notifications:latest
 
-      - name: Build Payments Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/payments:latest -f apps/payments/Dockerfile .
+      # - name: Build Payments Docker image
+      #   run: |
+      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/payments:latest -f apps/payments/Dockerfile .
 
-      - name: Push Payments Docker image
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/payments:latest
+      # - name: Push Payments Docker image
+      #   run: |
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/payments:latest
 
-      - name: Build Projects Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/projects:latest -f apps/projects/Dockerfile .
+      # - name: Build Projects Docker image
+      #   run: |
+      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/projects:latest -f apps/projects/Dockerfile .
 
-      - name: Push Projects Docker image
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/projects:latest
+      # - name: Push Projects Docker image
+      #   run: |
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/projects:latest
 
-      - name: Build Projects-Users Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/projects-users:latest -f apps/projects-users/Dockerfile .
+      # - name: Build Projects-Users Docker image
+      #   run: |
+      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/projects-users:latest -f apps/projects-users/Dockerfile .
 
-      - name: Push Projects-Users Docker image
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/projects-users:latest
+      # - name: Push Projects-Users Docker image
+      #   run: |
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/projects-users:latest
 
-      - name: Build Tasks Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/tasks:latest -f apps/tasks/Dockerfile .
+      # - name: Build Tasks Docker image
+      #   run: |
+      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/tasks:latest -f apps/tasks/Dockerfile .
 
-      - name: Push Tasks Docker image
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/tasks:latest
+      # - name: Push Tasks Docker image
+      #   run: |
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/tasks:latest
 
-      - name: Build Tasks-Users Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/tasks-users:latest -f apps/tasks-users/Dockerfile .
+      # - name: Build Tasks-Users Docker image
+      #   run: |
+      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/tasks-users:latest -f apps/tasks-users/Dockerfile .
 
-      - name: Push Tasks-Users Docker image
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/tasks-users:latest
+      # - name: Push Tasks-Users Docker image
+      #   run: |
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/tasks-users:latest
 
-      - name: Build Users Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/users:latest -f apps/users/Dockerfile .
+      # - name: Build Users Docker image
+      #   run: |
+      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/users:latest -f apps/users/Dockerfile .
 
-      - name: Push Users Docker image
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/users:latest
+      # - name: Push Users Docker image
+      #   run: |
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/users:latest
