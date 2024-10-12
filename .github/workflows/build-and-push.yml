@@ -26,7 +26,11 @@ jobs:
 
       - name: Build API Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/api:latest -f apps/api/Dockerfile .
+          docker build \
+            --build-arg AT_SECRET=${{ secrets.AT_SECRET }} \
+            --build-arg RT_SECRET=${{ secrets.RT_SECRET }} \
+            -t ${{ secrets.DOCKER_USERNAME }}/api:latest \
+            -f apps/api/Dockerfile .
 
       - name: Push API Docker image
         run: |
