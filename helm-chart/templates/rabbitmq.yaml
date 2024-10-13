@@ -34,22 +34,17 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rabbitmq
-  labels:
-    app: rabbitmq
+  name: rabbitmq-service
 spec:
-  type: NodePort
-  selector:
-    app: rabbitmq
+  type: ClusterIP
   ports:
     - name: amqp
-      protocol: TCP
       port: 5672
       targetPort: 5672
-      nodePort: 30007
+
     - name: management
-      protocol: TCP
       port: 15672
       targetPort: 15672
-      nodePort: 30008
+  selector:
+    app: rabbitmq
 ---

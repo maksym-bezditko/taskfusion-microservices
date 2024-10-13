@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users-service
+  template:
+    metadata:
+      labels:
+        app: users-service
+    spec:
+      containers:
+      - name: users-service-container
+        image: maxfrmklmk/users:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        env:
+        - name: AT_SECRET
+          value: "cc2fb00260754ab7e7daf72ed2eas341d8d2bda82d5a976e495273af19ed41"
+        - name: RT_SECRET
+          value: "cc2bda820265a976e49527c2bda83af19ed412fb02easid32fb02eas341d8d"
+        - name: DB_HOST
+          value: "users-db-service"
+        - name: DB_USER
+          value: "user"
+        - name: DB_PASSWORD
+          value: "password"
+        - name: DB_NAME
+          value: "users-db"
+        - name: DB_PORT
+          value: "3306"
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "100m"
+      nodeSelector:
+        kubernetes.io/arch: arm64

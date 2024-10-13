@@ -6,11 +6,10 @@ kind: Service
 metadata:
   name: {{ .name }}-db-service
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
     - port: {{ .port }}
       targetPort: 3306
-      nodePort: {{ .nodePort }}
   selector:
     app: {{ .name }}-db
 

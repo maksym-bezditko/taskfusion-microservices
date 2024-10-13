@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifications-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notifications-service
+  template:
+    metadata:
+      labels:
+        app: notifications-service
+    spec:
+      containers:
+      - name: notifications-service-container
+        image: maxfrmklmk/notifications:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_HOST
+          value: "notifications-db-service"
+        - name: DB_USER
+          value: "user"
+        - name: DB_PASSWORD
+          value: "password"
+        - name: DB_NAME
+          value: "notifications-db"
+        - name: DB_PORT
+          value: "3300"
+        - name: EMAIL_USERNAME
+          value: "mb.email.for.studying@gmail.com"
+        - name: EMAIL_PASSWORD
+          value: "ghjp gapi xleo dtsd"
+        - name: EMAIL_HOST
+          value: "smtp.gmail.com"
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "100m"
+      nodeSelector:
+        kubernetes.io/arch: arm64

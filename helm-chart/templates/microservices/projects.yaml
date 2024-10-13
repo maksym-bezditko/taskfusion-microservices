@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: projects-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: projects-service
+  template:
+    metadata:
+      labels:
+        app: projects-service
+    spec:
+      containers:
+      - name: projects-service-container
+        image: maxfrmklmk/projects:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_HOST
+          value: "projects-db-service"
+        - name: DB_USER
+          value: "user"
+        - name: DB_PASSWORD
+          value: "password"
+        - name: DB_NAME
+          value: "projects-db"
+        - name: DB_PORT
+          value: "3302"
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "100m"
+      nodeSelector:
+        kubernetes.io/arch: arm64
