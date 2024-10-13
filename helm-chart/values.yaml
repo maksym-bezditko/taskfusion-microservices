@@ -1,22 +1,15 @@
 databases:
   - name: notifications
-    nodePort: 30000
     port: 3300
   - name: payments
-    nodePort: 30001
     port: 3301
   - name: projects
-    nodePort: 30002
     port: 3302
   - name: projects-users
-    nodePort: 30003
     port: 3303
   - name: tasks
-    nodePort: 30004
     port: 3304
   - name: tasks-users
-    nodePort: 30005
     port: 3305
   - name: users
-    nodePort: 30006
     port: 3306

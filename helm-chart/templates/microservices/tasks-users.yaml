@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasks-users-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tasks-users-service
+  template:
+    metadata:
+      labels:
+        app: tasks-users-service
+    spec:
+      containers:
+      - name: tasks-users-service-container
+        image: maxfrmklmk/tasks-users:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_HOST
+          value: "tasks-users-db-service"
+        - name: DB_USER
+          value: "user"
+        - name: DB_PASSWORD
+          value: "password"
+        - name: DB_NAME
+          value: "tasks-users-db"
+        - name: DB_PORT
+          value: "3305"
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "100m"
+      nodeSelector:
+        kubernetes.io/arch: arm64
