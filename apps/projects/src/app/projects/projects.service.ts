@@ -21,6 +21,7 @@ import {
   GetUsersByIdsContract,
   GetClientByUserIdContract,
   CheckUserContract,
+  ValidateAccessToProjectContract,
 } from '@taskfusion-microservices/contracts';
 import { ProjectEntity } from '@taskfusion-microservices/entities';
 import { Repository, In, DeepPartial } from 'typeorm';
@@ -260,7 +261,7 @@ export class ProjectsService extends BaseService {
   private async getProjectDeveloperUsers(projectId: number) {
     await this.getProjectByIdOrThrow(projectId);
 
-    const developerUserIds = await this.getProjectDeveloperIds(projectId);
+    const developerUserIds = await this.getProjectDeveloperUserIds(projectId);
 
     if (!developerUserIds.length) {
       return [];
@@ -271,7 +272,7 @@ export class ProjectsService extends BaseService {
     return users;
   }
 
-  private async getProjectDeveloperIds(projectId: number) {
+  private async getProjectDeveloperUserIds(projectId: number) {
     const dto: GetProjectDeveloperIdsContract.Dto = {
       projectId,
     };
@@ -406,5 +407,39 @@ export class ProjectsService extends BaseService {
     this.logger.log(`Retrieving project developer users: ${dto.projectId}`);
 
     return projectDeveloperUsers;
+  }
+
+  @RabbitRPC({
+    exchange: ValidateAccessToProjectContract.exchange,
+    routingKey: ValidateAccessToProjectContract.routingKey,
+    queue: ValidateAccessToProjectContract.queue,
+    errorHandler: defaultNackErrorHandler,
+  })
+  async validateAccessToProjectRpcHandler(
+    dto: ValidateAccessToProjectContract.Dto
+  ): Promise<ValidateAccessToProjectContract.Response> {
+    this.logger.log(`Validating user access for a project`);
+
+    return this.validateAccessToProject(dto);
+  }
+
+  private async validateAccessToProject(
+    dto: ValidateAccessToProjectContract.Dto
+  ) {
+    const project = await this.getProjectByIdOrThrow(dto.projectId);
+
+    const clientUserId = project.clientUserId;
+    const developerUserIds = await this.getProjectDeveloperUserIds(project.id);
+    const pmUserId = await this.getProjectPmId(project.id);
+
+    const allowedUserIds = [clientUserId, ...developerUserIds];
+
+    if (pmUserId) {
+      allowedUserIds.push(pmUserId);
+    }
+
+    return {
+      allowed: allowedUserIds.includes(dto.userId),
+    };
   }
 }

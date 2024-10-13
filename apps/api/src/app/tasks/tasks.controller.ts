@@ -7,6 +7,7 @@ import {
   GetTasksByStatusContract,
   GetUserTasksByStatusContract,
   UnassignTaskFromUserContract,
+  ValidateAccessToTaskContract,
 } from '@taskfusion-microservices/contracts';
 import {
   AtJwtGuard,
@@ -104,6 +105,23 @@ export class TasksController {
 
     return this.customAmqpConnection.requestOrThrow<GetTasksByStatusContract.Response>(
       GetTasksByStatusContract.routingKey,
+      payload
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Post('validate-access-to-task/:taskId')
+  async validateAccessToTask(
+    @Param('taskId') taskId: number,
+    @UserIdFromJwt() userId: number
+  ): Promise<ValidateAccessToTaskContract.Response> {
+    const payload: ValidateAccessToTaskContract.Dto = {
+      taskId: +taskId,
+      userId: +userId
+    }
+
+    return this.customAmqpConnection.requestOrThrow<ValidateAccessToTaskContract.Response>(
+      ValidateAccessToTaskContract.routingKey,
       payload
     );
   }
