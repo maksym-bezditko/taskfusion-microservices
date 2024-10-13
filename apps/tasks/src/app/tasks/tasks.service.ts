@@ -23,6 +23,8 @@ import {
   GetTaskUserRelation,
   CreateTaskUserRelation,
   CreateNotificationContract,
+  ValidateAccessToTaskContract,
+  ValidateAccessToProjectContract,
 } from '@taskfusion-microservices/contracts';
 import { TaskEntity } from '@taskfusion-microservices/entities';
 import { FindOptionsWhere, In, Repository } from 'typeorm';
@@ -489,5 +491,32 @@ export class TasksService extends BaseService {
     return {
       success: deleteOperationSuccess,
     };
+  }
+
+  @RabbitRPC({
+    exchange: ValidateAccessToTaskContract.exchange,
+    routingKey: ValidateAccessToTaskContract.routingKey,
+    queue: ValidateAccessToTaskContract.queue,
+    errorHandler: defaultNackErrorHandler,
+  })
+  async validateAccessToTask(
+    dto: ValidateAccessToTaskContract.Dto
+  ): Promise<ValidateAccessToTaskContract.Response> {
+    const task = await this.getTaskByIdOrThrow(dto.taskId);
+
+    // we use project validation as only project participants like client, devs and pm have access to a task
+
+    const payload: ValidateAccessToProjectContract.Dto = {
+      projectId: task.projectId,
+      userId: dto.userId,
+    };
+
+    const result =
+      await this.customAmqpConnection.requestOrThrow<ValidateAccessToProjectContract.Response>(
+        ValidateAccessToProjectContract.routingKey,
+        payload
+      );
+
+    return result;
   }
 }
