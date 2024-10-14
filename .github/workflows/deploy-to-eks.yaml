@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: 
+        service:
           - api
           - notifications
           - payments
@@ -82,3 +82,5 @@ jobs:
         uses: WyriHaximus/github-action-helm3@v3
         with:
           exec: helm upgrade --install taskfusion helm-chart/
+          kubeconfig: '${{ secrets.KUBECONFIG }}'
+          overrule_existing_kubeconfig: 'true'
