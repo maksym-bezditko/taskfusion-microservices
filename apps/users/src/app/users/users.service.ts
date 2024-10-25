@@ -50,16 +50,6 @@ export class UsersService extends BaseService {
   private async getUserById(userId: number) {
     return this.userRepository.findOne({
       where: { id: userId },
-      select: [
-        'id',
-        'name',
-        'email',
-        'description',
-        'userType',
-        'telegramId',
-        'createdAt',
-        'updatedAt',
-      ],
     });
   }
 
@@ -80,16 +70,6 @@ export class UsersService extends BaseService {
   private async getUserByEmail(email: string) {
     return this.userRepository.findOne({
       where: { email },
-      select: [
-        'id',
-        'name',
-        'email',
-        'description',
-        'userType',
-        'telegramId',
-        'createdAt',
-        'updatedAt',
-      ],
     });
   }
 
@@ -110,16 +90,6 @@ export class UsersService extends BaseService {
   private async getUsersByIds(ids: number[]) {
     return this.userRepository.find({
       where: { id: In(ids) },
-      select: [
-        'id',
-        'name',
-        'email',
-        'description',
-        'userType',
-        'telegramId',
-        'createdAt',
-        'updatedAt',
-      ],
     });
   }
 
@@ -206,6 +176,8 @@ export class UsersService extends BaseService {
 
   private async login(email: string, password: string) {
     const user = await this.getUserByEmailOrThrow(email);
+
+    console.log(password, user);
 
     await this.throwIfPasswordsDontMatch(password, user.password);
 

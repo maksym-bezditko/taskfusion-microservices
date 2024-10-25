@@ -5,6 +5,7 @@ import { BaseService } from '@taskfusion-microservices/common';
 import {
   CreateNotificationContract,
   GetUserNotificationsContract,
+  ReadMyNotificationsContract,
 } from '@taskfusion-microservices/contracts';
 import { NotificationEntity } from '@taskfusion-microservices/entities';
 import { Repository } from 'typeorm';
@@ -66,5 +67,31 @@ export class InAppNotificationsService extends BaseService {
     });
 
     return entries;
+  }
+
+  @RabbitRPC({
+    exchange: ReadMyNotificationsContract.exchange,
+    routingKey: ReadMyNotificationsContract.routingKey,
+    queue: ReadMyNotificationsContract.queue,
+  })
+  async readMyNotificationsContract(dto: ReadMyNotificationsContract.Dto) {
+    this.logger.log(`Reading notifications for user ${dto.userId}`);
+
+    return this.readUserNotifications(dto);
+  }
+
+  private async readUserNotifications(dto: ReadMyNotificationsContract.Dto) {
+    const result = await this.notificationsRepository.update(
+      {
+        userId: dto.userId,
+      },
+      {
+        isRead: true,
+      }
+    );
+
+    return {
+      success: result.affected > 0,
+    };
   }
 }

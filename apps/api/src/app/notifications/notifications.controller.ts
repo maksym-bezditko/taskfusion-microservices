@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import {
   AtJwtGuard,
   CustomAmqpConnection,
@@ -6,6 +6,7 @@ import {
 } from '@taskfusion-microservices/common';
 import {
   GetUserNotificationsContract,
+  ReadMyNotificationsContract,
 } from '@taskfusion-microservices/contracts';
 
 @Controller('notifications')
@@ -23,6 +24,21 @@ export class NotificationsController {
 
     return this.customAmqpConnection.requestOrThrow<GetUserNotificationsContract.Response>(
       GetUserNotificationsContract.routingKey,
+      payload
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Post('read-my-notifications')
+  async readMyNotifications(
+    @UserIdFromJwt() userId: number
+  ): Promise<ReadMyNotificationsContract.Response> {
+    const payload: ReadMyNotificationsContract.Dto = {
+      userId,
+    };
+
+    return this.customAmqpConnection.requestOrThrow<ReadMyNotificationsContract.Response>(
+      ReadMyNotificationsContract.routingKey,
       payload
     );
   }

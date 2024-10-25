@@ -24,5 +24,7 @@ export namespace AssignTaskToUserContract {
     userId: number;
   }
 
-  export class Dto extends Request {}
+  export class Dto extends Request {
+    assignerId: number
+  }
 }
