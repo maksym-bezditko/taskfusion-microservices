@@ -22,6 +22,7 @@ import {
   GetClientByUserIdContract,
   CheckUserContract,
   ValidateAccessToProjectContract,
+  GetProjectUsersContract,
 } from '@taskfusion-microservices/contracts';
 import { ProjectEntity } from '@taskfusion-microservices/entities';
 import { Repository, In, DeepPartial } from 'typeorm';
@@ -407,6 +408,38 @@ export class ProjectsService extends BaseService {
     this.logger.log(`Retrieving project developer users: ${dto.projectId}`);
 
     return projectDeveloperUsers;
+  }
+
+  @RabbitRPC({
+    exchange: GetProjectUsersContract.exchange,
+    routingKey: GetProjectUsersContract.routingKey,
+    queue: GetProjectUsersContract.queue,
+    errorHandler: defaultNackErrorHandler,
+  })
+  async getProjectUsersRpcHandler(
+    dto: GetProjectUsersContract.Dto
+  ): Promise<GetProjectUsersContract.Response> {
+    const projectUsers = await this.getProjectUsers(dto.projectId);
+
+    this.logger.log(`Retrieving project users: ${dto.projectId}`);
+
+    return projectUsers;
+  }
+
+  private async getProjectUsers(projectId: number) {
+    const projectDevelopers = await this.getProjectDeveloperUsers(projectId);
+    const pmUser = await this.getProjectPmUser(projectId);
+    const clientUser = await this.getProjectClient(projectId);
+
+    return [clientUser, pmUser, ...projectDevelopers];
+  }
+
+  private async getProjectClient(projectId: number) {
+    const project = await this.getProjectByIdOrThrow(projectId);
+
+    const clientUserId = await this.getUserByIdOrThrow(project.clientUserId);
+
+    return clientUserId;
   }
 
   @RabbitRPC({

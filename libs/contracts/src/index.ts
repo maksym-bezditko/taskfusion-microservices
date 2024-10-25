@@ -22,6 +22,7 @@ export * from './contracts/projects/get-pm-projects.contract';
 export * from './contracts/projects/get-project-by-id.contract';
 export * from './contracts/projects/get-project-pm-user.contract';
 export * from './contracts/projects/get-project-developer-users.contract';
+export * from './contracts/projects/get-project-users.contract';
 export * from './contracts/projects/get-developer-projects.contract';
 export * from './contracts/projects/validate-access-to-project.contract';
 
@@ -48,6 +49,7 @@ export * from './contracts/tasks/get-tasks-by-status.contract';
 export * from './contracts/tasks/get-task-by-id.contract';
 export * from './contracts/tasks/check-task.contract';
 export * from './contracts/tasks/change-task-status.contract';
+export * from './contracts/tasks/change-task-priority.contract';
 export * from './contracts/tasks/get-user-tasks-by-status.contract';
 export * from './contracts/tasks/assign-task-to-user.contract';
 export * from './contracts/tasks/unassign-task-from-user.contract';
@@ -78,3 +80,4 @@ export * from './contracts/email/send-email.contract';
 
 export * from './contracts/notifications/create-notification.contract';
 export * from './contracts/notifications/get-user-notifications.contract';
+export * from './contracts/notifications/read-my-notifications.contract';

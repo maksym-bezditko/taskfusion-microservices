@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import {
   AssignTaskToUserContract,
+  ChangeTaskPriorityContract,
   ChangeTaskStatusContract,
   CreateTaskContract,
   GetTaskByIdContract,
@@ -39,22 +40,30 @@ export class TasksController {
   @UseGuards(AtJwtGuard)
   @Post('assign-task-to-user')
   async assingTaskToUser(
-    @Body() dto: AssignTaskToUserContract.Request
+    @Body() dto: AssignTaskToUserContract.Request,
+    @UserIdFromJwt() assignerId: number
   ): Promise<AssignTaskToUserContract.Response> {
     return this.customAmqpConnection.requestOrThrow<AssignTaskToUserContract.Response>(
       AssignTaskToUserContract.routingKey,
-      dto
+      {
+        ...dto,
+        assignerId,
+      }
     );
   }
 
   @UseGuards(AtJwtGuard)
   @Post('unassign-task-from-user')
   async unassignTaskFromUser(
-    @Body() dto: UnassignTaskFromUserContract.Request
+    @Body() dto: UnassignTaskFromUserContract.Request,
+    @UserIdFromJwt() unassignerId: number
   ): Promise<UnassignTaskFromUserContract.Response> {
     return this.customAmqpConnection.requestOrThrow<UnassignTaskFromUserContract.Response>(
       UnassignTaskFromUserContract.routingKey,
-      dto
+      {
+        ...dto,
+        unassignerId,
+      }
     );
   }
 
@@ -72,6 +81,24 @@ export class TasksController {
 
     return this.customAmqpConnection.requestOrThrow<ChangeTaskStatusContract.Response>(
       ChangeTaskStatusContract.routingKey,
+      payload
+    );
+  }
+
+  @UseGuards(AtJwtGuard)
+  @Post('change-task-priority')
+  async changeTaskPriority(
+    @Body() dto: ChangeTaskPriorityContract.Request,
+    @UserIdFromJwt() userId: number
+  ): Promise<ChangeTaskPriorityContract.Response> {
+    const payload: ChangeTaskPriorityContract.Dto = {
+      taskId: dto.taskId,
+      taskPriority: dto.taskPriority,
+      userId,
+    };
+
+    return this.customAmqpConnection.requestOrThrow<ChangeTaskPriorityContract.Response>(
+      ChangeTaskPriorityContract.routingKey,
       payload
     );
   }
@@ -110,15 +137,15 @@ export class TasksController {
   }
 
   @UseGuards(AtJwtGuard)
-  @Post('validate-access-to-task/:taskId')
+  @Get('validate-access-to-task/:taskId')
   async validateAccessToTask(
     @Param('taskId') taskId: number,
     @UserIdFromJwt() userId: number
   ): Promise<ValidateAccessToTaskContract.Response> {
     const payload: ValidateAccessToTaskContract.Dto = {
       taskId: +taskId,
-      userId: +userId
-    }
+      userId: +userId,
+    };
 
     return this.customAmqpConnection.requestOrThrow<ValidateAccessToTaskContract.Response>(
       ValidateAccessToTaskContract.routingKey,

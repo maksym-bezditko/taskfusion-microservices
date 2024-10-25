@@ -26,6 +26,12 @@ export class NotificationEntity {
   })
   userId: number;
 
+  @Column({
+    name: 'is_read',
+    default: false,
+  })
+  isRead: boolean;
+
   @CreateDateColumn({
     name: 'created_at',
   })

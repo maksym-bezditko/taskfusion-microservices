@@ -3,12 +3,13 @@ import {
   GENERAL_EXCHANGE_NAME,
   TASKS_QUEUE_NAME,
 } from '@taskfusion-microservices/constants';
-import { IsInt } from 'class-validator';
+import { IsEnum, IsInt } from 'class-validator';
+import { TaskPriority } from '@taskfusion-microservices/entities';
 
-export namespace UnassignTaskFromUserContract {
+export namespace ChangeTaskPriorityContract {
   export const exchange = GENERAL_EXCHANGE_NAME;
 
-  export const routingKey = `unassign-task-from-user`;
+  export const routingKey = `change-task-priority`;
 
   export const queue = `${TASKS_QUEUE_NAME}.${routingKey}`;
 
@@ -20,11 +21,11 @@ export namespace UnassignTaskFromUserContract {
     @IsInt()
     taskId: number;
 
-    @IsInt()
-    userId: number;
+    @IsEnum(TaskPriority)
+    taskPriority: TaskPriority;
   }
 
   export class Dto extends Request {
-    unassignerId: number;
+    userId: number;
   }
 }
