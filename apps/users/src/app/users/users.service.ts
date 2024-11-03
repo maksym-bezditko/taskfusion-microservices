@@ -317,7 +317,7 @@ export class UsersService extends BaseService {
     userType: UserType;
   }) {
     const accessToken = await this.signPayload(payload, {
-      expiresIn: '30m',
+      expiresIn: '10s',
       secret: this.configService.getOrThrow<string>('AT_SECRET'),
     });
 

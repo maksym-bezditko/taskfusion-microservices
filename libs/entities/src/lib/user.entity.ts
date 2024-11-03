@@ -35,13 +35,6 @@ export class UserEntity {
   @Column()
   description: string;
 
-  @Column({
-    nullable: true,
-    default: true,
-    name: 'telegram_id',
-  })
-  telegramId: string | null;
-
   @Column()
   password: string;
 

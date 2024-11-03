@@ -19,7 +19,6 @@ export namespace GetProfileContract {
       | 'email'
       | 'id'
       | 'userType'
-      | 'telegramId'
       | 'description'
       | 'name'
       | 'client'

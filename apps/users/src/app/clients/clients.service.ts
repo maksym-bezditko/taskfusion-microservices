@@ -62,7 +62,6 @@ export class ClientsService extends BaseService {
       email: dto.email,
       password: dto.password,
       userType: UserType.CLIENT,
-      telegramId: dto.telegramId,
       description: dto.description,
       name: dto.name,
       client,

@@ -19,7 +19,9 @@ export class ProjectEntity {
   @Column()
   title: string;
 
-  @Column()
+  @Column({
+    type: 'longtext',
+  })
   description: string;
 
   @Column()
@@ -40,9 +42,13 @@ export class ProjectEntity {
   })
   updatedAt: Date;
 
-  @OneToMany(() => PmInviteEntity, (invite) => invite.project, { cascade: true })
+  @OneToMany(() => PmInviteEntity, (invite) => invite.project, {
+    cascade: true,
+  })
   pmInvites: PmInviteEntity[];
 
-  @OneToMany(() => DeveloperInviteEntity, (invite) => invite.project, { cascade: true })
+  @OneToMany(() => DeveloperInviteEntity, (invite) => invite.project, {
+    cascade: true,
+  })
   developerInvites: DeveloperInviteEntity[];
 }
