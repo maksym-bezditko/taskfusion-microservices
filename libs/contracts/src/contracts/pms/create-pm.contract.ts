@@ -29,10 +29,6 @@ export namespace CreatePmContract {
     password: string;
 
     @IsString()
-    @ValidateIf((_, v) => v !== null)
-    telegramId: string | null;
-
-    @IsString()
     description: string;
   }
 

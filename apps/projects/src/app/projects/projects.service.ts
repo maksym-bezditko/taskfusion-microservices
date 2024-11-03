@@ -431,7 +431,13 @@ export class ProjectsService extends BaseService {
     const pmUser = await this.getProjectPmUser(projectId);
     const clientUser = await this.getProjectClient(projectId);
 
-    return [clientUser, pmUser, ...projectDevelopers];
+    const users = [clientUser];
+
+    if (pmUser) {
+      users.push(pmUser);
+    }
+
+    return [...users, ...projectDevelopers];
   }
 
   private async getProjectClient(projectId: number) {

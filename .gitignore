@@ -54,5 +54,6 @@ kubeconfig
 
 devops
 
-docker-compose*
 *.pem
+
+docker-compose*

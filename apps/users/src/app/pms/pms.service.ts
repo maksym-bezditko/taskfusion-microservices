@@ -62,7 +62,6 @@ export class PmsService extends BaseService {
       email: dto.email,
       password: dto.password,
       userType: UserType.PM,
-      telegramId: dto.telegramId,
       description: dto.description,
       name: dto.name,
       pm,

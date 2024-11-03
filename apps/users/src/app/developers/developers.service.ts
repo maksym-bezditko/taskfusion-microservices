@@ -64,7 +64,6 @@ export class DevelopersService extends BaseService {
       email: dto.email,
       password: dto.password,
       userType: UserType.DEVELOPER,
-      telegramId: dto.telegramId,
       description: dto.description,
       name: dto.name,
       developer,

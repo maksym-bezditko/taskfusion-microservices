@@ -51,7 +51,10 @@ export class TaskEntity {
   })
   taskStatus: TaskStatus;
 
-  @Column()
+  @Column({
+    name: 'deadline',
+    type: 'timestamp'
+  })
   deadline: Date;
 
   @Column({
